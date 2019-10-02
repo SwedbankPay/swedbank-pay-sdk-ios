@@ -2,13 +2,13 @@ import PayexSDK
 
 /// This is just a structure to pass the data to PaymentViewController
 struct PaymentData {
-    var backendUrl: String?// = "https://payex-merchant-samples.appspot.com/"
+    var backendUrl: String = "https://payex-merchant-samples.appspot.com/"
     var headers: Dictionary<String, String>?
-    var merchantData: StoreData?  //Dictionary<String, Any>?
+    var merchantData: StoreData?
     var consumerData: PayexSDK.Consumer?
 }
 
-/// Example store data, can be anything - but needs to conform to Encodable protocol
+/// Example store data, can be anything; needs to conform to Encodable protocol
 struct StoreData: Encodable {
     var basketId: String
     var currency: String
@@ -27,13 +27,13 @@ class CheckoutViewController: UIViewController {
     
     private var paymentData: PaymentData? = PaymentData()
     
-    /// Creates api request header names and values dictionary; you define these in the backend receiving the requests of from the app
+    /// Creates api request header names and values dictionary; define these in the backend receiving the requests of from the app
     private let payexSDKConfiguration: Dictionary<String, String> = [
         "x-payex-sample-apikey": "c339f53d-8a36-4ea9-9695-75048e592cc0",
         "x-payex-sample-access-token": NSUUID().uuidString.lowercased()
     ]
     
-    /// Sample Merchant data dictionary
+    /// Sample Merchant data
     private let sampleMerchantData: StoreData = StoreData.init(
         basketId: "123-4567-89012",
         currency: "SEK",
