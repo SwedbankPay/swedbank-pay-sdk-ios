@@ -88,7 +88,7 @@ enum WebViewType {
 }
 
 func createCheckinHTML(_ url: String) -> String {
-    let html = """
+    return """
 <!DOCTYPE html>
 <html>
 <head>
@@ -97,7 +97,7 @@ func createCheckinHTML(_ url: String) -> String {
 </head>
 <body>
 <div id="checkin" />
-<script data-payex-hostedview="checkin" src="%s"></script>
+<script data-payex-hostedview="checkin" src="\(url)"></script>
 <script language="javascript">
     payex.hostedView.consumer({
         container: "checkin",
@@ -115,11 +115,10 @@ func createCheckinHTML(_ url: String) -> String {
 </body>
 </html>
 """
-    return html.replacingOccurrences(of: "%s", with: url, options: .literal, range: nil)
 }
 
 func createCheckoutHTML(_ url: String) -> String {
-    let html = """
+    return """
 <!DOCTYPE html>
 <html>
 <head>
@@ -128,7 +127,7 @@ func createCheckoutHTML(_ url: String) -> String {
 </head>
 <body>
 <div id="checkout" />
-<script src="%s"></script>
+<script src="\(url)"></script>
 <script language="javascript">
     payex.hostedView.paymentMenu({
         container: "checkout",
@@ -155,5 +154,4 @@ func createCheckoutHTML(_ url: String) -> String {
 </body>
 </html>
 """
-    return html.replacingOccurrences(of: "%s", with: url, options: .literal, range: nil)
 }
