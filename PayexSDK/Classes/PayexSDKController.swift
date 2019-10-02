@@ -24,7 +24,6 @@ public class PayexSDKController: UIViewController {
      Initializes the Payex SDK, and depending on the consumerData, starts the payment process with user identification or anonymous process
      
      - parameter headers: header dictionary
-     - parameter title: title to be shown in the Navigation Bar
      - parameter backendUrl: merchant's own backend URL
      - parameter merchantData: merchant and purchase information
      - parameter consumerData: consumer identification information, optional; if not provided, user will be anonymous
@@ -122,7 +121,6 @@ public class PayexSDKController: UIViewController {
      Creats a HTML string to load into WKWebView
      
      - parameter url: JavaScript URL String to replace a placeholder with from HTML template
-     
      - parameter type: the type of the WKWebView HTML to load, and what kind of JavaScript events to create for it
      */
     private func loadWebViewURL(_ url: String, type: WebViewType) {

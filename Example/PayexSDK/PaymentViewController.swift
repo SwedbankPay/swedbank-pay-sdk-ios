@@ -10,7 +10,7 @@ class PaymentViewController: UIViewController {
     var result: PaymentResult = .success
     
     override func viewDidAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+        super.viewDidAppear(animated)
         
         let payexSDKController = PayexSDKController.init(headers: paymentData?.headers, backendUrl: paymentData?.backendUrl, merchantData: paymentData?.merchantData, consumerData: paymentData?.consumerData)
         addChildViewController(payexSDKController)
@@ -26,7 +26,6 @@ class PaymentViewController: UIViewController {
         
         payexSDKController.didMove(toParentViewController: self)
         payexSDKController.delegate = self
-
     }
 }
 

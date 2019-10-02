@@ -2,7 +2,7 @@ import PayexSDK
 
 /// This is just a structure to pass the data to PaymentViewController
 struct PaymentData {
-    var backendUrl: String = "https://payex-merchant-samples.appspot.com/"
+    var backendUrl: String?// = "https://payex-merchant-samples.appspot.com/"
     var headers: Dictionary<String, String>?
     var merchantData: StoreData?  //Dictionary<String, Any>?
     var consumerData: PayexSDK.Consumer?
