@@ -7,7 +7,8 @@ class PaymentViewController: UIViewController {
     @IBOutlet private weak var webViewContainer: UIView!
     
     var paymentData: PaymentData?
-    var result: PaymentResult = .success
+    var result: PaymentResult = .unknown
+    var problem: PayexSDK.Problem?
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -40,9 +41,10 @@ extension PaymentViewController: PayexSDKDelegate {
     }
     
     /// Handle payment failed event
-    func paymentFailed() {
+    func paymentFailed(_ problem: PayexSDK.Problem) {
         // Example
-        result = .error
+        self.result = .error
+        self.problem = problem
         performSegue(withIdentifier: "showResult", sender: self)
     }
     
@@ -50,6 +52,7 @@ extension PaymentViewController: PayexSDKDelegate {
         if segue.identifier == "showResult" {
             if let vc = segue.destination as? ResultViewController {
                 vc.result = self.result
+                vc.problem = self.problem
             }
         }
     }

@@ -5,11 +5,25 @@ import ObjectMapper
 typealias Closure<T> = (T) -> Void
 typealias CallbackClosure = () -> Void
 
-struct OperationsList: Mappable {
+enum SDKProblemString: String {
+    case endPointsListEmpty = "Server returned empty endpoints list"
+    case consumersEndpointMissing = "Requested consumers endpoint is missing"
+    case paymentordersEndpointIsMissing = "Requested paymentorders endpoint is missing"
+    case backendUrlMissing = "BackendUrl is missing"
+    case merchantDataMissing = "MerchantData is missing"
+    case merchantDataSerializationFailed = "Error serializing merchantData"
+    case consumerIdentificationWebviewCreationFailed = "Failed to create consumer identification webview"
+    case paymentWebviewCreationFailed = "Failed to create payment webview"
+    case consumerDataEncodingFailed = "Failed to encode consumerData"
+    case backendRequestUrlCreationFailed = "Failed to create backend request URL"
+    case consumerDataMissing = "ConsumerData is missing"
+}
+
+struct OperationsList: Mappable, Decodable {
     var operations: [Operation] = []
     var state: State = .Undefined
     var url: String = ""
-    var message: String = ""
+    var message: String? = ""
     
     init?(map: Map) {
     }
@@ -22,7 +36,7 @@ struct OperationsList: Mappable {
     }
 }
 
-struct Operation: Mappable {
+struct Operation: Mappable, Decodable {
     var contentType: String = ""
     var href: String?
     var method: OperationMethod = .GET
@@ -39,7 +53,7 @@ struct Operation: Mappable {
     }
 }
 
-enum OperationMethod: String {
+enum OperationMethod: String, Decodable {
     case GET
     case POST
     case PATCH
@@ -48,7 +62,7 @@ enum OperationMethod: String {
     case DELETE
 }
 
-enum State: String {
+enum State: String, Decodable {
     case Undefined
     case Ready
     case Pending
@@ -68,7 +82,7 @@ enum ConsumerEvent: String {
     case onError
 }
 
-enum PaymentEvent: String, Codable {
+enum PaymentEvent: String {
     case onPaymentMenuInstrumentSelected
     case onPaymentCompleted
     case onPaymentFailed

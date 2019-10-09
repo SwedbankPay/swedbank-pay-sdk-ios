@@ -7,7 +7,7 @@ import ObjectMapper
 public protocol PayexSDKDelegate: AnyObject {
     func paymentComplete()
     
-    func paymentFailed()
+    func paymentFailed(_ problem: PayexSDK.Problem)
 }
 
 public class PayexSDKController: UIViewController {
@@ -46,11 +46,12 @@ public class PayexSDKController: UIViewController {
             if let data = try? encoder.encode(merchantData) {
                 viewModel.merchantData = String(data: data, encoding: .utf8)
             } else {
-                print("PayexSDK: error serializing merchantData. Is the type Endodable?")
-                self.paymentFailed()
+                let msg: String = SDKProblemString.merchantDataSerializationFailed.rawValue
+                self.paymentFailed(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
             }
         } else {
-             self.paymentFailed()
+            let msg: String = SDKProblemString.merchantDataMissing.rawValue
+            self.paymentFailed(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
         }
         
         viewModel.consumerData = consumerData
@@ -60,8 +61,8 @@ public class PayexSDKController: UIViewController {
         } else {
             viewModel.identifyUser(successCallback: { [weak self] operationsList in
                 self?.createConsumerURL(operationsList)
-                }, errorCallback: { [weak self] in
-                    self?.paymentFailed()
+            }, errorCallback: { [weak self] problem in
+                self?.paymentFailed(problem)
             })
         }
         
@@ -71,8 +72,8 @@ public class PayexSDKController: UIViewController {
     private func createPaymentOrder() {
         viewModel.createPaymentOrder(successCallback: { [weak self] operationsList in
             self?.createPaymentOrderURL(operationsList)
-        }, errorCallback: { [weak self] in
-            self?.paymentFailed()
+        }, errorCallback: { [weak self] problem in
+            self?.paymentFailed(problem)
         })
     }
     
@@ -97,8 +98,8 @@ public class PayexSDKController: UIViewController {
         if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
             loadWebViewURL(jsURL, type: .consumerIdentification)
         } else {
-            debugPrint("PayexSDK: failed to create consumer identification webView")
-            paymentFailed()
+            let msg: String = SDKProblemString.consumerIdentificationWebviewCreationFailed.rawValue
+            self.paymentFailed(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
         }
     }
     
@@ -112,8 +113,8 @@ public class PayexSDKController: UIViewController {
         if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
             loadWebViewURL(jsURL, type: .paymentOrder)
         } else {
-            debugPrint("PayexSDK: failed to create payment webView")
-            paymentFailed()
+            let msg: String = SDKProblemString.paymentWebviewCreationFailed.rawValue
+            self.paymentFailed(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
         }
     }
     
@@ -175,10 +176,10 @@ public class PayexSDKController: UIViewController {
 
 /// Extension to conform to PayexSDKDelegate protocol
 extension PayexSDKController: WKNavigationDelegate {
-    fileprivate func paymentFailed() {
+    fileprivate func paymentFailed(_ problem: PayexSDK.Problem) {
         debugPrint("PayexSDK: Payment failed")
         
-        self.delegate?.paymentFailed()
+        self.delegate?.paymentFailed(problem)
     }
     
     fileprivate func paymentComplete() {
@@ -201,8 +202,8 @@ extension PayexSDKController: WKScriptMessageHandler {
         case ConsumerEvent.onShippingDetailsAvailable.rawValue:
             debugPrint("PayexSDK: onShippingDetailsAvailable event received")
         case ConsumerEvent.onError.rawValue:
-            debugPrint("PayexSDK: onError event received: \(message.body)")
-            paymentFailed()
+            let msg: String = message.body as? String ?? "Unknown error"
+            self.paymentFailed(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
             
         // Payment events
         case PaymentEvent.onPaymentMenuInstrumentSelected.rawValue:
@@ -211,15 +212,15 @@ extension PayexSDKController: WKScriptMessageHandler {
             debugPrint("PayexSDK: onPaymentCompleted event received")
             paymentComplete()
         case PaymentEvent.onPaymentFailed.rawValue:
-            debugPrint("PayexSDK: onPaymentFailed event received: \(message.body)")
-            paymentFailed()
+            let msg: String = message.body as? String ?? "Unknown error"
+            self.paymentFailed(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
         case PaymentEvent.onPaymentCreated.rawValue:
             debugPrint("PayexSDK: onPaymentCreated event received")
         case PaymentEvent.onPaymentToS.rawValue:
             handleToSEvent(message.body)
         case PaymentEvent.onError.rawValue:
-            debugPrint("PayexSDK: onError event received: \(message.body)")
-            paymentFailed()
+            let msg: String = message.body as? String ?? "Unknown error"
+            self.paymentFailed(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
         default:
             debugPrint("PayexSDK: undefined event received")
         }

@@ -35,7 +35,7 @@ class CheckoutViewController: UIViewController {
     
     /// Sample Merchant data
     private let sampleMerchantData: StoreData = StoreData.init(
-        basketId: "123-4567-89012",
+        basketId: NSUUID().uuidString.lowercased(),
         currency: "SEK",
         languageCode: "sv-SE",
         items: [
@@ -55,13 +55,7 @@ class CheckoutViewController: UIViewController {
         )
     )
     
-    /**
-     Initialize payment process for anonymous user
-
-     - parameter headers: api request header names and values dictionary, see sample data above
-     - parameter backendUrl: url to your backend
-     - parameter merchantData: merchant and purchase information, see sample data above
-     */
+    /// Initialize payment process for anonymous user
     @IBAction func startAnonymousPayment(_ sender: Any) {
         self.paymentData?.headers = payexSDKConfiguration
         self.paymentData?.merchantData = sampleMerchantData
@@ -69,14 +63,7 @@ class CheckoutViewController: UIViewController {
         performSegue(withIdentifier: "showPayment", sender: self)
     }
     
-    /**
-     Initialize payment process for registered user
-
-     - parameter headers: api request header names and values dictionary, see sample data above
-     - parameter backendUrl: url to your backend
-     - parameter merchantData: merchant and purchase information, see sample data above
-     - parameter customerData: customer information, see sample data above
-     */
+    /// Initialize payment process for registered user
     @IBAction func startRegisteredPayment(_ sender: Any) {
         self.paymentData?.headers = payexSDKConfiguration
         self.paymentData?.merchantData = sampleMerchantData

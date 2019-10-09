@@ -1,4 +1,5 @@
 import Alamofire
+import ObjectMapper
 
 final class PayexSDKViewModel: NSObject {
     
@@ -23,56 +24,64 @@ final class PayexSDKViewModel: NSObject {
      
      - Returns: Dictionary containing the endpoints
      */
-    public func getEndPoints(successCallback: Closure<[String: String]?>? = nil, errorCallback: CallbackClosure? = nil) {
+    public func getEndPoints(successCallback: Closure<Dictionary<String, String>?>? = nil, errorCallback: Closure<PayexSDK.Problem>? = nil) {
         
         guard let backendUrl = backendUrl else {
-            debugPrint("PayexSDK: backendUrl not defined")
-            errorCallback?()
+            let msg: String = SDKProblemString.backendUrlMissing.rawValue
+            errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
             return
         }
         
         request(backendUrl, method: .get, parameters: nil, encoding: JSONEncoding.default, headers: getHeaders()).responseJSON(completionHandler: { response in
-            if let statusCode = response.response?.statusCode, statusCode == 200, let dict = response.result.value as? [String: String] {
-                
-                #if DEBUG
-                for (name, value) in dict {
-                    debugPrint("PayexSDK: EndPoint: \(name) : \(value)")
+            if let responseValue = response.result.value {
+                if let statusCode = response.response?.statusCode {
+                    if (200...299).contains(statusCode), let res = responseValue as? Dictionary<String, String> {
+                        #if DEBUG
+                        for (name, value) in res {
+                            debugPrint("PayexSDK: EndPoint: \(name) : \(value)")
+                        }
+                        #endif
+                        successCallback?(res)
+                    } else if let response = responseValue as? Dictionary<String, Any> {
+                        // Error
+                        self.handleError(statusCode, response: response, callback: { problem in
+                            errorCallback?(problem)
+                        })
+                    } else {
+                        // Error response was of unknown format, return generic error
+                        errorCallback?(self.getServerGenericProblem(statusCode))
+                    }
                 }
-                #endif
-                successCallback?(dict)
-            } else {
-                debugPrint("PayexSDK: Error fetching backendUrl endpoints")
-                errorCallback?()
             }
         })
     }
     
-    // Creates the actual payment order, anonymous if consumerData was not given
-    public func createPaymentOrder(successCallback: Closure<OperationsList>? = nil, errorCallback: CallbackClosure? = nil) {
+    /// Creates the actual payment order, anonymous if consumerData was not given
+    public func createPaymentOrder(successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<PayexSDK.Problem>? = nil) {
         
         guard let backendUrl = backendUrl else {
-            debugPrint("PayexSDK: backendUrl not defined")
-            errorCallback?()
+            let msg: String = SDKProblemString.backendUrlMissing.rawValue
+            errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
             return
         }
         
         getEndPoints(successCallback: { [weak self] endPoints in
             // getEndPoints success
             guard let endPoints = endPoints else {
-                debugPrint("PayexSDK: endPoints missing")
-                errorCallback?()
+                let msg: String = SDKProblemString.endPointsListEmpty.rawValue
+                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             guard let endPoint = endPoints[EndPointName.paymentorders.rawValue] else {
-                debugPrint("PayexSDK: payment order cannot be created")
-                errorCallback?()
+                let msg: String = SDKProblemString.paymentordersEndpointIsMissing.rawValue
+                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             guard let merchantData = self?.merchantData else {
-                debugPrint("PayexSDK: merchantData missing")
-                errorCallback?()
+                let msg: String = SDKProblemString.merchantDataMissing.rawValue
+                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
@@ -84,54 +93,51 @@ final class PayexSDKViewModel: NSObject {
                 parameters?["consumerProfileRef"] = self?.consumerProfileRef
             }
             
-            request(backendUrl + endPoint, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: self?.getHeaders()).responseObject(completionHandler: { (response: DataResponse<OperationsList>) in
-                if let statusCode = response.response?.statusCode, statusCode == 200, let operationsList = response.result.value {
-                    debugPrint("PayexSDK: Response: \(statusCode) - \(operationsList)")
+            request(backendUrl + endPoint, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: self?.getHeaders()).responseJSON(completionHandler: { [weak self] response in
+                self?.handleResponse(response, successCallback: { operationsList in
                     successCallback?(operationsList)
-                } else {
-                    self?.handleError(response)
-                    errorCallback?()
-                }
+                }, errorCallback: { problem in
+                    errorCallback?(problem)
+                })
             })
-            
-        }, errorCallback: {
+        }, errorCallback: { problem in
             // getEndPoints failed
-            debugPrint("PayexSDK: fetching endPoints failed")
-            errorCallback?()
+            errorCallback?(problem)
         })
     }
     
     /// Creates user identification request for registered user
-    public func identifyUser(successCallback: Closure<OperationsList>? = nil, errorCallback: CallbackClosure? = nil) {
+    public func identifyUser(successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<PayexSDK.Problem>? = nil) {
         
         guard let backendUrl = backendUrl else {
-            debugPrint("PayexSDK: backendUrl not defined")
+            let msg: String = SDKProblemString.backendUrlMissing.rawValue
+            errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
             return
         }
         
         getEndPoints(successCallback: { [weak self] endPoints in
             // getEndPoints success
             guard let endPoints = endPoints else {
-                debugPrint("PayexSDK: endPoints missing")
-                errorCallback?()
+                let msg: String = SDKProblemString.endPointsListEmpty.rawValue
+                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             guard let endPoint = endPoints[EndPointName.consumers.rawValue] else {
-                debugPrint("PayexSDK: payment order cannot be created")
-                errorCallback?()
+                let msg: String = SDKProblemString.consumersEndpointMissing.rawValue
+                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             guard let url = URL.init(string: backendUrl + endPoint) else {
-                debugPrint("PayexSDK: backendUrl is malformed")
-                errorCallback?()
+                let msg: String = SDKProblemString.backendRequestUrlCreationFailed.rawValue
+                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             guard let consumerData = self?.consumerData else {
-                debugPrint("PayexSDK: consumerData missing")
-                errorCallback?()
+                let msg: String = SDKProblemString.consumerDataMissing.rawValue
+                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
@@ -145,30 +151,155 @@ final class PayexSDKViewModel: NSObject {
                 urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 urlRequest.httpBody = data
                 
-                request(urlRequest).responseObject(completionHandler: { (response: DataResponse<OperationsList>) in
-                    if let statusCode = response.response?.statusCode, statusCode == 200, let operationsList = response.result.value {
-                        debugPrint("PayexSDK: Response: \(statusCode) - \(operationsList)")
+                request(urlRequest).responseJSON(completionHandler: { [weak self] response in
+                    self?.handleResponse(response, successCallback: { operationsList in
                         successCallback?(operationsList)
-                    } else {
-                        self?.handleError(response)
-                        errorCallback?()
-                    }
+                    }, errorCallback: { problem in
+                        errorCallback?(problem)
+                    })
                 })
             } else {
-                print("Failed to encode")
-                errorCallback?()
+                let msg: String = SDKProblemString.consumerDataEncodingFailed.rawValue
+                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
             }
-        }, errorCallback: {
+        }, errorCallback: { problem in
             // getEndPoints failed
-            debugPrint("PayexSDK: fetching endPoints error")
-            errorCallback?()
+            errorCallback?(problem)
             return
         })
     }
     
-    private func handleError(_ response: DataResponse<OperationsList>) {
-        if let statusCode = response.response?.statusCode, let message = response.result.value?.message {
-            debugPrint("PayexSDK: Error: \(statusCode) - \(message)")
+    /// Response handler
+    private func handleResponse(_ response: DataResponse<Any>, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<PayexSDK.Problem>? = nil) {
+        if let responseValue = response.result.value {
+            if let statusCode = response.response?.statusCode {
+                if (200...299).contains(statusCode) {
+                    // Success
+                    if let result = Mapper<OperationsList>().map(JSONObject: responseValue) {
+                        successCallback?(result)
+                    }
+                } else if let response = response.result.value as? Dictionary<String, Any> {
+                    // Error
+                    self.handleError(statusCode, response: response, callback: { problem in
+                        errorCallback?(problem)
+                    })
+                } else {
+                   // Error response was of unknown format, return generic error
+                   errorCallback?(getServerGenericProblem(statusCode))
+                }
+            }
         }
+    }
+    
+    /// Error handler, all backend request errors go through this
+    private func handleError(_ statusCode: Int, response: Dictionary<String, Any>, callback: Closure<PayexSDK.Problem>? = nil) {
+        if let type = response["type"] as? String {
+            if (400...499).contains(statusCode) {
+                let problem = getClientProblem(statusCode, problemType: type, response: response)
+                callback?(problem)
+            } else if (500...599).contains(statusCode) {
+                let problem = getServerProblem(statusCode, problemType: type, response: response)
+                callback?(problem)
+            }
+        } else {
+            // Error response was of unknown format, return generic error
+            callback?(getServerGenericProblem(statusCode))
+        }
+    }
+    
+    // MARK: Helper methods for error handling
+    private func getClientProblem(_ statusCode: Int, problemType: String, response: Dictionary<String, Any>) -> PayexSDK.Problem {
+        
+        switch problemType {
+        case PayexSDK.ClientProblemType.Unauthorized.rawValue:
+            let problem = PayexSDK.Problem.Client(.MobileSDK(.Unauthorized(message: response["title"] as? String, raw: response["detail"] as? String)))
+            return problem
+        case PayexSDK.ClientProblemType.BadRequest.rawValue:
+            let problem = PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: response["title"] as? String, raw: response["detail"] as? String)))
+            return problem
+        
+        case PayexSDK.ClientProblemType.InputError.rawValue:
+            let problem = getClientPayexProblem(PayexSDK.ClientProblem.PayExProblem.InputError, response: response)
+            return problem
+        case PayexSDK.ClientProblemType.Forbidden.rawValue:
+            let problem = getClientPayexProblem(PayexSDK.ClientProblem.PayExProblem.Forbidden, response: response)
+            return problem
+        case PayexSDK.ClientProblemType.NotFound.rawValue:
+            let problem = getClientPayexProblem(PayexSDK.ClientProblem.PayExProblem.NotFound, response: response)
+            return problem
+        
+        default:
+            // Return default error to make switch exhaustive
+            return getServerGenericProblem(statusCode)
+        }
+    }
+    
+    private func getServerProblem(_ statusCode: Int, problemType: String, response: Dictionary<String, Any>) -> PayexSDK.Problem {
+        
+        switch problemType {
+        case PayexSDK.ServerProblemType.InternalServerError.rawValue:
+            let problem = PayexSDK.Problem.Server(.MobileSDK(.InvalidBackendResponse(body: response["title"] as? String, raw: response["status"] as? String)))
+            return problem
+        case PayexSDK.ServerProblemType.BadGateway.rawValue:
+            let problem = PayexSDK.Problem.Server(.MobileSDK(.BackendConnectionFailure(message: response["title"] as? String, raw: response["detail"] as? String)))
+            return problem
+        case PayexSDK.ServerProblemType.GatewayTimeOut.rawValue:
+            let problem = PayexSDK.Problem.Server(.MobileSDK(.BackendConnectionTimeout(message: response["title"] as? String, raw: response["detail"] as? String)))
+            return problem
+
+        case PayexSDK.ServerProblemType.SystemError.rawValue:
+            let problem = getServerPayexProblem(.SystemError, response: response)
+            return problem
+        case PayexSDK.ServerProblemType.ConfigurationError.rawValue:
+            let problem = getServerPayexProblem(.ConfigurationError, response: response)
+            return problem
+            
+        default:
+            // Return default error to make switch exhaustive
+            return getServerGenericProblem(statusCode)
+        }
+    }
+    
+    private func getServerGenericProblem(_ statusCode: Int) -> PayexSDK.Problem {
+        let problem = PayexSDK.Problem.Server(.Unknown(type: nil, title: "Unknown error occurred", status: statusCode, detail: nil, instance: nil, raw: nil))
+        return problem
+    }
+    
+    private func getClientPayexProblem(_ problemType: PayexSDK.ClientProblem.PayExProblem, response: Dictionary<String, Any>) -> PayexSDK.Problem {
+        let subProblems: [PayexSDK.PayexSubProblem]? = getSubProblems(response["problems"] as? [Dictionary<String, Any>])
+        let problem = PayexSDK.Problem.Client(
+            .PayEx(
+                type: problemType,
+                title: response["title"] as? String,
+                detail: response["detail"] as? String,
+                instance: response["instance"] as? String,
+                action: response["action"] as? String,
+                problems: subProblems,
+                raw: response["raw"] as? String)
+        )
+        return problem
+    }
+    
+    private func getServerPayexProblem(_ problemType: PayexSDK.ServerProblem.PayExProblem, response: Dictionary<String, Any>) -> PayexSDK.Problem {
+        let subProblems: [PayexSDK.PayexSubProblem]? = getSubProblems(response["problems"] as? [Dictionary<String, Any>])
+        let problem = PayexSDK.Problem.Server (
+            .PayEx(
+                type: problemType,
+                title: response["title"] as? String,
+                detail: response["detail"] as? String,
+                instance: response["instance"] as? String,
+                action: response["action"] as? String,
+                problems: subProblems,
+                raw: response["raw"] as? String)
+        )
+        return problem
+    }
+    
+    private func getSubProblems(_ string: [Dictionary<String, Any>]?) -> [PayexSDK.PayexSubProblem]? {
+        var subProblems: [PayexSDK.PayexSubProblem]? = nil
+        if let string = string {
+            subProblems = Mapper<PayexSDK.PayexSubProblem>().mapArray(JSONObject: string)
+        }
+        return subProblems
     }
 }
