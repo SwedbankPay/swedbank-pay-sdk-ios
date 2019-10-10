@@ -51,7 +51,7 @@ final class SwedbankPaySDKViewModel: NSObject {
                         })
                     } else {
                         // Error response was of unknown format, return generic error
-                        errorCallback?(self.getServerGenericProblem(statusCode))
+                        errorCallback?(self.getGenericProblem(statusCode))
                     }
                 }
             }
@@ -187,7 +187,7 @@ final class SwedbankPaySDKViewModel: NSObject {
                     })
                 } else {
                    // Error response was of unknown format, return generic error
-                   errorCallback?(getServerGenericProblem(statusCode))
+                   errorCallback?(getGenericProblem(statusCode))
                 }
             }
         }
@@ -205,7 +205,7 @@ final class SwedbankPaySDKViewModel: NSObject {
             }
         } else {
             // Error response was of unknown format, return generic error
-            callback?(getServerGenericProblem(statusCode))
+            callback?(getGenericProblem(statusCode))
         }
     }
     
@@ -221,18 +221,18 @@ final class SwedbankPaySDKViewModel: NSObject {
             return problem
         
         case SwedbankPaySDK.ClientProblemType.InputError.rawValue:
-            let problem = getClientPayexProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.InputError, response: response)
+            let problem = getClientSwedbankPayProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.InputError, response: response)
             return problem
         case SwedbankPaySDK.ClientProblemType.Forbidden.rawValue:
-            let problem = getClientPayexProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.Forbidden, response: response)
+            let problem = getClientSwedbankPayProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.Forbidden, response: response)
             return problem
         case SwedbankPaySDK.ClientProblemType.NotFound.rawValue:
-            let problem = getClientPayexProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.NotFound, response: response)
+            let problem = getClientSwedbankPayProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.NotFound, response: response)
             return problem
         
         default:
             // Return default error to make switch exhaustive
-            return getServerGenericProblem(statusCode)
+            return getGenericProblem(statusCode)
         }
     }
     
@@ -250,24 +250,24 @@ final class SwedbankPaySDKViewModel: NSObject {
             return problem
 
         case SwedbankPaySDK.ServerProblemType.SystemError.rawValue:
-            let problem = getServerPayexProblem(.SystemError, response: response)
+            let problem = getServerSwedbankPayProblem(.SystemError, response: response)
             return problem
         case SwedbankPaySDK.ServerProblemType.ConfigurationError.rawValue:
-            let problem = getServerPayexProblem(.ConfigurationError, response: response)
+            let problem = getServerSwedbankPayProblem(.ConfigurationError, response: response)
             return problem
             
         default:
             // Return default error to make switch exhaustive
-            return getServerGenericProblem(statusCode)
+            return getGenericProblem(statusCode)
         }
     }
     
-    private func getServerGenericProblem(_ statusCode: Int) -> SwedbankPaySDK.Problem {
+    private func getGenericProblem(_ statusCode: Int) -> SwedbankPaySDK.Problem {
         let problem = SwedbankPaySDK.Problem.Server(.Unknown(type: nil, title: "Unknown error occurred", status: statusCode, detail: nil, instance: nil, raw: nil))
         return problem
     }
     
-    private func getClientPayexProblem(_ problemType: SwedbankPaySDK.ClientProblem.SwedbankPayProblem, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
+    private func getClientSwedbankPayProblem(_ problemType: SwedbankPaySDK.ClientProblem.SwedbankPayProblem, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
         let subProblems: [SwedbankPaySDK.SwedbankPaySubProblem]? = getSubProblems(response["problems"] as? [Dictionary<String, Any>])
         let problem = SwedbankPaySDK.Problem.Client(
             .SwedbankPay(
@@ -282,7 +282,7 @@ final class SwedbankPaySDKViewModel: NSObject {
         return problem
     }
     
-    private func getServerPayexProblem(_ problemType: SwedbankPaySDK.ServerProblem.SwedbankPayProblem, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
+    private func getServerSwedbankPayProblem(_ problemType: SwedbankPaySDK.ServerProblem.SwedbankPayProblem, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
         let subProblems: [SwedbankPaySDK.SwedbankPaySubProblem]? = getSubProblems(response["problems"] as? [Dictionary<String, Any>])
         let problem = SwedbankPaySDK.Problem.Server (
             .SwedbankPay(

@@ -106,7 +106,7 @@ func createCheckinHTML(_ url: String) -> String {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PayEx Checkin is Awesome!</title>
+    <title>Swedbank Pay Checkin is Awesome!</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 </head>
 <body>
@@ -136,7 +136,7 @@ func createCheckoutHTML(_ url: String) -> String {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PayEx Checkout is Awesome!</title>
+    <title>Swedbank Pay Checkout is Awesome!</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 </head>
 <body>

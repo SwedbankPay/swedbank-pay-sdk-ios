@@ -34,7 +34,7 @@ Swedbank Pay SDK for iOS.
   
   # s.resources = 'SwedbankPaySDK/Assets/*.xcassets'
   # s.resource_bundles = {
-  #  'PayexSDK' => ['SwedbankPaySDK/Assets/**/*.png']
+  #  'SwedbankPaySDK' => ['SwedbankPaySDK/Assets/**/*.png']
   # }
   # s.resource = 'Pod/Resources/**/*.png'
 
