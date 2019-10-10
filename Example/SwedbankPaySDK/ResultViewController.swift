@@ -1,5 +1,5 @@
 import UIKit
-import PayexSDK
+import SwedbankPaySDK
 
 enum PaymentResult {
     case unknown
@@ -12,7 +12,7 @@ class ResultViewController: UIViewController {
     @IBOutlet private weak var resultLabel: UILabel!
     
     var result: PaymentResult = .unknown
-    var problem: PayexSDK.Problem?
+    var problem: SwedbankPaySDK.Problem?
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -43,7 +43,7 @@ class ResultViewController: UIViewController {
         }
     }
     
-    private func handleProblem(_ problem: PayexSDK.Problem) {
+    private func handleProblem(_ problem: SwedbankPaySDK.Problem) {
         debugPrint("There was an error while handling the payment")
         
         switch problem {
@@ -53,7 +53,7 @@ class ResultViewController: UIViewController {
             debugPrint("InvalidRequest: \(String(describing: message)), \(String(describing: raw))")
         case .Client(.MobileSDK(.Unauthorized(let message, let raw))):
             debugPrint("Unauthorized: \(String(describing: message)), \(String(describing: raw))")
-        case .Client(.PayEx(let type, let title, let detail, let instance, let action, let problems, let raw)):
+        case .Client(.SwedbankPay(let type, let title, let detail, let instance, let action, let problems, let raw)):
             switch type {
             case .Forbidden:
                 debugPrint("Forbidden: \(String(describing: title)), \(String(describing: detail)), \(String(describing: instance)),\(String(describing: action)),\(String(describing: problems)),\(String(describing: raw))")
@@ -74,7 +74,7 @@ class ResultViewController: UIViewController {
             debugPrint("BackendConnectionTimeout: \(String(describing: message)), \(String(describing: raw))")
         case .Server(.MobileSDK(.InvalidBackendResponse(let body, let raw))):
             debugPrint("InvalidBackendResponse: \(String(describing: body)), \(String(describing: raw))")
-        case .Server(.PayEx(let type, let title, let detail, let instance, let action, let problems, let raw)):
+        case .Server(.SwedbankPay(let type, let title, let detail, let instance, let action, let problems, let raw)):
             switch type {
             case .ConfigurationError:
                 debugPrint("ConfigurationError: \(String(describing: title)), \(String(describing: detail)), \(String(describing: instance)), \(String(describing: action)), \(String(describing: problems)), \(String(describing: raw))")

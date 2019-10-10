@@ -1,6 +1,6 @@
 import ObjectMapper
 
-public class PayexSDK {
+public class SwedbankPaySDK {
     
     public struct Consumer: Codable {
         var consumerCountryCode: String?
@@ -49,13 +49,13 @@ public class PayexSDK {
     
     public enum ClientProblem {
         case MobileSDK(MobileSDKProblem)
-        case PayEx(
-            type: PayExProblem,
+        case SwedbankPay(
+            type: SwedbankPayProblem,
             title: String?,
             detail: String?,
             instance: String?,
             action: String?,
-            problems: [PayexSubProblem]?,
+            problems: [SwedbankPaySubProblem]?,
             raw: String?
         )
         case Unknown(
@@ -82,7 +82,7 @@ public class PayexSDK {
                 raw: String?
             )
         }
-        public enum PayExProblem {
+        public enum SwedbankPayProblem {
             case InputError
             case Forbidden
             case NotFound
@@ -91,13 +91,13 @@ public class PayexSDK {
     
     public enum ServerProblem {
         case MobileSDK(MobileSDKProblem)
-        case PayEx(
-            type: PayExProblem,
+        case SwedbankPay(
+            type: SwedbankPayProblem,
             title: String?,
             detail: String?,
             instance: String?,
             action: String?,
-            problems: [PayexSubProblem]?,
+            problems: [SwedbankPaySubProblem]?,
             raw: String?
         )
         case Unknown(
@@ -128,14 +128,14 @@ public class PayexSDK {
                 raw: String?
             )
         }
-        public enum PayExProblem {
+        public enum SwedbankPayProblem {
             case SystemError
             case ConfigurationError
             case NotFound
         }
     }
     
-    public struct PayexSubProblem: Mappable {
+    public struct SwedbankPaySubProblem: Mappable {
         var name: String?
         var description: String?
         

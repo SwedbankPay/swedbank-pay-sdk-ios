@@ -1,7 +1,7 @@
 import Alamofire
 import ObjectMapper
 
-final class PayexSDKViewModel: NSObject {
+final class SwedbankPaySDKViewModel: NSObject {
     
     var headers: HTTPHeaders?
     
@@ -24,11 +24,11 @@ final class PayexSDKViewModel: NSObject {
      
      - Returns: Dictionary containing the endpoints
      */
-    public func getEndPoints(successCallback: Closure<Dictionary<String, String>?>? = nil, errorCallback: Closure<PayexSDK.Problem>? = nil) {
+    public func getEndPoints(successCallback: Closure<Dictionary<String, String>?>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         guard let backendUrl = backendUrl else {
             let msg: String = SDKProblemString.backendUrlMissing.rawValue
-            errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
             return
         }
         
@@ -36,11 +36,13 @@ final class PayexSDKViewModel: NSObject {
             if let responseValue = response.result.value {
                 if let statusCode = response.response?.statusCode {
                     if (200...299).contains(statusCode), let res = responseValue as? Dictionary<String, String> {
-                        #if DEBUG
+                        /*
+                         #if DEBUG
                         for (name, value) in res {
-                            debugPrint("PayexSDK: EndPoint: \(name) : \(value)")
+                            debugPrint("SwedbankPaySDK: EndPoint: \(name) : \(value)")
                         }
                         #endif
+                         */
                         successCallback?(res)
                     } else if let response = responseValue as? Dictionary<String, Any> {
                         // Error
@@ -57,11 +59,11 @@ final class PayexSDKViewModel: NSObject {
     }
     
     /// Creates the actual payment order, anonymous if consumerData was not given
-    public func createPaymentOrder(successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<PayexSDK.Problem>? = nil) {
+    public func createPaymentOrder(successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         guard let backendUrl = backendUrl else {
             let msg: String = SDKProblemString.backendUrlMissing.rawValue
-            errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
             return
         }
         
@@ -69,19 +71,19 @@ final class PayexSDKViewModel: NSObject {
             // getEndPoints success
             guard let endPoints = endPoints else {
                 let msg: String = SDKProblemString.endPointsListEmpty.rawValue
-                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             guard let endPoint = endPoints[EndPointName.paymentorders.rawValue] else {
                 let msg: String = SDKProblemString.paymentordersEndpointIsMissing.rawValue
-                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             guard let merchantData = self?.merchantData else {
                 let msg: String = SDKProblemString.merchantDataMissing.rawValue
-                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
@@ -107,11 +109,11 @@ final class PayexSDKViewModel: NSObject {
     }
     
     /// Creates user identification request for registered user
-    public func identifyUser(successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<PayexSDK.Problem>? = nil) {
+    public func identifyUser(successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         guard let backendUrl = backendUrl else {
             let msg: String = SDKProblemString.backendUrlMissing.rawValue
-            errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
             return
         }
         
@@ -119,31 +121,31 @@ final class PayexSDKViewModel: NSObject {
             // getEndPoints success
             guard let endPoints = endPoints else {
                 let msg: String = SDKProblemString.endPointsListEmpty.rawValue
-                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             guard let endPoint = endPoints[EndPointName.consumers.rawValue] else {
                 let msg: String = SDKProblemString.consumersEndpointMissing.rawValue
-                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             guard let url = URL.init(string: backendUrl + endPoint) else {
                 let msg: String = SDKProblemString.backendRequestUrlCreationFailed.rawValue
-                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             guard let consumerData = self?.consumerData else {
                 let msg: String = SDKProblemString.consumerDataMissing.rawValue
-                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
-            if let consumerData: PayexSDK.Consumer = consumerData as? PayexSDK.Consumer, let data = try? encoder.encode(consumerData) {
+            if let consumerData: SwedbankPaySDK.Consumer = consumerData as? SwedbankPaySDK.Consumer, let data = try? encoder.encode(consumerData) {
 
                 var urlRequest = URLRequest(url: url)
                 urlRequest.allHTTPHeaderFields = self?.getHeaders()
@@ -160,7 +162,7 @@ final class PayexSDKViewModel: NSObject {
                 })
             } else {
                 let msg: String = SDKProblemString.consumerDataEncodingFailed.rawValue
-                errorCallback?(PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
             }
         }, errorCallback: { problem in
             // getEndPoints failed
@@ -170,7 +172,7 @@ final class PayexSDKViewModel: NSObject {
     }
     
     /// Response handler
-    private func handleResponse(_ response: DataResponse<Any>, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<PayexSDK.Problem>? = nil) {
+    private func handleResponse(_ response: DataResponse<Any>, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         if let responseValue = response.result.value {
             if let statusCode = response.response?.statusCode {
                 if (200...299).contains(statusCode) {
@@ -192,7 +194,7 @@ final class PayexSDKViewModel: NSObject {
     }
     
     /// Error handler, all backend request errors go through this
-    private func handleError(_ statusCode: Int, response: Dictionary<String, Any>, callback: Closure<PayexSDK.Problem>? = nil) {
+    private func handleError(_ statusCode: Int, response: Dictionary<String, Any>, callback: Closure<SwedbankPaySDK.Problem>? = nil) {
         if let type = response["type"] as? String {
             if (400...499).contains(statusCode) {
                 let problem = getClientProblem(statusCode, problemType: type, response: response)
@@ -208,24 +210,24 @@ final class PayexSDKViewModel: NSObject {
     }
     
     // MARK: Helper methods for error handling
-    private func getClientProblem(_ statusCode: Int, problemType: String, response: Dictionary<String, Any>) -> PayexSDK.Problem {
+    private func getClientProblem(_ statusCode: Int, problemType: String, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
         
         switch problemType {
-        case PayexSDK.ClientProblemType.Unauthorized.rawValue:
-            let problem = PayexSDK.Problem.Client(.MobileSDK(.Unauthorized(message: response["title"] as? String, raw: response["detail"] as? String)))
+        case SwedbankPaySDK.ClientProblemType.Unauthorized.rawValue:
+            let problem = SwedbankPaySDK.Problem.Client(.MobileSDK(.Unauthorized(message: response["title"] as? String, raw: response["detail"] as? String)))
             return problem
-        case PayexSDK.ClientProblemType.BadRequest.rawValue:
-            let problem = PayexSDK.Problem.Client(.MobileSDK(.InvalidRequest(message: response["title"] as? String, raw: response["detail"] as? String)))
+        case SwedbankPaySDK.ClientProblemType.BadRequest.rawValue:
+            let problem = SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: response["title"] as? String, raw: response["detail"] as? String)))
             return problem
         
-        case PayexSDK.ClientProblemType.InputError.rawValue:
-            let problem = getClientPayexProblem(PayexSDK.ClientProblem.PayExProblem.InputError, response: response)
+        case SwedbankPaySDK.ClientProblemType.InputError.rawValue:
+            let problem = getClientPayexProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.InputError, response: response)
             return problem
-        case PayexSDK.ClientProblemType.Forbidden.rawValue:
-            let problem = getClientPayexProblem(PayexSDK.ClientProblem.PayExProblem.Forbidden, response: response)
+        case SwedbankPaySDK.ClientProblemType.Forbidden.rawValue:
+            let problem = getClientPayexProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.Forbidden, response: response)
             return problem
-        case PayexSDK.ClientProblemType.NotFound.rawValue:
-            let problem = getClientPayexProblem(PayexSDK.ClientProblem.PayExProblem.NotFound, response: response)
+        case SwedbankPaySDK.ClientProblemType.NotFound.rawValue:
+            let problem = getClientPayexProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.NotFound, response: response)
             return problem
         
         default:
@@ -234,23 +236,23 @@ final class PayexSDKViewModel: NSObject {
         }
     }
     
-    private func getServerProblem(_ statusCode: Int, problemType: String, response: Dictionary<String, Any>) -> PayexSDK.Problem {
+    private func getServerProblem(_ statusCode: Int, problemType: String, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
         
         switch problemType {
-        case PayexSDK.ServerProblemType.InternalServerError.rawValue:
-            let problem = PayexSDK.Problem.Server(.MobileSDK(.InvalidBackendResponse(body: response["title"] as? String, raw: response["status"] as? String)))
+        case SwedbankPaySDK.ServerProblemType.InternalServerError.rawValue:
+            let problem = SwedbankPaySDK.Problem.Server(.MobileSDK(.InvalidBackendResponse(body: response["title"] as? String, raw: response["status"] as? String)))
             return problem
-        case PayexSDK.ServerProblemType.BadGateway.rawValue:
-            let problem = PayexSDK.Problem.Server(.MobileSDK(.BackendConnectionFailure(message: response["title"] as? String, raw: response["detail"] as? String)))
+        case SwedbankPaySDK.ServerProblemType.BadGateway.rawValue:
+            let problem = SwedbankPaySDK.Problem.Server(.MobileSDK(.BackendConnectionFailure(message: response["title"] as? String, raw: response["detail"] as? String)))
             return problem
-        case PayexSDK.ServerProblemType.GatewayTimeOut.rawValue:
-            let problem = PayexSDK.Problem.Server(.MobileSDK(.BackendConnectionTimeout(message: response["title"] as? String, raw: response["detail"] as? String)))
+        case SwedbankPaySDK.ServerProblemType.GatewayTimeOut.rawValue:
+            let problem = SwedbankPaySDK.Problem.Server(.MobileSDK(.BackendConnectionTimeout(message: response["title"] as? String, raw: response["detail"] as? String)))
             return problem
 
-        case PayexSDK.ServerProblemType.SystemError.rawValue:
+        case SwedbankPaySDK.ServerProblemType.SystemError.rawValue:
             let problem = getServerPayexProblem(.SystemError, response: response)
             return problem
-        case PayexSDK.ServerProblemType.ConfigurationError.rawValue:
+        case SwedbankPaySDK.ServerProblemType.ConfigurationError.rawValue:
             let problem = getServerPayexProblem(.ConfigurationError, response: response)
             return problem
             
@@ -260,15 +262,15 @@ final class PayexSDKViewModel: NSObject {
         }
     }
     
-    private func getServerGenericProblem(_ statusCode: Int) -> PayexSDK.Problem {
-        let problem = PayexSDK.Problem.Server(.Unknown(type: nil, title: "Unknown error occurred", status: statusCode, detail: nil, instance: nil, raw: nil))
+    private func getServerGenericProblem(_ statusCode: Int) -> SwedbankPaySDK.Problem {
+        let problem = SwedbankPaySDK.Problem.Server(.Unknown(type: nil, title: "Unknown error occurred", status: statusCode, detail: nil, instance: nil, raw: nil))
         return problem
     }
     
-    private func getClientPayexProblem(_ problemType: PayexSDK.ClientProblem.PayExProblem, response: Dictionary<String, Any>) -> PayexSDK.Problem {
-        let subProblems: [PayexSDK.PayexSubProblem]? = getSubProblems(response["problems"] as? [Dictionary<String, Any>])
-        let problem = PayexSDK.Problem.Client(
-            .PayEx(
+    private func getClientPayexProblem(_ problemType: SwedbankPaySDK.ClientProblem.SwedbankPayProblem, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
+        let subProblems: [SwedbankPaySDK.SwedbankPaySubProblem]? = getSubProblems(response["problems"] as? [Dictionary<String, Any>])
+        let problem = SwedbankPaySDK.Problem.Client(
+            .SwedbankPay(
                 type: problemType,
                 title: response["title"] as? String,
                 detail: response["detail"] as? String,
@@ -280,10 +282,10 @@ final class PayexSDKViewModel: NSObject {
         return problem
     }
     
-    private func getServerPayexProblem(_ problemType: PayexSDK.ServerProblem.PayExProblem, response: Dictionary<String, Any>) -> PayexSDK.Problem {
-        let subProblems: [PayexSDK.PayexSubProblem]? = getSubProblems(response["problems"] as? [Dictionary<String, Any>])
-        let problem = PayexSDK.Problem.Server (
-            .PayEx(
+    private func getServerPayexProblem(_ problemType: SwedbankPaySDK.ServerProblem.SwedbankPayProblem, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
+        let subProblems: [SwedbankPaySDK.SwedbankPaySubProblem]? = getSubProblems(response["problems"] as? [Dictionary<String, Any>])
+        let problem = SwedbankPaySDK.Problem.Server (
+            .SwedbankPay(
                 type: problemType,
                 title: response["title"] as? String,
                 detail: response["detail"] as? String,
@@ -295,10 +297,10 @@ final class PayexSDKViewModel: NSObject {
         return problem
     }
     
-    private func getSubProblems(_ string: [Dictionary<String, Any>]?) -> [PayexSDK.PayexSubProblem]? {
-        var subProblems: [PayexSDK.PayexSubProblem]? = nil
+    private func getSubProblems(_ string: [Dictionary<String, Any>]?) -> [SwedbankPaySDK.SwedbankPaySubProblem]? {
+        var subProblems: [SwedbankPaySDK.SwedbankPaySubProblem]? = nil
         if let string = string {
-            subProblems = Mapper<PayexSDK.PayexSubProblem>().mapArray(JSONObject: string)
+            subProblems = Mapper<SwedbankPaySDK.SwedbankPaySubProblem>().mapArray(JSONObject: string)
         }
         return subProblems
     }

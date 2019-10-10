@@ -1,5 +1,5 @@
 #
-# Be sure to run `pod lib lint PayexSDK.podspec' to ensure this is a
+# Be sure to run `pod lib lint SwedbankPaySDK.podspec' to ensure this is a
 # valid spec before submitting.
 #
 # Any lines starting with a # are optional, but their use is encouraged
@@ -7,9 +7,9 @@
 #
 
 Pod::Spec.new do |s|
-  s.name             = 'PayexSDK'
+  s.name             = 'SwedbankPaySDK'
   s.version          = '0.1.0'
-  s.summary          = 'Payex payment SDK for iOS.'
+  s.summary          = 'Swedbank Pay SDK for iOS.'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -18,23 +18,23 @@ Pod::Spec.new do |s|
 #   * Finally, don't worry about the indent, CocoaPods strips it!
 
   s.description      = <<-DESC
-Payex iOS SDK.
+Swedbank Pay SDK for iOS.
                        DESC
 
   s.homepage         = 'https://github.com/SwedbankPay'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'Apache 2.0', :file => 'LICENSE' }
   s.author           = { 'Swedbank AB' => 'example.email' }
-  s.source           = { :git => 'https://github.com/payex/PayexSDK.git', :tag => s.version.to_s }
+  s.source           = { :git => 'https://github.com/swedbank/SwedbankPaySDK.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '9.0'
 
-  s.source_files = 'PayexSDK/Classes/**/*'
+  s.source_files = 'SwedbankPaySDK/Classes/**/*'
   
-  # s.resources = 'PayexSDK/Assets/*.xcassets'
+  # s.resources = 'SwedbankPaySDK/Assets/*.xcassets'
   # s.resource_bundles = {
-  #  'PayexSDK' => ['PayexSDK/Assets/**/*.png']
+  #  'PayexSDK' => ['SwedbankPaySDK/Assets/**/*.png']
   # }
   # s.resource = 'Pod/Resources/**/*.png'
 

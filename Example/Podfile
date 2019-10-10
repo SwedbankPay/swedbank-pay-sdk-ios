@@ -1,10 +1,10 @@
 use_frameworks!
 
-target 'PayexSDK_Example' do
-  pod 'PayexSDK', :path => '../'
+target 'SwedbankPaySDK_Example' do
+  pod 'SwedbankPaySDK', :path => '../'
   platform :ios, '9.0'
   
-  target 'PayexSDK_Tests' do
+  target 'SwedbankPaySDK_Tests' do
     inherit! :search_paths
 
     

@@ -4,12 +4,12 @@ PODS:
     - Alamofire (~> 4.7)
     - ObjectMapper (~> 3.4)
   - ObjectMapper (3.5.1)
-  - PayexSDK (0.1.0):
+  - SwedbankPaySDK (0.1.0):
     - Alamofire (~> 4.9.0)
     - AlamofireObjectMapper (~> 5.0)
 
 DEPENDENCIES:
-  - PayexSDK (from `../`)
+  - SwedbankPaySDK (from `../`)
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
@@ -18,15 +18,15 @@ SPEC REPOS:
     - ObjectMapper
 
 EXTERNAL SOURCES:
-  PayexSDK:
+  SwedbankPaySDK:
     :path: "../"
 
 SPEC CHECKSUMS:
   Alamofire: afc3e7c6db61476cb45cdd23fed06bad03bbc321
   AlamofireObjectMapper: 1989f690e982b71921b9253f53a4f33a9bc00d88
   ObjectMapper: 70187b8941977c62ccfb423caf6b50be405cabf0
-  PayexSDK: f221fc3f3d4a56a3dd0474271f8e42e299159715
+  SwedbankPaySDK: 074abdb2fce7d0c325cedac9392997f040a6f8fa
 
-PODFILE CHECKSUM: 64e94a60f2334715b749250193602557f16c00a9
+PODFILE CHECKSUM: 19584ca6fc2051315a7108e3a330d409a7fd140b
 
 COCOAPODS: 1.7.5

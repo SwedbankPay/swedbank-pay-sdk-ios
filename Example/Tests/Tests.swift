@@ -1,5 +1,5 @@
 import XCTest
-import PayexSDK
+import SwedbankPaySDK
 
 class Tests: XCTestCase {
     
