@@ -1,30 +1,21 @@
 import UIKit
 import SwedbankPaySDK
 
-enum PaymentResult {
-    case unknown
-    case error
-    case success
-}
-
 class ResultViewController: UIViewController {
     
     @IBOutlet private weak var resultLabel: UILabel!
-    
-    var result: PaymentResult = .unknown
-    var problem: SwedbankPaySDK.Problem?
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         self.navigationItem.setHidesBackButton(true, animated:true);
         
-        switch result {
+        switch PaymentViewModel.shared.result {
         case .success:
             self.title = "Thank you"
             resultLabel.text = "Payment was successfully completed."
         case .error:
-            if let problem = self.problem {
+            if let problem = PaymentViewModel.shared.problem {
                 handleProblem(problem)
             }
             self.title = "Error"

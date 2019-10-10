@@ -235,7 +235,9 @@ extension SwedbankPaySDKController: WKScriptMessageHandler {
         debugPrint("SwedbankPaySDK: onConsumerIdentified event received")
         if let str = messageBody as? String {
             viewModel.consumerProfileRef = str
+            #if DEBUG
             debugPrint("SwedbankPaySDK: consumerProfileRef: \(str)")
+            #endif
         } else {
             debugPrint("SwedbankPaySDK: onConsumerIdentified - failed to get consumerProfileRef")
         }
