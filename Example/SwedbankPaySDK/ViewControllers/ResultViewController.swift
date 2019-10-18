@@ -10,6 +10,10 @@ class ResultViewController: UIViewController {
         
         self.navigationItem.setHidesBackButton(true, animated:true);
         
+        self.navigationController?.navigationBar.titleTextAttributes = [
+            NSAttributedStringKey.foregroundColor: UIColor.black
+        ]
+        
         switch PaymentViewModel.shared.result {
         case .success:
             self.title = "Thank you"
@@ -34,6 +38,7 @@ class ResultViewController: UIViewController {
         }
     }
     
+    /// Prints out the reveived errors, exhaustively, as an example
     private func handleProblem(_ problem: SwedbankPaySDK.Problem) {
         debugPrint("There was an error while handling the payment")
         

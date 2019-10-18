@@ -5,9 +5,20 @@ class PaymentViewController: UIViewController {
     
     /// UIView to instantiate the SwedbankPaySDKController into; SwedbankPaySDKController will instantiate WKWebView
     @IBOutlet private weak var webViewContainer: UIView!
-
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        self.title = "Payment"
+        
+        self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.black]
+        UINavigationBar.appearance().titleTextAttributes = [NSAttributedStringKey.foregroundColor : UIColor.black]
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        
+        navigationController?.navigationBar.alpha = 1
 
         let vm = PaymentViewModel.shared
         let swedbankPaySDKController = SwedbankPaySDKController.init(
@@ -17,8 +28,8 @@ class PaymentViewController: UIViewController {
             consumerData: vm.consumerData
         )
         addChildViewController(swedbankPaySDKController)
-        swedbankPaySDKController.view.translatesAutoresizingMaskIntoConstraints = false
         webViewContainer.addSubview(swedbankPaySDKController.view)
+        swedbankPaySDKController.view.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             swedbankPaySDKController.view.topAnchor.constraint(equalTo: webViewContainer.topAnchor),

@@ -7,6 +7,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
+        setupAppearance()
+        
         return true
     }
 
@@ -30,5 +33,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    }
+    
+    private func setupAppearance() {
+        UINavigationBar.appearance().tintColor = UIColor.red
+
+        if #available(iOS 13, *) {
+            let fontAttr = [NSAttributedString.Key.font: UIFont.medium14()]
+
+            let buttonAppearance = UIBarButtonItemAppearance()
+            buttonAppearance.normal.titleTextAttributes = fontAttr as [NSAttributedStringKey: Any]
+
+            let navbarAppearance = UINavigationBarAppearance()
+            navbarAppearance.configureWithOpaqueBackground()
+            navbarAppearance.backgroundColor = UIColor.white
+            navbarAppearance.buttonAppearance = buttonAppearance
+            navbarAppearance.titleTextAttributes = [NSAttributedStringKey.font: UIFont.bold18()]
+            UINavigationBar.appearance().standardAppearance = navbarAppearance
+            UINavigationBar.appearance().scrollEdgeAppearance = navbarAppearance
+        } else {
+            UIBarButtonItem.appearance().setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.red, NSAttributedStringKey.font: UIFont.medium14()], for: UIControlState.normal)
+        }
+ 
+        UINavigationBar.appearance().titleTextAttributes = [NSAttributedStringKey.font: UIFont.bold18()]
+        
+        // UINavigationBar.appearance().barTintColor = UIColor.green
+        // UINavigationBar.appearance().tintColor = UIColor.white
+        // UINavigationBar.appearance().titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.blue]
     }
 }
