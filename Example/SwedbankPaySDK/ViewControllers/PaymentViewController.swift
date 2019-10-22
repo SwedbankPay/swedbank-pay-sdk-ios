@@ -10,9 +10,6 @@ class PaymentViewController: UIViewController {
         super.viewWillAppear(animated)
         
         self.title = "Payment"
-        
-        self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.black]
-        UINavigationBar.appearance().titleTextAttributes = [NSAttributedStringKey.foregroundColor : UIColor.black]
     }
     
     override func viewDidAppear(_ animated: Bool) {

@@ -11,30 +11,21 @@ class CheckoutViewController: UIViewController, UITableViewDelegate, UITableView
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        if #available(iOS 13, *) {
-            self.navigationController?.overrideUserInterfaceStyle = UIUserInterfaceStyle.light
-            
-            let appearance = UINavigationBarAppearance()
-            appearance.shadowImage = nil
-            appearance.shadowColor = nil
-            appearance.backgroundColor = UIColor.white
-            navigationController?.navigationBar.standardAppearance = appearance
-        } else {
-            if let navigationBar = navigationController?.navigationBar {
-                navigationBar.setBackgroundImage(#imageLiteral(resourceName: "BarBackground"), for: .default)
-                navigationBar.shadowImage = UIImage()
-            }
-        }
-        
+
         tableView.delegate = self
         tableView.dataSource = self
         
         tableView.register(UINib(nibName: "ProductTableViewCell", bundle: nil), forCellReuseIdentifier: "ProductCell")
-            
-        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for:.default)
-        self.navigationController?.navigationBar.shadowImage = UIImage()
-        self.navigationController?.navigationBar.layoutIfNeeded()
+
+        if #available(iOS 13, *) {
+            self.navigationController?.overrideUserInterfaceStyle = UIUserInterfaceStyle.light
+        } else {
+            if let navigationBar = navigationController?.navigationBar {
+                navigationBar.setBackgroundImage(UIImage(), for: .default)
+                navigationBar.shadowImage = UIImage()
+                navigationBar.layoutIfNeeded()
+            }
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {

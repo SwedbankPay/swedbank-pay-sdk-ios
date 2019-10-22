@@ -24,6 +24,7 @@
                 <navigationController id="2x9-xD-vln" sceneMemberID="viewController">
                     <nil key="simulatedBottomBarMetrics"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="6UH-YT-MeY">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <color key="barTintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -242,11 +243,16 @@
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Icon-X" translatesAutoresizingMaskIntoConstraints="NO" id="awP-Fs-C8H">
                                                         <rect key="frame" x="267" y="0.0" width="48" height="48"/>
-                                                        <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                        <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="48" id="J4k-uf-tLT"/>
                                                             <constraint firstAttribute="height" constant="48" id="r90-Nt-QCZ"/>
                                                         </constraints>
+                                                        <userDefinedRuntimeAttributes>
+                                                            <userDefinedRuntimeAttribute type="color" keyPath="tintColor">
+                                                                <color key="value" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                            </userDefinedRuntimeAttribute>
+                                                        </userDefinedRuntimeAttributes>
                                                     </imageView>
                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="User type" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1Y3-OA-eAz">
                                                         <rect key="frame" x="49" y="12" width="217" height="24"/>
@@ -264,7 +270,7 @@
                                                             <constraint firstAttribute="width" constant="50" id="4KT-GT-a8J"/>
                                                             <constraint firstAttribute="height" constant="50" id="PB6-0S-K7Y"/>
                                                         </constraints>
-                                                        <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                        <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                         <connections>
                                                             <action selector="closeSettingsButtonClick:" destination="T5S-aR-iCO" eventType="touchUpInside" id="kuT-qh-w9h"/>
                                                         </connections>
@@ -558,11 +564,11 @@
                         <viewControllerLayoutGuide type="bottom" id="mpA-MH-17Z"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="BuV-cO-J6h">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="647"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="7q7-he-hlz">
-                                <rect key="frame" x="0.0" y="44" width="375" height="623"/>
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="647"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </view>
                         </subviews>
@@ -593,11 +599,11 @@
                         <viewControllerLayoutGuide type="bottom" id="jEf-Lh-ga3"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="7d8-Mv-Obk">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="647"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qt2-Yc-Lal">
-                                <rect key="frame" x="25" y="283.5" width="325" height="100"/>
+                                <rect key="frame" x="25" y="273.5" width="325" height="100"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="100" id="o2z-If-VJz"/>
                                 </constraints>
@@ -606,7 +612,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="G2K-ZP-bIH">
-                                <rect key="frame" x="87.5" y="408" width="200" height="48"/>
+                                <rect key="frame" x="87.5" y="398" width="200" height="48"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="200" id="HDh-eP-u4p"/>
@@ -628,7 +634,7 @@
                                 </connections>
                             </button>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Shop-logo" translatesAutoresizingMaskIntoConstraints="NO" id="UzN-8d-6Ee">
-                                <rect key="frame" x="100" y="170" width="175" height="93"/>
+                                <rect key="frame" x="100" y="160" width="175" height="93"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="93" id="Eax-47-IL4"/>
                                     <constraint firstAttribute="width" constant="175" id="aK6-Nr-wrz"/>
@@ -663,6 +669,6 @@
         <image name="Shop-logo" width="131" height="41"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="rRm-pK-HcK"/>
+        <segue reference="SRU-dr-zdh"/>
     </inferredMetricsTieBreakers>
 </document>

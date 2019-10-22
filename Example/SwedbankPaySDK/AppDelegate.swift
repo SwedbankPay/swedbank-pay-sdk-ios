@@ -46,19 +46,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
             let navbarAppearance = UINavigationBarAppearance()
             navbarAppearance.configureWithOpaqueBackground()
+            navbarAppearance.shadowImage = nil
+            navbarAppearance.shadowColor = nil
             navbarAppearance.backgroundColor = UIColor.white
             navbarAppearance.buttonAppearance = buttonAppearance
-            navbarAppearance.titleTextAttributes = [NSAttributedStringKey.font: UIFont.bold18()]
+            navbarAppearance.titleTextAttributes = [NSAttributedStringKey.foregroundColor : UIColor.black, NSAttributedStringKey.font: UIFont.bold18()]
             UINavigationBar.appearance().standardAppearance = navbarAppearance
             UINavigationBar.appearance().scrollEdgeAppearance = navbarAppearance
         } else {
             UIBarButtonItem.appearance().setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.red, NSAttributedStringKey.font: UIFont.medium14()], for: UIControlState.normal)
+            UINavigationBar.appearance().titleTextAttributes = [NSAttributedStringKey.foregroundColor : UIColor.black, NSAttributedStringKey.font: UIFont.bold18()]
         }
- 
-        UINavigationBar.appearance().titleTextAttributes = [NSAttributedStringKey.font: UIFont.bold18()]
-        
-        // UINavigationBar.appearance().barTintColor = UIColor.green
-        // UINavigationBar.appearance().tintColor = UIColor.white
-        // UINavigationBar.appearance().titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.blue]
     }
 }
