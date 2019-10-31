@@ -8,6 +8,7 @@ class UserViewModel {
     
     private init() {}
     
+    /// In this example the default user is unidentified Norwegian
     private var userType: UserType = .Anonymous
     private var country: Country = .Norway
     private var currency: Currency = .NOK

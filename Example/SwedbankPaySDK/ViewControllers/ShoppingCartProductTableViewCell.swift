@@ -11,7 +11,7 @@ class ShoppingCartProductTableViewCell: UITableViewCell {
     
     var basketChangedCallback: (()->())?
     
-    /// Removes the product from shopping basket
+    /// Removes the `Product` from shopping basket
     @IBAction func removeFromBasketButtonClick(_ sender: Any) {
         if let product = product {
             StoreViewModel.shared.removeFromBasket(product)
@@ -19,7 +19,7 @@ class ShoppingCartProductTableViewCell: UITableViewCell {
         }
     }
     
-    /// Sets the product details
+    /// Sets the `Product` information in place
     public func setProductDetails(_ product: Product?) {
         if let product = product {
             

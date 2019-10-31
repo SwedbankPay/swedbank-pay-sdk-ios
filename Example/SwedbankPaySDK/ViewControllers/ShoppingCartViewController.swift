@@ -123,7 +123,7 @@ class ShoppingCartViewController: UIViewController, UITableViewDelegate, UITable
     
     // MARK: Settings
     
-    /// Opems the settings view
+    /// Opens the settings view
     private func openSettings() {
         settingsContainerTrailingConstraint.constant = 15
         settingsContainerBottomConstraint.constant = 0
@@ -148,7 +148,7 @@ class ShoppingCartViewController: UIViewController, UITableViewDelegate, UITable
         settingsContainerBottomConstraint.constant = self.settingsContainerBottomConstant
     }
     
-    /// Sets the user either anonymous or identified
+    /// Sets the user either anonymous or identified in settings view
     private func setUser(_ type: UserType) {
         UserViewModel.shared.setUserType(type)
         switch type {
@@ -165,7 +165,7 @@ class ShoppingCartViewController: UIViewController, UITableViewDelegate, UITable
         }
     }
     
-    /// Sets the country
+    /// Sets the country in settings view
     private func setCountry(_ country: Country) {
         UserViewModel.shared.setCountry(country)
         switch country {

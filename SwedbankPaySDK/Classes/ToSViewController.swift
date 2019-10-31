@@ -1,7 +1,7 @@
 import UIKit
 import WebKit
 
-/// ToSViewController handles terms of service URL by showing it in a WKWebview
+/// ToSViewController handles terms of service (ToS) URL by showing it in a WKWebview
 public class ToSViewController: UIViewController, WKNavigationDelegate {
     
     private var tosUrl: String?

@@ -1,4 +1,3 @@
-import SwedbankPaySDK
 
 /// Example purchase data; *must* conform to Encodable protocol
 struct PurchaseData: Encodable {
@@ -8,7 +7,7 @@ struct PurchaseData: Encodable {
     var items: [PurchaseItem]
 }
 
-/// This too must conform to Encodable protocol in this example
+/// Part of the `PurchaseData` so must conform to Encodable protocol too
 struct PurchaseItem: Encodable {
     var itemId: String
     var quantity: Int

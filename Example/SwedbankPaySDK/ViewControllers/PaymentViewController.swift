@@ -19,11 +19,11 @@ class PaymentViewController: UIViewController {
 
         let vm = PaymentViewModel.shared
         let swedbankPaySDKController = SwedbankPaySDKController.init(
-            headers: vm.headers,
-            backendUrl: vm.backendUrl,
-            merchantData: vm.sampleMerchantData,
+            configuration: vm.configuration,
+            merchantData: vm.merchantData,
             consumerData: vm.consumerData
         )
+        swedbankPaySDKController.delegate = self
         addChildViewController(swedbankPaySDKController)
         webViewContainer.addSubview(swedbankPaySDKController.view)
         swedbankPaySDKController.view.translatesAutoresizingMaskIntoConstraints = false
@@ -36,7 +36,6 @@ class PaymentViewController: UIViewController {
         ])
         
         swedbankPaySDKController.didMove(toParentViewController: self)
-        swedbankPaySDKController.delegate = self
     }
 }
 

@@ -21,22 +21,33 @@ public class SwedbankPaySDKController: UIViewController {
     }
     
     /**
-     Initializes the Swedbank Pay SDK, and depending on the consumerData, starts the payment process with user identification or anonymous process
-     
-     - parameter headers: header dictionary
-     - parameter backendUrl: merchant's own backend URL
+     Initializes the Swedbank Pay SDK, and depending on the `consumerData`, starts the payment process with user identification or anonymous process
+     - parameter configuration: Configuration object containing `backendUrl`, `headers` and `domainWhitelist`; of these, `domainWhitelist` is *optional*
      - parameter merchantData: merchant and purchase information
-     - parameter consumerData: consumer identification information, optional; if not provided, user will be anonymous
+     - parameter consumerData: consumer identification information; *optional* - if not provided, user will be anonymous
      */
-    public init<T: Encodable>(headers: Dictionary<String, String>?, backendUrl: String?, merchantData: T?, consumerData: Any? = nil) {
+    public init<T: Encodable>(configuration: SwedbankPaySDK.Configuration, merchantData: T?, consumerData: SwedbankPaySDK.Consumer? = nil) {
         super.init(nibName: nil, bundle: nil)
 
-        if let headers = headers {
-            viewModel.setHeaders(headers)
+        viewModel.setConfiguration(configuration)
+        viewModel.setConsumerData(consumerData)
+        viewModel.setConsumerProfileRef(nil)
+        
+        guard let backendUrl = configuration.backendUrl else {
+            let msg: String = SDKProblemString.backendUrlMissing.rawValue
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            })
+            return
         }
         
-        viewModel.consumerProfileRef = nil
-        viewModel.backendUrl = backendUrl
+        guard viewModel.isDomainWhitelisted(backendUrl) else {
+            let msg: String = "\(SDKProblemString.domainWhitelistError.rawValue)\(backendUrl)"
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            })
+            return
+        }
         
         /// Convert merchantData into JSON
         if let merchantData = merchantData {
@@ -44,7 +55,9 @@ public class SwedbankPaySDKController: UIViewController {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
             if let data = try? encoder.encode(merchantData) {
-                viewModel.merchantData = String(data: data, encoding: .utf8)
+                // viewModel.merchantData = String(data: data, encoding: .utf8)
+                let jsonStr = String(data: data, encoding: .utf8)
+                viewModel.setMerchantData(jsonStr)
             } else {
                 let msg: String = SDKProblemString.merchantDataSerializationFailed.rawValue
                 self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
@@ -54,12 +67,11 @@ public class SwedbankPaySDKController: UIViewController {
             self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
         }
         
-        viewModel.consumerData = consumerData
-        
+        /// Start the payment process
         if consumerData == nil {
-            createPaymentOrder()
+            createPaymentOrder(backendUrl)
         } else {
-            viewModel.identifyUser(successCallback: { [weak self] operationsList in
+            viewModel.identifyUser(backendUrl, successCallback: { [weak self] operationsList in
                 self?.createConsumerURL(operationsList)
             }, errorCallback: { [weak self] problem in
                 self?.paymentFailed(problem)
@@ -69,8 +81,8 @@ public class SwedbankPaySDKController: UIViewController {
     }
     
     /// Creates paymentOrder
-    private func createPaymentOrder() {
-        viewModel.createPaymentOrder(successCallback: { [weak self] operationsList in
+    private func createPaymentOrder(_ backendUrl: String) {
+        viewModel.createPaymentOrder(backendUrl, successCallback: { [weak self] operationsList in
             self?.createPaymentOrderURL(operationsList)
         }, errorCallback: { [weak self] problem in
             self?.paymentFailed(problem)
@@ -90,7 +102,6 @@ public class SwedbankPaySDKController: UIViewController {
     
     /**
      Creates consumer identification JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
-     
      - parameter list: List of operations available; need to find correct type of operation from it
      */
     private func createConsumerURL(_ list: OperationsList) {
@@ -105,7 +116,6 @@ public class SwedbankPaySDKController: UIViewController {
     
     /**
      Creates payment order JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
-     
      - parameter list: List of operations available; need to find correct type of operation from it
      */
     private func createPaymentOrderURL(_ list: OperationsList) {
@@ -119,8 +129,7 @@ public class SwedbankPaySDKController: UIViewController {
     }
     
     /**
-     Creats a HTML string to load into WKWebView
-     
+     Creates a HTML string to load into WKWebView
      - parameter url: JavaScript URL String to replace a placeholder with from HTML template
      - parameter type: the type of the WKWebView HTML to load, and what kind of JavaScript events to create for it
      */
@@ -176,6 +185,7 @@ public class SwedbankPaySDKController: UIViewController {
 
 /// Extension to conform to SwedbankPaySDKDelegate protocol
 extension SwedbankPaySDKController: WKNavigationDelegate {
+    
     fileprivate func paymentFailed(_ problem: SwedbankPaySDK.Problem) {
         debugPrint("SwedbankPaySDK: Payment failed")
         
@@ -189,7 +199,7 @@ extension SwedbankPaySDKController: WKNavigationDelegate {
     }
 }
 
-/// Extension handles the WKWebview JavaScript events
+/// Extension to handle the WKWebview JavaScript events
 extension SwedbankPaySDKController: WKScriptMessageHandler {
     
     // Create event handlers
@@ -228,25 +238,27 @@ extension SwedbankPaySDKController: WKScriptMessageHandler {
     
     /**
      User identified event received
-     
      - parameter messageBody: user identification String saved as consumerProfileRef
      */
     private func handleConsumerIdentifiedEvent(_ messageBody: Any) {
         debugPrint("SwedbankPaySDK: onConsumerIdentified event received")
         if let str = messageBody as? String {
-            viewModel.consumerProfileRef = str
+            viewModel.setConsumerProfileRef(str)
+            
             #if DEBUG
-            debugPrint("SwedbankPaySDK: consumerProfileRef: \(str)")
+            debugPrint("SwedbankPaySDK: consumerProfileRef set to: \(str)")
             #endif
         } else {
             debugPrint("SwedbankPaySDK: onConsumerIdentified - failed to get consumerProfileRef")
         }
-        createPaymentOrder()
+        
+        if let backendUrl = viewModel.configuration?.backendUrl {
+            createPaymentOrder(backendUrl)
+        }
     }
     
     /**
      Terms of service event received
-     
      - parameter messageBody: terms of service URL String in an NSDictionary
      */
     private func handleToSEvent(_ messageBody: Any) {

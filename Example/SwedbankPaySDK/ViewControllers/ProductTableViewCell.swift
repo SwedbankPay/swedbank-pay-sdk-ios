@@ -61,7 +61,7 @@ class ProductTableViewCell: UITableViewCell {
         })
     }
     
-    /// Sets the product details
+    /// Sets the `Product` details in place
     public func setProductDetails(_ product: Product?) {
         if let product = product {
             

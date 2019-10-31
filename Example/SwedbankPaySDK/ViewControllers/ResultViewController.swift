@@ -38,13 +38,13 @@ class ResultViewController: UIViewController {
         }
     }
     
-    /// Prints out the reveived errors, exhaustively, as an example
+    /// Prints out all possible reveived errors, as an example
     private func handleProblem(_ problem: SwedbankPaySDK.Problem) {
         debugPrint("There was an error while handling the payment")
         
         switch problem {
         
-        /// Client errors
+        /// Client errors (HTTP Status code in range of 400..499)
         case .Client(.MobileSDK(.InvalidRequest(let message, let raw))):
             debugPrint("InvalidRequest: \(String(describing: message)), \(String(describing: raw))")
         case .Client(.MobileSDK(.Unauthorized(let message, let raw))):
@@ -63,7 +63,7 @@ class ResultViewController: UIViewController {
         case .Client(.Unknown(let type, let title, let status, let detail, let instance, let raw)):
             debugPrint("Unknown: \(String(describing: type)), \(String(describing: title)), \(String(describing: status)), \(String(describing: detail)), \(String(describing: instance)), \(String(describing: raw))")
         
-        /// Server errors
+        /// Server errors (HTTP Status code in range of 500...599)
         case .Server(.MobileSDK(.BackendConnectionFailure(let message, let raw))):
             debugPrint("BackendConnectionFailure: \(String(describing: message)), \(String(describing: raw))")
         case .Server(.MobileSDK(.BackendConnectionTimeout(let message, let raw))):
@@ -74,8 +74,6 @@ class ResultViewController: UIViewController {
             switch type {
             case .ConfigurationError:
                 debugPrint("ConfigurationError: \(String(describing: title)), \(String(describing: detail)), \(String(describing: instance)), \(String(describing: action)), \(String(describing: problems)), \(String(describing: raw))")
-            case .NotFound:
-                debugPrint("NotFound: \(String(describing: title)), \(String(describing: detail)), \(String(describing: instance)), \(String(describing: action)), \(String(describing: problems)), \(String(describing: raw))")
             case .SystemError:
                 debugPrint("SystemError: \(String(describing: title)), \(String(describing: detail)), \(String(describing: instance)), \(String(describing: action)), \(String(describing: problems)), \(String(describing: raw))")
             }

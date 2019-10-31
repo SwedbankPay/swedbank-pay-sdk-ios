@@ -8,13 +8,34 @@ class PaymentViewModel {
     private init() {}
     
     /// URL for the Swedbank Pay SDK to connect to
-    let backendUrl: String = "https://payex-merchant-samples.appspot.com/"
+    private let backendUrl: String = "https://payex-merchant-samples.appspot.com"
     
     /// Creates api request header names and values dictionary; define these in the backend receiving the requests from the app
-    let headers: Dictionary<String, String> = [
+    private let headers: Dictionary<String, String> = [
         "x-payex-sample-apikey": "c339f53d-8a36-4ea9-9695-75048e592cc0",
         "x-payex-sample-access-token": NSUUID().uuidString.lowercased()
     ]
+    
+    /**
+     List of allowed domains.
+     
+     By default, the domain of the backend URL is whitelisted, including its subdomains. If you wish to change that default,
+     you must add all domains, including backend URL; in that situation it is not included by default.
+     */
+    private let domainWhitelist: [SwedbankPaySDK.WhitelistedDomain]? = [
+        SwedbankPaySDK.WhitelistedDomain(domain: "payex-merchant-samples.appspot.com", includeSubdomains: false)
+    ]
+    
+    /// Configuration for SwedbankPaySDK
+    var configuration: SwedbankPaySDK.Configuration {
+        get {
+            return SwedbankPaySDK.Configuration.init(
+                backendUrl: self.backendUrl,
+                headers: self.headers,
+                domainWhitelist: self.domainWhitelist
+            )
+        }
+    }
     
     /// If consumerData is nil, payment is anonymous
     var consumerData: SwedbankPaySDK.Consumer? {
@@ -24,7 +45,7 @@ class PaymentViewModel {
     }
     
     /// Sample Merchant data
-    var sampleMerchantData: PurchaseData {
+    var merchantData: PurchaseData {
         get {
             PurchaseData.init(
                 basketId: NSUUID().uuidString.lowercased(),
@@ -35,7 +56,7 @@ class PaymentViewModel {
         }
     }
     
-    /// For result handling
+    /// Result handling
     private(set) var result: PaymentResult = .unknown
     private(set) var problem: SwedbankPaySDK.Problem?
     

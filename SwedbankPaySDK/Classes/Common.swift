@@ -9,13 +9,15 @@ enum SDKProblemString: String {
     case endPointsListEmpty = "Server returned empty endpoints list"
     case consumersEndpointMissing = "Requested consumers endpoint is missing"
     case paymentordersEndpointIsMissing = "Requested paymentorders endpoint is missing"
-    case backendUrlMissing = "BackendUrl is missing"
-    case merchantDataMissing = "MerchantData is missing"
     case merchantDataSerializationFailed = "Error serializing merchantData"
     case consumerIdentificationWebviewCreationFailed = "Failed to create consumer identification webview"
     case paymentWebviewCreationFailed = "Failed to create payment webview"
     case consumerDataEncodingFailed = "Failed to encode consumerData"
+    
+    case backendUrlMissing = "BackendUrl is missing"
+    case domainWhitelistError = "Non-whitelisted domain: "
     case backendRequestUrlCreationFailed = "Failed to create backend request URL"
+    case merchantDataMissing = "MerchantData is missing"
     case consumerDataMissing = "ConsumerData is missing"
 }
 

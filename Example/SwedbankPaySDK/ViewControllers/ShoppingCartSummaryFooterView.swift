@@ -12,7 +12,7 @@ class ShoppingCartSummaryFooterView: UITableViewHeaderFooterView {
         checkoutCallback?()
     }
     
-    /// Sets the summary values
+    /// Sets the summary values in place
     public func setPrices() {
         let currency = UserViewModel.shared.getCurrency()
         shippingPriceLabel.text = "\(StoreViewModel.shared.getShippingCost() / 100) \(currency.rawValue)"
