@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SwedbankPaySDK'
-  s.version          = '0.1.0'
+  s.version          = '1.0.0'
   s.summary          = 'Swedbank Pay SDK for iOS.'
 
 # This description is used to generate tags and improve search results.
@@ -22,23 +22,14 @@ The Swedbank Pay iOS SDK enables simple embedding of Swedbank Pay Checkout to an
                        DESC
 
   s.homepage         = 'https://github.com/SwedbankPay'
-  # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'Apache 2.0', :file => 'LICENSE' }
   s.author           = { 'Swedbank AB' => 'example.email' }
   s.source           = { :git => 'https://github.com/SwedbankPay/swedbank-pay-sdk-ios.git', :tag => s.version.to_s }
-  # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '9.0'
-
+  s.swift_versions = '5.0'
   s.source_files = 'SwedbankPaySDK/Classes/**/*'
   
-  # s.resources = 'SwedbankPaySDK/Assets/*.xcassets'
-  # s.resource_bundles = {
-  #  'SwedbankPaySDK' => ['SwedbankPaySDK/Assets/**/*.png']
-  # }
-  # s.resource = 'Pod/Resources/**/*.png'
-
-  # s.public_header_files = 'Pod/Classes/**/*.h'
   s.frameworks = 'UIKit', 'WebKit'
   s.dependency 'Alamofire', '~> 4.9.0'
   s.dependency 'AlamofireObjectMapper', '~> 5.0'

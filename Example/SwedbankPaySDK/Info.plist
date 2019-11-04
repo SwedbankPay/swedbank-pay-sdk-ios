@@ -32,6 +32,11 @@
 	</array>
 	<key>UIRequiresFullScreen</key>
 	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>IBMPlexMono-Medium.ttf</string>
+		<string>IBMPlexMono-Bold.ttf</string>
+	</array>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleDefault</string>
 	<key>UISupportedInterfaceOrientations</key>
