@@ -127,8 +127,8 @@ class ShoppingCartViewController: UIViewController, UITableViewDelegate, UITable
     private func openSettings() {
         settingsContainerTrailingConstraint.constant = 15
         settingsContainerBottomConstraint.constant = 0
-        UIView.animate(withDuration: 0.3, animations: {
-            self.view.layoutIfNeeded()
+        UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: { [weak self] in
+            self?.view.layoutIfNeeded()
         }, completion: { [weak self] _ in
             self?.settingsContainerView.isHidden = false
         })
@@ -137,9 +137,9 @@ class ShoppingCartViewController: UIViewController, UITableViewDelegate, UITable
     /// Closes the settings view
     private func closeSettings() {
         setSettingsClosed()
-        UIView.animate(withDuration: 0.3, animations: {
-            self.view.layoutIfNeeded()
-        })
+        UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: { [weak self] in
+            self?.view.layoutIfNeeded()
+        }, completion: nil)
     }
     
     private func setSettingsClosed() {
