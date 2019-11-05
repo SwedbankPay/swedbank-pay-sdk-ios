@@ -8,10 +8,8 @@ final class SwedbankPaySDKViewModel: NSObject {
     private(set) var merchantData: Any?
     private(set) var consumerProfileRef: String?
     
-    /**
-     Sets the `SwedbankPaySDK.Configuration`
-     - parameter configuration: Configuration to be set
-     */
+    /// Sets the `SwedbankPaySDK.Configuration`
+    /// - parameter configuration: Configuration to be set
     public func setConfiguration(_ configuration: SwedbankPaySDK.Configuration) {
         self.configuration = configuration
         
@@ -28,35 +26,27 @@ final class SwedbankPaySDKViewModel: NSObject {
         }
     }
     
-    /**
-     Sets the `SwedbankPaySDK.Consumer`
-     - parameter consumerData: consumerData to set
-     */
+    /// Sets the `SwedbankPaySDK.Consumer`
+    /// - parameter consumerData: consumerData to set
     public func setConsumerData(_ consumerData: SwedbankPaySDK.Consumer?) {
         self.consumerData = consumerData
     }
     
-    /**
-     Sets the `merchantData`
-     - parameter merchantData: merchantData to set
-     */
+    /// Sets the `merchantData`
+    /// - parameter merchantData: merchantData to set
     public func setMerchantData(_ merchantData: Any?) {
         self.merchantData = merchantData
     }
     
-    /**
-     Sets the `consumerProfileRef`
-     - parameter ref: consumerProfileRef to set
-     */
+    /// Sets the `consumerProfileRef`
+    /// - parameter ref: consumerProfileRef to set
     public func setConsumerProfileRef(_ ref: String?) {
         self.consumerProfileRef = ref
     }
     
-    /**
-     Check if the request is being made to a whitelisted domain
-     - parameter url: request URL as a String to check
-     - returns: Boolean idicating was the domain whitelisted or not
-     */
+    /// Check if the request is being made to a whitelisted domain
+    /// - parameter url: request URL as a String to check
+    /// - returns: Boolean idicating was the domain whitelisted or not
     public func isDomainWhitelisted(_ url: String) -> Bool {
         if let url = URL(string: url), let host = url.host, let whitelist = configuration?.domainWhitelist {
             for whitelistObj in whitelist {
@@ -74,12 +64,11 @@ final class SwedbankPaySDKViewModel: NSObject {
         return false
     }
     
-    /** Makes a request to the `backendUrl` and returns the endpoints
-     - parameter backendUrl: backend URL
-     - parameter successCallback: called on success
-     - parameter errorCallback: called on failure
-     - returns: Dictionary containing the endpoints in successCallback, `SwedbankPaySDK.Problem` in errorCallback
-     */
+    /// Makes a request to the `backendUrl` and returns the endpoints
+    /// - parameter backendUrl: backend URL
+    /// - parameter successCallback: called on success
+    /// - parameter errorCallback: called on failure
+    /// - returns: Dictionary containing the endpoints in successCallback, `SwedbankPaySDK.Problem` in errorCallback
     private func getEndPoints(_ backendUrl: String, successCallback: Closure<Dictionary<String, String>?>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         request(backendUrl, method: .get, parameters: nil, encoding: JSONEncoding.default, headers: configuration?.headers).responseJSON(completionHandler: { response in
@@ -106,13 +95,11 @@ final class SwedbankPaySDKViewModel: NSObject {
         })
     }
     
-    /**
-     Creates the actual payment order, anonymous if consumerData was not given
-     - parameter backendUrl: backend URL
-     - parameter successCallback: called on success
-     - parameter errorCallback: called on failure
-     - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
-     */
+    /// Creates the actual payment order, anonymous if consumerData was not given
+    /// - parameter backendUrl: backend URL
+    /// - parameter successCallback: called on success
+    /// - parameter errorCallback: called on failure
+    /// - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
     public func createPaymentOrder(_ backendUrl: String, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         getEndPoints(backendUrl, successCallback: { [weak self] endPoints in
@@ -156,13 +143,11 @@ final class SwedbankPaySDKViewModel: NSObject {
         })
     }
     
-    /**
-     Creates user identification request for registered user
-     - parameter backendUrl: backend URL
-     - parameter successCallback: called on success
-     - parameter errorCallback: called on failure
-     - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
-     */
+    /// Creates user identification request for registered user
+    /// - parameter backendUrl: backend URL
+    /// - parameter successCallback: called on success
+    /// - parameter errorCallback: called on failure
+    /// - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
     public func identifyUser(_ backendUrl: String, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         getEndPoints(backendUrl, successCallback: { [weak self] endPoints in
@@ -219,13 +204,11 @@ final class SwedbankPaySDKViewModel: NSObject {
         })
     }
     
-    /**
-     Response handler
-     - parameter response: `DataResponse`
-     - parameter successCallback: called on success
-     - parameter errorCallback: called on failure
-     - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
-     */
+    /// Response handler
+    /// - parameter response: `DataResponse`
+    /// - parameter successCallback: called on success
+    /// - parameter errorCallback: called on failure
+    /// - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
     private func handleResponse(_ response: DataResponse<Any>, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         if let responseValue = response.result.value {
             if let statusCode = response.response?.statusCode {
@@ -247,13 +230,11 @@ final class SwedbankPaySDKViewModel: NSObject {
         }
     }
     
-    /**
-     Error handler, all backend request errors go through this
-     - parameter statusCode: HTTP Status code
-     - parameter response: Response Dictionary
-     - parameter callback: return callback
-     - returns: `Problem` on callback
-     */
+    /// Error handler, all backend request errors go through this
+    /// - parameter statusCode: HTTP Status code
+    /// - parameter response: Response Dictionary
+    /// - parameter callback: return callback
+    /// - returns: `Problem` on callback
     private func handleError(_ statusCode: Int, response: Dictionary<String, Any>, callback: Closure<SwedbankPaySDK.Problem>? = nil) {
         if let type = response["type"] as? String {
             if (400...499).contains(statusCode) {

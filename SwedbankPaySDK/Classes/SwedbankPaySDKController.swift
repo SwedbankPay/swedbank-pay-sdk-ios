@@ -20,12 +20,10 @@ public class SwedbankPaySDKController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    /**
-     Initializes the Swedbank Pay SDK, and depending on the `consumerData`, starts the payment process with user identification or anonymous process
-     - parameter configuration: Configuration object containing `backendUrl`, `headers` and `domainWhitelist`; of these, `domainWhitelist` is *optional*
-     - parameter merchantData: merchant and purchase information
-     - parameter consumerData: consumer identification information; *optional* - if not provided, user will be anonymous
-     */
+    /// Initializes the Swedbank Pay SDK, and depending on the `consumerData`, starts the payment process with user identification or anonymous process
+    /// - parameter configuration: Configuration object containing `backendUrl`, `headers` and `domainWhitelist`; of these, `domainWhitelist` is *optional*
+    /// - parameter merchantData: merchant and purchase information
+    /// - parameter consumerData: consumer identification information; *optional* - if not provided, user will be anonymous
     public init<T: Encodable>(configuration: SwedbankPaySDK.Configuration, merchantData: T?, consumerData: SwedbankPaySDK.Consumer? = nil) {
         super.init(nibName: nil, bundle: nil)
 
@@ -100,10 +98,8 @@ public class SwedbankPaySDKController: UIViewController {
         self.dismiss(animated: true, completion: nil)
     }
     
-    /**
-     Creates consumer identification JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
-     - parameter list: List of operations available; need to find correct type of operation from it
-     */
+    /// Creates consumer identification JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
+    /// - parameter list: List of operations available; need to find correct type of operation from it
     private func createConsumerURL(_ list: OperationsList) {
         let operationType = OperationTypeString.viewConsumerIdentification.rawValue
         if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
@@ -114,10 +110,8 @@ public class SwedbankPaySDKController: UIViewController {
         }
     }
     
-    /**
-     Creates payment order JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
-     - parameter list: List of operations available; need to find correct type of operation from it
-     */
+    /// Creates payment order JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
+    /// - parameter list: List of operations available; need to find correct type of operation from it
     private func createPaymentOrderURL(_ list: OperationsList) {
         let operationType = OperationTypeString.viewPaymentOrder.rawValue
         if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
@@ -128,11 +122,9 @@ public class SwedbankPaySDKController: UIViewController {
         }
     }
     
-    /**
-     Creates a HTML string to load into WKWebView
-     - parameter url: JavaScript URL String to replace a placeholder with from HTML template
-     - parameter type: the type of the WKWebView HTML to load, and what kind of JavaScript events to create for it
-     */
+    /// Creates a HTML string to load into WKWebView
+    /// - parameter url: JavaScript URL String to replace a placeholder with from HTML template
+    /// - parameter type: the type of the WKWebView HTML to load, and what kind of JavaScript events to create for it
     private func loadWebViewURL(_ url: String, type: WebViewType) {
         
         let html: String
@@ -236,10 +228,8 @@ extension SwedbankPaySDKController: WKScriptMessageHandler {
         }
     }
     
-    /**
-     User identified event received
-     - parameter messageBody: user identification String saved as consumerProfileRef
-     */
+    /// User identified event received
+    /// - parameter messageBody: user identification String saved as consumerProfileRef
     private func handleConsumerIdentifiedEvent(_ messageBody: Any) {
         debugPrint("SwedbankPaySDK: onConsumerIdentified event received")
         if let str = messageBody as? String {
@@ -257,10 +247,8 @@ extension SwedbankPaySDKController: WKScriptMessageHandler {
         }
     }
     
-    /**
-     Terms of service event received
-     - parameter messageBody: terms of service URL String in an NSDictionary
-     */
+    /// Terms of service event received
+    /// - parameter messageBody: terms of service URL String in an NSDictionary
     private func handleToSEvent(_ messageBody: Any) {
         debugPrint("SwedbankPaySDK: onPaymentToS event received")
         if let dict = messageBody as? NSDictionary {

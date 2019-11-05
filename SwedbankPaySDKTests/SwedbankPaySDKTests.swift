@@ -1,11 +1,3 @@
-//
-//  SwedbankPaySDKTests.swift
-//  SwedbankPaySDKTests
-//
-//  Created by Markku Hämäläinen on 04/11/2019.
-//  Copyright © 2019 Swedbank. All rights reserved.
-//
-
 import XCTest
 @testable import SwedbankPaySDK
 

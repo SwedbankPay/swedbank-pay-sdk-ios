@@ -138,11 +138,11 @@
 		C585AF25237066EE006C2E16 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				C585AF26237066EE006C2E16 /* ToSViewController.swift */,
+				C585AF29237066EE006C2E16 /* Common.swift */,
 				C585AF27237066EE006C2E16 /* SwedbankPaySDK.swift */,
 				C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */,
-				C585AF29237066EE006C2E16 /* Common.swift */,
 				C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */,
+				C585AF26237066EE006C2E16 /* ToSViewController.swift */,
 			);
 			path = Classes;
 			sourceTree = "<group>";

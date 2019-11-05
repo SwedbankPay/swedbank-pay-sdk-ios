@@ -1,15 +1,12 @@
 import ObjectMapper
 
-/**
- Class defining data types exposed to the client app using the SDK
- */
+/// Class defining data types exposed to the client app using the SDK
 public class SwedbankPaySDK {
-    /**
-    Swedbank Pay SDK Configuration
-     - parameter backendUrl: backend URL
-     - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
-     - parameter domainWhitelist: Array of domains allowed to be connected to; defaults to `backendURL` if nil
-     */
+    
+    /// Swedbank Pay SDK Configuration
+    ///  - parameter backendUrl: backend URL
+    ///  - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
+    ///  - parameter domainWhitelist: Array of domains allowed to be connected to; defaults to `backendURL` if nil
     public struct Configuration {
         var backendUrl: String?
         var headers: Dictionary<String, String>?
@@ -22,11 +19,9 @@ public class SwedbankPaySDK {
         }
     }
     
-    /**
-     Whitelisted domains
-     - parameter domain: URL of the domain as a String
-     - parameter includeSubdomains: if `true`, means any subdomain of `domain` is valid
-     */
+    ///  Whitelisted domains
+    ///  - parameter domain: URL of the domain as a String
+    ///  - parameter includeSubdomains: if `true`, means any subdomain of `domain` is valid
     public struct WhitelistedDomain {
         var domain: String?
         var includeSubdomains: Bool
@@ -37,13 +32,11 @@ public class SwedbankPaySDK {
         }
     }
     
-    /**
-     Consumer object for Swedbank Pay SDK
-     - parameter consumerCountryCode: String?
-     - parameter msisdn: String?
-     - parameter email: String?
-     - parameter nationalIdentifier: NationalIdentifier?
-     */
+    ///  Consumer object for Swedbank Pay SDK
+    ///  - parameter consumerCountryCode: String?
+    ///  - parameter msisdn: String?
+    ///  - parameter email: String?
+    ///  - parameter nationalIdentifier: NationalIdentifier?
     public struct Consumer: Codable {
         var consumerCountryCode: String?
         var msisdn: String?
@@ -58,11 +51,9 @@ public class SwedbankPaySDK {
         }
     }
     
-    /**
-     Natinal identifier object for Swedbank Pay SDK
-     - parameter socialSecurityNumber: String?
-     - parameter countryCode: String?
-     */
+    /// National identifier object for Swedbank Pay SDK
+    ///  - parameter socialSecurityNumber: String?
+    ///  - parameter countryCode: String?
     public struct NationalIdentifier: Codable {
         var socialSecurityNumber: String?
         var countryCode: String?
@@ -73,9 +64,7 @@ public class SwedbankPaySDK {
         }
     }
     
-    /**
-     `ClientProblemType` URLs
-     */
+    /// `ClientProblemType` URLs
     enum ClientProblemType: String {
         case BadRequest = "https://api.payex.com/psp/errordetail/mobilesdk/badrequest" // 400
         case Unauthorized = "https://api.payex.com/psp/errordetail/mobilesdk/unauthorized" // 401
@@ -84,9 +73,7 @@ public class SwedbankPaySDK {
         case NotFound = "https://api.payex.com/psp/errordetail/notfound"
     }
     
-    /**
-     `ServerProblemType` URLs
-     */
+    /// `ServerProblemType` URLs
     enum ServerProblemType: String {
         case InternalServerError = "about:blank" // 500
         case BadGateway = "https://api.payex.com/psp/errordetail/mobilesdk/badgateway" // 502
@@ -95,40 +82,33 @@ public class SwedbankPaySDK {
         case ConfigurationError = "https://api.payex.com/psp/errordetail/mobilesdk/configurationerror"
     }
     
-    /**
-     Base class for any problems encountered in the payment.
-     
-     All problems are either `Client` or `Server` problems. A Client problem is one where there was something wrong with the request
-     the client app sent to the service. A Client problem always implies an HTTP response status in the Client Error range, 400-499.
-     
-     A Server problem is one where the service understood the request, but could not fulfill it. If the backend responds in an unexpected
-     manner, the situation will be interpreted as a Server error, unless the response status is in 400-499 range, in which case it is still considered a
-     Client error.
-     
-     This separation to Client and Server errors provides a crude but often effective way of distinguishing between temporary service unavailability
-     and permanent configuration errors.
-     	
-     Client and Server errors are further divided to specific types. See individual class documentation for details.
-     */
+    /// Base class for any problems encountered in the payment.
+    ///
+    /// All problems are either `Client` or `Server` problems. A Client problem is one where there was something wrong with the request
+    /// the client app sent to the service. A Client problem always implies an HTTP response status in the Client Error range, 400-499.
+    ///
+    /// A Server problem is one where the service understood the request, but could not fulfill it. If the backend responds in an unexpected
+    /// manner, the situation will be interpreted as a Server error, unless the response status is in 400-499 range, in which case it is still considered a
+    /// Client error.
+    ///
+    /// This separation to Client and Server errors provides a crude but often effective way of distinguishing between temporary service unavailability
+    /// and permanent configuration errors.
+    ///
+    /// Client and Server errors are further divided to specific types. See individual class documentation for details.
     public enum Problem {
         case Client(ClientProblem)
         case Server(ServerProblem)
     }
     
-    /**
-     A Client Problem always implies a HTTP status in 400-499.
-     */
+    /// A Client Problem always implies a HTTP status in 400-499.
     public enum ClientProblem {
         
-        /**
-         Base class for `Client` Problems defined by the example backend.
-         */
+        ///  Base class for `Client` Problems defined by the example backend
         case MobileSDK(MobileSDKProblem)
         
-        /**
-         Base class for `Client` problems defined by the Swedbank Pay backend.
-         [https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/technical-reference/#HProblems]
-         */
+        /// Base class for `Client` problems defined by the Swedbank Pay backend.
+        ///
+        /// [https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/technical-reference/#HProblems]
         case SwedbankPay(
             type: SwedbankPayProblem,
             title: String?,
@@ -139,9 +119,7 @@ public class SwedbankPaySDK {
             raw: String?
         )
         
-        /**
-         `Client` problem with an unrecognized type.
-         */
+        ///  `Client` problem with an unrecognized type.
         case Unknown(
             type: String?,
             title: String?,
@@ -151,10 +129,8 @@ public class SwedbankPaySDK {
             raw: String?
         )
         
-        /**
-         Pseudo-problem, not actually parsed from an application/problem+json response. This problem is emitted if the server response is in
-         an unexpected format and the HTTP status is in the Client Error range (400-499).
-         */
+        /// Pseudo-problem, not actually parsed from an application/problem+json response. This problem is emitted if the server response is in
+        /// an unexpected format and the HTTP status is in the Client Error range (400-499).
         case UnexpectedContent(
             status: Int,
             contentType: String?,
@@ -163,17 +139,13 @@ public class SwedbankPaySDK {
         
         public enum MobileSDKProblem {
             
-            /**
-             The merchant backend rejected the request because its authentication headers were invalid.
-             */
+            /// The merchant backend rejected the request because its authentication headers were invalid.
             case Unauthorized (
                 message: String?,
                 raw: String?
             )
             
-            /**
-             The merchant backend did not understand the request.
-             */
+            /// The merchant backend did not understand the request.
             case InvalidRequest (
                 message: String?,
                 raw: String?
@@ -181,37 +153,26 @@ public class SwedbankPaySDK {
         }
         public enum SwedbankPayProblem {
             
-            /**
-             The request could not be handled because the request was malformed somehow (e.g. an invalid field value).
-             */
+            /// The request could not be handled because the request was malformed somehow (e.g. an invalid field value).
             case InputError
             
-            /**
-             The request was understood, but the service is refusing to fulfill it. You may not have access to the requested resource.
-             */
+            /// The request was understood, but the service is refusing to fulfill it. You may not have access to the requested resource.
             case Forbidden
             
-            /**
-             The requested resource was not found.
-             */
+            /// The requested resource was not found.
             case NotFound
         }
     }
     
-    /**
-     Any unexpected response where the HTTP status is outside 400-499 results in a `Server` Problem; usually it means the status was in 500-599.
-     */
+    /// Any unexpected response where the HTTP status is outside 400-499 results in a `Server` Problem; usually it means the status was in 500-599.
     public enum ServerProblem {
         
-        /**
-         Base class for `Server` Problems defined by the example backend.
-         */
+        /// Base class for `Server` Problems defined by the example backend.
         case MobileSDK(MobileSDKProblem)
         
-        /**
-         Base class for `Server` problems defined by the Swedbank Pay backend.
-         [https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/technical-reference/#HProblems]
-         */
+        /// Base class for `Server` problems defined by the Swedbank Pay backend.
+        ///
+        /// [https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/technical-reference/#HProblems]
         case SwedbankPay(
             type: SwedbankPayProblem,
             title: String?,
@@ -222,9 +183,7 @@ public class SwedbankPaySDK {
             raw: String?
         )
         
-        /**
-         `Server` problem with an unrecognized type.
-         */
+        /// `Server` problem with an unrecognized type.
         case Unknown(
             type: String?,
             title: String?,
@@ -234,10 +193,8 @@ public class SwedbankPaySDK {
             raw: String?
         )
         
-        /**
-         Pseudo-problem, not actually parsed from an application/problem+json response. This problem is emitted if the server response is in
-         an unexpected format and the HTTP status is not in the Client Error range.
-         */
+        /// Pseudo-problem, not actually parsed from an application/problem+json response. This problem is emitted if the server response is in
+        /// an unexpected format and the HTTP status is not in the Client Error range.
         case UnexpectedContent(
             status: Int,
             contentType: String?,
@@ -246,48 +203,37 @@ public class SwedbankPaySDK {
         
         public enum MobileSDKProblem {
             
-            /**
-             The merchant backend timed out trying to connect to the Swedbank Pay backend.
-             */
+            /// The merchant backend timed out trying to connect to the Swedbank Pay backend.
             case BackendConnectionTimeout (
                 message: String?,
                 raw: String?
             )
             
-            /**
-             The merchant backend failed to connect to the Swedbank Pay backend.
-             */
+            /// The merchant backend failed to connect to the Swedbank Pay backend.
             case BackendConnectionFailure (
                 message: String?,
                 raw: String?
             )
             
-            /**
-             The merchant backend received an invalid response from the Swedbank Pay backend.
-             */
+            /// The merchant backend received an invalid response from the Swedbank Pay backend.
             case InvalidBackendResponse (
                 body: String?,
                 raw: String?
             )
         }
         public enum SwedbankPayProblem {
-            /**
-             A generic error message. HTTP Status code 500.
-             */
+            
+            /// A generic error message. HTTP Status code 500.
             case SystemError
             
-            /**
-             An error relating to configuration issues. HTTP Status code 500.
-             */
+            /// An error relating to configuration issues. HTTP Status code 500.
             case ConfigurationError
         }
     }
     
-    /**
-     Object detailing the reason for a [SwedbankPayProblem].
-     
-     See [https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/technical-reference/#HProblems].
-     */
+    /// Object detailing the reason for a [SwedbankPayProblem].
+    ///
+    /// See [https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/technical-reference/#HProblems].
     public struct SwedbankPaySubProblem: Mappable {
         var name: String?
         var description: String?
