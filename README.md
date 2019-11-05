@@ -20,7 +20,7 @@ There is an [example app](https://github.com/SwedbankPay/swedbank-pay-sdk-ios-ex
 ### Usage
 
 To use Swedbank Pay iOS SDK you `import SwedbankPaySDK` in your `UIViewController` and instantiate the `SwedbankPaySDKController` the way you see fit. For instance in the example app it is instantiated inside an UIView:
-```
+```swift
 let swedbankPaySDKController = SwedbankPaySDKController.init(
     configuration: configuration,
     merchantData: merchantData,
@@ -43,22 +43,22 @@ swedbankPaySDKController.didMove(toParent: self)
 There are 3 things the SDK expects.
 
 1. Configuration:
-```
+```swift
 let configuration = SwedbankPaySDK.Configuration.init(...
 ```
 2. MerchantData:
-```
+```swift
 let mechantData = [Anything your backend expects, but it must conform to Encodable protocol]
 ```
 3. Optionally, consumerData (if consumerData is `nil`, consumer is anonymous):
-```
+```swift
 let consumerData = SwedbankPaySDK.Consumer.init(...
 ```
 
 ###### Delegation
 
 To handle the responses from the SDK, the viewController needs to conform to `SwedbankPaySDKDelegate`, like in the example app:
-```
+```swift
 extension PaymentViewController: SwedbankPaySDKDelegate {
     func paymentComplete() {
         // Your payment completion code here
