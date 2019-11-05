@@ -1,12 +1,10 @@
 # Swedbank Pay iOS SDK
 
-Swedbank Pay iOS SDK enables simple embedding of [PayEx Checkout](https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/payex-checkout) to an iOS application. Android version is [here](https://github.com/SwedbankPay/swedbank-pay-sdk-android).
-
-The backend documentation for the merchant API is [here](https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant).
+Swedbank Pay iOS SDK enables simple embedding of [PayEx Checkout](https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/payex-checkout) to an iOS application. You may also be interested in [Android version](https://github.com/SwedbankPay/swedbank-pay-sdk-android) of the SDK and [backend documentation for the merchant API](https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant).
 
 ### Example app
 
-There is an example app written in Swift [here](https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app).
+There is an [example app](https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app) written in Swift.
 
 ### Requirements
 
@@ -15,14 +13,13 @@ There is an example app written in Swift [here](https://github.com/SwedbankPay/s
 
 ### Installation
 
-1. Add `pod SwedbankPaySDK` into your `Podfile`
+1. Add `pod 'SwedbankPaySDK'` into your `Podfile`
 2. Run `pod install`
 3. Restart Xcode if it was open
-4. Start using the SDK
 
 ### Usage
 
-To use Swedbank Pay iOS SDK you instantiate the `SwedbankPaySDKController` the way you see fit. For instance in the example app it is instantiated inside an UIView:
+To use Swedbank Pay iOS SDK you `import SwedbankPaySDK` in your `UIViewController` and instantiate the `SwedbankPaySDKController` the way you see fit. For instance in the example app it is instantiated inside an UIView:
 ```
 let swedbankPaySDKController = SwedbankPaySDKController.init(
     configuration: configuration,
