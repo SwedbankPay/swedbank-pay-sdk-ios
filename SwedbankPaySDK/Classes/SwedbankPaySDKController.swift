@@ -20,10 +20,10 @@ public class SwedbankPaySDKController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    /// Initializes the Swedbank Pay SDK, and depending on the `consumerData`, starts the payment process with user identification or anonymous process
+    /// Initializes the Swedbank Pay SDK, and depending on the `consumerData`, starts the payment process with consumer identification or anonymous process
     /// - parameter configuration: Configuration object containing `backendUrl`, `headers` and `domainWhitelist`; of these, `domainWhitelist` is *optional*
     /// - parameter merchantData: merchant and purchase information
-    /// - parameter consumerData: consumer identification information; *optional* - if not provided, user will be anonymous
+    /// - parameter consumerData: consumer identification information; *optional* - if not provided, consumer will be anonymous
     public init<T: Encodable>(configuration: SwedbankPaySDK.Configuration, merchantData: T?, consumerData: SwedbankPaySDK.Consumer? = nil) {
         super.init(nibName: nil, bundle: nil)
 
@@ -69,7 +69,7 @@ public class SwedbankPaySDKController: UIViewController {
         if consumerData == nil {
             createPaymentOrder(backendUrl)
         } else {
-            viewModel.identifyUser(backendUrl, successCallback: { [weak self] operationsList in
+            viewModel.identifyConsumer(backendUrl, successCallback: { [weak self] operationsList in
                 self?.createConsumerURL(operationsList)
             }, errorCallback: { [weak self] problem in
                 self?.paymentFailed(problem)
@@ -154,9 +154,9 @@ public class SwedbankPaySDKController: UIViewController {
         view.addSubview(webView)
         webView.translatesAutoresizingMaskIntoConstraints = false
         
-        // Constrain the WKWebView into the area below navigation Bar
+        // Constrain the WKWebView
         NSLayoutConstraint.activate([
-            webView.topAnchor.constraint(equalTo: view.topAnchor, constant: self.topLayoutGuide.length),
+            webView.topAnchor.constraint(equalTo: view.topAnchor),
             webView.leftAnchor.constraint(equalTo: view.leftAnchor),
             webView.rightAnchor.constraint(equalTo: view.rightAnchor),
             webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -175,7 +175,7 @@ public class SwedbankPaySDKController: UIViewController {
     }
 }
 
-/// Extension to conform to SwedbankPaySDKDelegate protocol
+/// Extension for WKNavigationDelegate
 extension SwedbankPaySDKController: WKNavigationDelegate {
     
     fileprivate func paymentFailed(_ problem: SwedbankPaySDK.Problem) {
@@ -228,8 +228,8 @@ extension SwedbankPaySDKController: WKScriptMessageHandler {
         }
     }
     
-    /// User identified event received
-    /// - parameter messageBody: user identification String saved as consumerProfileRef
+    /// Consumer identified event received
+    /// - parameter messageBody: consumer identification String saved as consumerProfileRef
     private func handleConsumerIdentifiedEvent(_ messageBody: Any) {
         debugPrint("SwedbankPaySDK: onConsumerIdentified event received")
         if let str = messageBody as? String {

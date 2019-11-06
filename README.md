@@ -70,6 +70,10 @@ extension PaymentViewController: SwedbankPaySDKDelegate {
 }
 ```
 
+### Test Data
+
+During implementation you can use the [test data](https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/resources/test-data/) related to the different payment methods.
+
 ### License
 
 Swedbank Pay iOS SDK is released under the [Apache 2.0 license](LICENSE).

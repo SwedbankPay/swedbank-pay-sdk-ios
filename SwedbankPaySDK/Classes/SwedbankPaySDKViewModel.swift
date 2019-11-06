@@ -143,12 +143,12 @@ final class SwedbankPaySDKViewModel: NSObject {
         })
     }
     
-    /// Creates user identification request for registered user
+    /// Creates consumer identification request for registered consumer
     /// - parameter backendUrl: backend URL
     /// - parameter successCallback: called on success
     /// - parameter errorCallback: called on failure
     /// - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
-    public func identifyUser(_ backendUrl: String, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
+    public func identifyConsumer(_ backendUrl: String, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         getEndPoints(backendUrl, successCallback: { [weak self] endPoints in
             // getEndPoints success

@@ -13,6 +13,11 @@ public class ToSViewController: UIViewController, WKNavigationDelegate {
     public init(tosUrl: String?) {
         super.init(nibName: nil, bundle: nil)
         
+        if #available(iOS 13, *) {
+            self.modalPresentationStyle = .automatic
+        } else {
+            self.modalPresentationStyle = .overCurrentContext
+        }
         self.tosUrl = tosUrl
     }
     
@@ -21,21 +26,28 @@ public class ToSViewController: UIViewController, WKNavigationDelegate {
         
         self.view.backgroundColor = UIColor.white
     }
-    
-    override public func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
+
+    override public func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         
         // Create navbar with close button
-        let navBar = UINavigationBar(frame: CGRect(x: 0, y: self.topLayoutGuide.length, width: UIScreen.main.bounds.width, height: 44))
+        var yPos: CGFloat = 0
+        if #available(iOS 11, *) {
+            yPos = view.safeAreaInsets.top
+        } else {
+            yPos = self.topLayoutGuide.length
+        }
+        let navBar = UINavigationBar.init(frame: CGRect(x: 0, y: yPos, width: UIScreen.main.bounds.width, height: 44))
         view.addSubview(navBar)
 
         let navItem = UINavigationItem(title: "")
         let closeButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: nil, action: #selector(self.closeButtonPressed))
         navItem.rightBarButtonItem = closeButton
         navBar.setItems([navItem], animated: false)
-
+        
         // Create webview
-        let webView = WKWebView(frame: view.bounds)
+        let config = WKWebViewConfiguration()
+        let webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.contentMode = .scaleAspectFill
         view.addSubview(webView)
