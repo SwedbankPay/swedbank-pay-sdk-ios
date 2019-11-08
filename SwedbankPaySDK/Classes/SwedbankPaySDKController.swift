@@ -1,8 +1,5 @@
 import UIKit
 import WebKit
-import Alamofire
-import AlamofireObjectMapper
-import ObjectMapper
 
 public protocol SwedbankPaySDKDelegate: AnyObject {
     func paymentComplete()
@@ -10,7 +7,7 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     func paymentFailed(_ problem: SwedbankPaySDK.Problem)
 }
 
-public class SwedbankPaySDKController: UIViewController {
+public final class SwedbankPaySDKController: UIViewController {
     
     public weak var delegate: SwedbankPaySDKDelegate?
     

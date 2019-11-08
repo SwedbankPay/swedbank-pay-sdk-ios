@@ -1,48 +1,116 @@
+import Alamofire
 import ObjectMapper
 
 /// Class defining data types exposed to the client app using the SDK
-public class SwedbankPaySDK {
+public final class SwedbankPaySDK {
     
     /// Swedbank Pay SDK Configuration
-    ///  - parameter backendUrl: backend URL
-    ///  - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
-    ///  - parameter domainWhitelist: Array of domains allowed to be connected to; defaults to `backendURL` if nil
     public struct Configuration {
         var backendUrl: String?
         var headers: Dictionary<String, String>?
         var domainWhitelist: [WhitelistedDomain]?
-        
-        public init(backendUrl: String?, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]?) {
+        var pinPublicKeys: [PinPublicKeys]?
+
+        /// Initializer for `SwedbankPaySDK.Configuration`
+        /// - parameter backendUrl: backend URL
+        /// - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
+        /// - parameter domainWhitelist: Optional array of domains allowed to be connected to; defaults to `backendURL` if nil
+        /// - parameter certificatePins: Optional array of domains for certification pinning, matched against any certificate found anywhere in the app bundle
+        public init(backendUrl: String?, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]?, pinPublicKeys: [PinPublicKeys]?) {
             self.backendUrl = backendUrl
             self.headers = headers
             self.domainWhitelist = domainWhitelist
+            self.pinPublicKeys = pinPublicKeys
         }
     }
     
     ///  Whitelisted domains
-    ///  - parameter domain: URL of the domain as a String
-    ///  - parameter includeSubdomains: if `true`, means any subdomain of `domain` is valid
     public struct WhitelistedDomain {
         var domain: String?
         var includeSubdomains: Bool
-        
+
+        /// Initializer for `SwedbankPaySDK.WhitelistedDomain`
+        /// - parameter domain: URL of the domain as a String
+        /// - parameter includeSubdomains: if `true`, means any subdomain of `domain` is valid
         public init(domain: String?, includeSubdomains: Bool) {
             self.domain = domain
             self.includeSubdomains = includeSubdomains
         }
     }
     
+    /// Object for certificate pinning with public keys found in app bundle certificates
+    public struct PinPublicKeys {
+        var pattern: String
+        var publicKeys: [SecKey]
+        
+        /// Initializer for PinPublicKeys, by default uses public keys of all certificates found in app bundle
+        /// - parameter pattern: the hostname pattern to pin
+        /// - parameter publicKeys: by default, searches for all certificates in app bundle and uses them
+        public init(pattern: String, publicKeys: [SecKey] = ServerTrustPolicy.publicKeys()) {
+            if publicKeys.isEmpty {
+                print("No publicKeys defined for certificate pinning; did you forget to add a certificate?")
+            }
+            self.pattern = pattern
+            self.publicKeys = publicKeys
+        }
+        
+        /// Initializer for PinPublicKeys, expects an array of certificate file names for each hostname pattern
+        /// - parameter pattern: the hostname pattern to pin
+        /// - parameter certificateFileNames: certificate filenames to look for from the app bundle
+        public init(pattern: String, certificateFileNames: String...) {
+            var publicKeys: [SecKey] = []
+            
+            /// Returns the public key from the certificate
+            func publicKey(for certificate: SecCertificate) -> SecKey? {
+                if #available(iOS 12, *) {
+                    return SecCertificateCopyKey(certificate)
+                } else {
+                    var publicKey: SecKey?
+
+                    let policy = SecPolicyCreateBasicX509()
+                    var trust: SecTrust?
+                    let trustCreationStatus = SecTrustCreateWithCertificates(certificate, policy, &trust)
+
+                    if let trust = trust, trustCreationStatus == errSecSuccess {
+                        publicKey = SecTrustCopyPublicKey(trust)
+                    }
+
+                    return publicKey
+                }
+            }
+            
+            for fileName in certificateFileNames {
+                if let filepath = Bundle.main.path(forResource: fileName, ofType: nil) {
+                    do {
+                        let data = try NSData(contentsOfFile: filepath) as CFData
+                        if let certificate = SecCertificateCreateWithData(nil, data) {
+                            if let publicKey = publicKey(for: certificate) {
+                                publicKeys.append(publicKey)
+                            }
+                        }
+                    } catch {
+                        print("Could not read certificate file: \(fileName)")
+                    }
+                } else {
+                    print("Certificate file was not found: \(fileName)")
+                }
+            }
+            self.init(pattern: pattern, publicKeys: publicKeys)
+        }
+    }
+    
     ///  Consumer object for Swedbank Pay SDK
-    ///  - parameter consumerCountryCode: String?
-    ///  - parameter msisdn: String?
-    ///  - parameter email: String?
-    ///  - parameter nationalIdentifier: NationalIdentifier?
     public struct Consumer: Codable {
         var consumerCountryCode: String?
         var msisdn: String?
         var email: String?
         var nationalIdentifier: NationalIdentifier?
         
+        /// Initializer for `SwedbankPaySDK.Consumer`
+        /// - parameter consumerCountryCode: String representing consumer's country code
+        /// - parameter msisdn: String representing consumer's phone number
+        /// - parameter email: String representing consumer's email address
+        /// - parameter nationalIdentifier: `NationalIdentifier`object representing consumer's social security number and country code
         public init(consumerCountryCode: String?, msisdn: String?, email: String?, nationalIdentifier: NationalIdentifier?) {
             self.consumerCountryCode = consumerCountryCode
             self.msisdn = msisdn
@@ -52,17 +120,20 @@ public class SwedbankPaySDK {
     }
     
     /// National identifier object for Swedbank Pay SDK
-    ///  - parameter socialSecurityNumber: String?
-    ///  - parameter countryCode: String?
     public struct NationalIdentifier: Codable {
         var socialSecurityNumber: String?
         var countryCode: String?
         
+        /// Initializer for `SwedbankPaySDK.NationalIdentifier`
+        /// - parameter socialSecurityNumber: String representing consumer's social security number
+        /// - parameter countryCode: String representing consumer's country code
         public init(socialSecurityNumber: String?, countryCode: String?) {
             self.socialSecurityNumber = socialSecurityNumber
             self.countryCode = countryCode
         }
     }
+    
+    // MARK: Problem 
     
     /// `ClientProblemType` URLs
     enum ClientProblemType: String {
@@ -103,7 +174,7 @@ public class SwedbankPaySDK {
     /// A Client Problem always implies a HTTP status in 400-499.
     public enum ClientProblem {
         
-        ///  Base class for `Client` Problems defined by the example backend
+        /// Base class for `Client` Problems defined by the example backend
         case MobileSDK(MobileSDKProblem)
         
         /// Base class for `Client` problems defined by the Swedbank Pay backend.
@@ -119,7 +190,7 @@ public class SwedbankPaySDK {
             raw: String?
         )
         
-        ///  `Client` problem with an unrecognized type.
+        /// `Client` problem with an unrecognized type.
         case Unknown(
             type: String?,
             title: String?,
@@ -235,8 +306,8 @@ public class SwedbankPaySDK {
     ///
     /// See [https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/technical-reference/#HProblems].
     public struct SwedbankPaySubProblem: Mappable {
-        var name: String?
-        var description: String?
+        public var name: String?
+        public var description: String?
         
         public init?(map: Map) {
         }

@@ -8,12 +8,14 @@ final class SwedbankPaySDKViewModel: NSObject {
     private(set) var merchantData: Any?
     private(set) var consumerProfileRef: String?
     
+    var sessionManager: SessionManager = Alamofire.SessionManager(configuration: URLSessionConfiguration.default)
+    
     /// Sets the `SwedbankPaySDK.Configuration`
     /// - parameter configuration: Configuration to be set
     public func setConfiguration(_ configuration: SwedbankPaySDK.Configuration) {
         self.configuration = configuration
         
-        // If `configuration.domainWhitelist` is empty, add backendUrl as whitelisted domain
+        /// If `configuration.domainWhitelist` is empty, add backendUrl as whitelisted domain
         if let empty = self.configuration?.domainWhitelist?.isEmpty, empty {
             if let backendUrl = self.configuration?.backendUrl {
                 let host = URL.init(string: backendUrl)?.host
@@ -23,6 +25,24 @@ final class SwedbankPaySDKViewModel: NSObject {
                 )
                 self.configuration?.domainWhitelist = [domain]
             }
+        }
+        
+        /// If `configuration.pinCertificates` is not empty, pin certificates found in Bundle
+        if let pinPublicKeys = self.configuration?.pinPublicKeys, !pinPublicKeys.isEmpty {
+            var serverTrustPolicies: [String : ServerTrustPolicy] = [:]
+            for certificate in pinPublicKeys {
+                serverTrustPolicies[certificate.pattern] = ServerTrustPolicy.pinPublicKeys(
+                    publicKeys: certificate.publicKeys,
+                    validateCertificateChain: true,
+                    validateHost: true
+                )
+            }
+            sessionManager = Alamofire.SessionManager(
+                configuration: URLSessionConfiguration.default,
+                serverTrustPolicyManager: ServerTrustPolicyManager(
+                    policies: serverTrustPolicies
+                )
+            )
         }
     }
     
@@ -70,9 +90,9 @@ final class SwedbankPaySDKViewModel: NSObject {
     /// - parameter errorCallback: called on failure
     /// - returns: Dictionary containing the endpoints in successCallback, `SwedbankPaySDK.Problem` in errorCallback
     private func getEndPoints(_ backendUrl: String, successCallback: Closure<Dictionary<String, String>?>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
-        
-        request(backendUrl, method: .get, parameters: nil, encoding: JSONEncoding.default, headers: configuration?.headers).responseJSON(completionHandler: { response in
+        sessionManager.request(backendUrl, method: .get, parameters: nil, encoding: JSONEncoding.default, headers: configuration?.headers).responseJSON(completionHandler: { response in
             if let responseValue = response.result.value {
+                // Alamofire request succeeded (backend might have responded with error)
                 if let statusCode = response.response?.statusCode {
                     if (200...299).contains(statusCode), let res = responseValue as? Dictionary<String, String> {
                         #if DEBUG
@@ -88,9 +108,12 @@ final class SwedbankPaySDKViewModel: NSObject {
                         })
                     } else {
                         // Error response was of unknown format, return generic error
-                        errorCallback?(self.getGenericProblem(statusCode))
+                        errorCallback?(self.getGenericProblem(statusCode, raw: response.description))
                     }
                 }
+            } else {
+                // Alamofire request failed for some reason
+                errorCallback?(self.getGenericProblem(-1, raw: response.description))
             }
         })
     }
@@ -130,7 +153,7 @@ final class SwedbankPaySDKViewModel: NSObject {
                 parameters?["consumerProfileRef"] = self?.consumerProfileRef
             }
             
-            request(backendUrl + endPoint, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: self?.configuration?.headers).responseJSON(completionHandler: { [weak self] response in
+            self?.sessionManager.request(backendUrl + endPoint, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: self?.configuration?.headers).responseJSON(completionHandler: { [weak self] response in
                 self?.handleResponse(response, successCallback: { operationsList in
                     successCallback?(operationsList)
                 }, errorCallback: { problem in
@@ -186,7 +209,7 @@ final class SwedbankPaySDKViewModel: NSObject {
                 urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 urlRequest.httpBody = data
                 
-                request(urlRequest).responseJSON(completionHandler: { [weak self] response in
+                self?.sessionManager.request(urlRequest).responseJSON(completionHandler: { [weak self] response in
                     self?.handleResponse(response, successCallback: { operationsList in
                         successCallback?(operationsList)
                     }, errorCallback: { problem in
@@ -211,6 +234,7 @@ final class SwedbankPaySDKViewModel: NSObject {
     /// - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
     private func handleResponse(_ response: DataResponse<Any>, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         if let responseValue = response.result.value {
+            // Alamofire request succeeded (backend might have responded with error)
             if let statusCode = response.response?.statusCode {
                 if (200...299).contains(statusCode) {
                     // Success
@@ -223,10 +247,13 @@ final class SwedbankPaySDKViewModel: NSObject {
                         errorCallback?(problem)
                     })
                 } else {
-                   // Error response was of unknown format, return generic error
-                   errorCallback?(getGenericProblem(statusCode))
+                    // Error response was of unknown format, return generic error
+                    errorCallback?(getGenericProblem(statusCode, raw: response.description))
                 }
             }
+        } else {
+            // Alamofire request failed for some reason
+            errorCallback?(getGenericProblem(response.response?.statusCode ?? -1, raw: response.description))
         }
     }
     
@@ -246,7 +273,7 @@ final class SwedbankPaySDKViewModel: NSObject {
             }
         } else {
             // Error response was of unknown format, return generic error
-            callback?(getGenericProblem(statusCode))
+            callback?(getGenericProblem(statusCode, raw: response.description))
         }
     }
     
@@ -274,7 +301,7 @@ final class SwedbankPaySDKViewModel: NSObject {
         
         default:
             // Return default error to make switch exhaustive
-            return getGenericProblem(statusCode)
+            return getGenericProblem(statusCode, raw: response.description)
         }
     }
     
@@ -300,13 +327,18 @@ final class SwedbankPaySDKViewModel: NSObject {
             
         default:
             // Return default error to make switch exhaustive
-            return getGenericProblem(statusCode)
+            return getGenericProblem(statusCode, raw: response.description)
         }
     }
     
-    private func getGenericProblem(_ statusCode: Int) -> SwedbankPaySDK.Problem {
-        let problem = SwedbankPaySDK.Problem.Server(.Unknown(type: nil, title: "Unknown error occurred", status: statusCode, detail: nil, instance: nil, raw: nil))
-        return problem
+    private func getGenericProblem(_ statusCode: Int, raw: String? = nil) -> SwedbankPaySDK.Problem {
+        if statusCode >= 500 {
+            let problem = SwedbankPaySDK.Problem.Server(.Unknown(type: nil, title: "Unknown Server error occurred", status: statusCode, detail: nil, instance: nil, raw: raw))
+            return problem
+        } else {
+            let problem = SwedbankPaySDK.Problem.Client(.Unknown(type: nil, title: "Unknown Client error occurred", status: statusCode, detail: nil, instance: nil, raw: raw))
+            return problem
+        }
     }
     
     private func getClientSwedbankPayProblem(_ problemType: SwedbankPaySDK.ClientProblem.SwedbankPayProblem, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {

@@ -50,7 +50,7 @@
 		C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKViewModel.swift; sourceTree = "<group>"; };
 		C585AF29237066EE006C2E16 /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKController.swift; sourceTree = "<group>"; };
-		C585AF30237066FB006C2E16 /* SwedbankPaySDK.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SwedbankPaySDK.podspec; sourceTree = "<group>"; };
+		C585AF30237066FB006C2E16 /* SwedbankPaySDK.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SwedbankPaySDK.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,8 +140,8 @@
 			children = (
 				C585AF29237066EE006C2E16 /* Common.swift */,
 				C585AF27237066EE006C2E16 /* SwedbankPaySDK.swift */,
-				C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */,
 				C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */,
+				C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */,
 				C585AF26237066EE006C2E16 /* ToSViewController.swift */,
 			);
 			path = Classes;

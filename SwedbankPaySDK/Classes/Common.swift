@@ -1,5 +1,4 @@
 import Foundation
-import AlamofireObjectMapper
 import ObjectMapper
 
 typealias Closure<T> = (T) -> Void
