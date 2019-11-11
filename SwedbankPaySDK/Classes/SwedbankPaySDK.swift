@@ -165,7 +165,7 @@ public final class SwedbankPaySDK {
     /// This separation to Client and Server errors provides a crude but often effective way of distinguishing between temporary service unavailability
     /// and permanent configuration errors.
     ///
-    /// Client and Server errors are further divided to specific types. See individual class documentation for details.
+    /// Client and Server errors are further divided to specific types. See individual documentation for details.
     public enum Problem {
         case Client(ClientProblem)
         case Server(ServerProblem)

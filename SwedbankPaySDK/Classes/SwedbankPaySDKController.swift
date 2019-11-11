@@ -18,7 +18,7 @@ public final class SwedbankPaySDKController: UIViewController {
     }
     
     /// Initializes the Swedbank Pay SDK, and depending on the `consumerData`, starts the payment process with consumer identification or anonymous process
-    /// - parameter configuration: Configuration object containing `backendUrl`, `headers` and `domainWhitelist`; of these, `domainWhitelist` is *optional*
+    /// - parameter configuration: Configuration object containing `backendUrl`, `headers`, `domainWhitelist` and `pinPublicKeys`; of these, `domainWhitelist` and `pinPublicKeys` are *optional*
     /// - parameter merchantData: merchant and purchase information
     /// - parameter consumerData: consumer identification information; *optional* - if not provided, consumer will be anonymous
     public init<T: Encodable>(configuration: SwedbankPaySDK.Configuration, merchantData: T?, consumerData: SwedbankPaySDK.Consumer? = nil) {
