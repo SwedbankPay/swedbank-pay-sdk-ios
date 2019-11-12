@@ -41,7 +41,7 @@ There is an [example app](https://github.com/SwedbankPay/swedbank-pay-sdk-ios-ex
 <a name="usage"></a>
 ## Usage
 
-To use Swedbank Pay iOS SDK you `import SwedbankPaySDK` in your `UIViewController` and instantiate the `SwedbankPaySDKController` the way you see fit. For instance in the example app it is instantiated inside an UIView named webViewContainer:
+To use Swedbank Pay iOS SDK you `import SwedbankPaySDK` and instantiate the `SwedbankPaySDKController` the way you see fit. For instance in the example app it is instantiated inside an UIView named webViewContainer:
 ```swift
 let swedbankPaySDKController = SwedbankPaySDKController.init(
     configuration: configuration,
