@@ -13,10 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Class defining data types exposed to the client app using the SDK
-public final class SwedbankPaySDK {
+public extension SwedbankPaySDK {
     
-    // Data types are defined in separate extension files
-    //
-    // They can be found in SwedbankPaySDK+Extensions folder
+    ///  Whitelisted domains
+    struct WhitelistedDomain {
+        var domain: String?
+        var includeSubdomains: Bool
+
+        /// Initializer for `SwedbankPaySDK.WhitelistedDomain`
+        /// - parameter domain: URL of the domain as a String
+        /// - parameter includeSubdomains: if `true`, means any subdomain of `domain` is valid
+        public init(domain: String?, includeSubdomains: Bool) {
+            self.domain = domain
+            self.includeSubdomains = includeSubdomains
+        }
+    }
 }

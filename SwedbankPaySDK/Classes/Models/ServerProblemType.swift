@@ -13,10 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Class defining data types exposed to the client app using the SDK
-public final class SwedbankPaySDK {
-    
-    // Data types are defined in separate extension files
-    //
-    // They can be found in SwedbankPaySDK+Extensions folder
+/// `ServerProblemType` URLs
+enum ServerProblemType: String {
+    case InternalServerError = "about:blank" // 500
+    case BadGateway = "https://api.payex.com/psp/errordetail/mobilesdk/badgateway" // 502
+    case GatewayTimeOut = "https://api.payex.com/psp/errordetail/mobilesdk/gatewaytimeout" // 504
+    case SystemError = "https://api.payex.com/psp/errordetail/mobilesdk/systemerror"
+    case ConfigurationError = "https://api.payex.com/psp/errordetail/mobilesdk/configurationerror"
 }

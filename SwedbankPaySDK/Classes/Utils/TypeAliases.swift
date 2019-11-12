@@ -13,10 +13,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Class defining data types exposed to the client app using the SDK
-public final class SwedbankPaySDK {
-    
-    // Data types are defined in separate extension files
-    //
-    // They can be found in SwedbankPaySDK+Extensions folder
-}
+typealias Closure<T> = (T) -> Void
+typealias CallbackClosure = () -> Void

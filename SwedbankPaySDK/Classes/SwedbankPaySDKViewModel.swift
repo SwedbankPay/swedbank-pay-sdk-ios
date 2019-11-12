@@ -1,3 +1,18 @@
+//
+// Copyright 2019 Swedbank AB
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import Alamofire
 import ObjectMapper
 
@@ -12,7 +27,7 @@ final class SwedbankPaySDKViewModel: NSObject {
     
     /// Sets the `SwedbankPaySDK.Configuration`
     /// - parameter configuration: Configuration to be set
-    public func setConfiguration(_ configuration: SwedbankPaySDK.Configuration) {
+    func setConfiguration(_ configuration: SwedbankPaySDK.Configuration) {
         self.configuration = configuration
         
         /// If `configuration.domainWhitelist` is nil or empty, add backendUrl as whitelisted domain
@@ -49,26 +64,26 @@ final class SwedbankPaySDKViewModel: NSObject {
     
     /// Sets the `SwedbankPaySDK.Consumer`
     /// - parameter consumerData: consumerData to set
-    public func setConsumerData(_ consumerData: SwedbankPaySDK.Consumer?) {
+    func setConsumerData(_ consumerData: SwedbankPaySDK.Consumer?) {
         self.consumerData = consumerData
     }
     
     /// Sets the `merchantData`
     /// - parameter merchantData: merchantData to set
-    public func setMerchantData(_ merchantData: Any?) {
+    func setMerchantData(_ merchantData: Any?) {
         self.merchantData = merchantData
     }
     
     /// Sets the `consumerProfileRef`
     /// - parameter ref: consumerProfileRef to set
-    public func setConsumerProfileRef(_ ref: String?) {
+    func setConsumerProfileRef(_ ref: String?) {
         self.consumerProfileRef = ref
     }
     
     /// Check if the request is being made to a whitelisted domain
     /// - parameter url: request URL as a String to check
     /// - returns: Boolean idicating was the domain whitelisted or not
-    public func isDomainWhitelisted(_ url: String) -> Bool {
+    func isDomainWhitelisted(_ url: String) -> Bool {
         if let url = URL(string: url), let host = url.host, let whitelist = configuration?.domainWhitelist {
             for whitelistObj in whitelist {
                 if whitelistObj.includeSubdomains {
@@ -124,7 +139,7 @@ final class SwedbankPaySDKViewModel: NSObject {
     /// - parameter successCallback: called on success
     /// - parameter errorCallback: called on failure
     /// - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
-    public func createPaymentOrder(_ backendUrl: String, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
+    func createPaymentOrder(_ backendUrl: String, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         getEndPoints(backendUrl, successCallback: { [weak self] endPoints in
             // getEndPoints success
@@ -172,7 +187,7 @@ final class SwedbankPaySDKViewModel: NSObject {
     /// - parameter successCallback: called on success
     /// - parameter errorCallback: called on failure
     /// - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
-    public func identifyConsumer(_ backendUrl: String, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
+    func identifyConsumer(_ backendUrl: String, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         getEndPoints(backendUrl, successCallback: { [weak self] endPoints in
             // getEndPoints success
@@ -283,20 +298,20 @@ final class SwedbankPaySDKViewModel: NSObject {
     private func getClientProblem(_ statusCode: Int, problemType: String, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
         
         switch problemType {
-        case SwedbankPaySDK.ClientProblemType.Unauthorized.rawValue:
+        case ClientProblemType.Unauthorized.rawValue:
             let problem = SwedbankPaySDK.Problem.Client(.MobileSDK(.Unauthorized(message: response["title"] as? String, raw: response["detail"] as? String)))
             return problem
-        case SwedbankPaySDK.ClientProblemType.BadRequest.rawValue:
+        case ClientProblemType.BadRequest.rawValue:
             let problem = SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: response["title"] as? String, raw: response["detail"] as? String)))
             return problem
         
-        case SwedbankPaySDK.ClientProblemType.InputError.rawValue:
+        case ClientProblemType.InputError.rawValue:
             let problem = getClientSwedbankPayProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.InputError, response: response)
             return problem
-        case SwedbankPaySDK.ClientProblemType.Forbidden.rawValue:
+        case ClientProblemType.Forbidden.rawValue:
             let problem = getClientSwedbankPayProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.Forbidden, response: response)
             return problem
-        case SwedbankPaySDK.ClientProblemType.NotFound.rawValue:
+        case ClientProblemType.NotFound.rawValue:
             let problem = getClientSwedbankPayProblem(SwedbankPaySDK.ClientProblem.SwedbankPayProblem.NotFound, response: response)
             return problem
         
@@ -309,20 +324,20 @@ final class SwedbankPaySDKViewModel: NSObject {
     private func getServerProblem(_ statusCode: Int, problemType: String, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
         
         switch problemType {
-        case SwedbankPaySDK.ServerProblemType.InternalServerError.rawValue:
+        case ServerProblemType.InternalServerError.rawValue:
             let problem = SwedbankPaySDK.Problem.Server(.MobileSDK(.InvalidBackendResponse(body: response["title"] as? String, raw: response["status"] as? String)))
             return problem
-        case SwedbankPaySDK.ServerProblemType.BadGateway.rawValue:
+        case ServerProblemType.BadGateway.rawValue:
             let problem = SwedbankPaySDK.Problem.Server(.MobileSDK(.BackendConnectionFailure(message: response["title"] as? String, raw: response["detail"] as? String)))
             return problem
-        case SwedbankPaySDK.ServerProblemType.GatewayTimeOut.rawValue:
+        case ServerProblemType.GatewayTimeOut.rawValue:
             let problem = SwedbankPaySDK.Problem.Server(.MobileSDK(.BackendConnectionTimeout(message: response["title"] as? String, raw: response["detail"] as? String)))
             return problem
 
-        case SwedbankPaySDK.ServerProblemType.SystemError.rawValue:
+        case ServerProblemType.SystemError.rawValue:
             let problem = getServerSwedbankPayProblem(.SystemError, response: response)
             return problem
-        case SwedbankPaySDK.ServerProblemType.ConfigurationError.rawValue:
+        case ServerProblemType.ConfigurationError.rawValue:
             let problem = getServerSwedbankPayProblem(.ConfigurationError, response: response)
             return problem
             

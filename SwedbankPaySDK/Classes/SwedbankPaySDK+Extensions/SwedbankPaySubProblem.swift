@@ -13,10 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Class defining data types exposed to the client app using the SDK
-public final class SwedbankPaySDK {
+import ObjectMapper
+
+public extension SwedbankPaySDK {
     
-    // Data types are defined in separate extension files
-    //
-    // They can be found in SwedbankPaySDK+Extensions folder
+    /// Object detailing the reason for a `SwedbankPayProblem`.
+    ///
+    /// See [https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/technical-reference/#HProblems].
+    struct SwedbankPaySubProblem: Mappable {
+        public var name: String?
+        public var description: String?
+        
+        public init?(map: Map) {
+        }
+        
+        public mutating func mapping(map: Map) {
+             name <- map["name"]
+             description <- map["description"]
+        }
+    }
 }

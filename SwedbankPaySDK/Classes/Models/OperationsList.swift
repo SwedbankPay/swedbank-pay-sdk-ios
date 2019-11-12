@@ -13,10 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Class defining data types exposed to the client app using the SDK
-public final class SwedbankPaySDK {
+import ObjectMapper
+
+struct OperationsList: Mappable, Decodable {
+    var operations: [Operation] = []
+    var state: Operation.State = .Undefined
+    var url: String = ""
+    var message: String? = ""
     
-    // Data types are defined in separate extension files
-    //
-    // They can be found in SwedbankPaySDK+Extensions folder
+    init?(map: Map) {
+    }
+    
+    mutating func mapping(map: Map) {
+        operations <- map["operations"]
+        state <- (map["state"], EnumTransform<Operation.State>())
+        url <- map["url"]
+        message <- map["message"]
+    }
 }

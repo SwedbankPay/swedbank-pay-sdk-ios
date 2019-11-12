@@ -1,8 +1,23 @@
+//
+// Copyright 2019 Swedbank AB
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import UIKit
 import WebKit
 
-/// ToSViewController handles terms of service (ToS) URL by showing it in a WKWebview
-public final class ToSViewController: UIViewController, WKNavigationDelegate {
+/// SwedbankPaySDKToSViewController handles terms of service (ToS) URL by showing it in a WKWebview
+final class SwedbankPaySDKToSViewController: UIViewController, WKNavigationDelegate {
     
     private var tosUrl: String?
     
@@ -10,7 +25,7 @@ public final class ToSViewController: UIViewController, WKNavigationDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public init(tosUrl: String?) {
+    init(tosUrl: String?) {
         super.init(nibName: nil, bundle: nil)
         
         if #available(iOS 13, *) {
@@ -21,13 +36,13 @@ public final class ToSViewController: UIViewController, WKNavigationDelegate {
         self.tosUrl = tosUrl
     }
     
-    public override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         self.view.backgroundColor = UIColor.white
     }
 
-    override public func viewDidAppear(_ animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         // Create navbar with close button

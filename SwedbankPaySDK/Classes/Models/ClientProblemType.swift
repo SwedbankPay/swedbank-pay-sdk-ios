@@ -13,10 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Class defining data types exposed to the client app using the SDK
-public final class SwedbankPaySDK {
-    
-    // Data types are defined in separate extension files
-    //
-    // They can be found in SwedbankPaySDK+Extensions folder
+/// `ClientProblemType` URLs
+enum ClientProblemType: String {
+    case BadRequest = "https://api.payex.com/psp/errordetail/mobilesdk/badrequest" // 400
+    case Unauthorized = "https://api.payex.com/psp/errordetail/mobilesdk/unauthorized" // 401
+    case InputError = "https://api.payex.com/psp/errordetail/inputerror"
+    case Forbidden = "https://api.payex.com/psp/errordetail/forbidden"
+    case NotFound = "https://api.payex.com/psp/errordetail/notfound"
 }
