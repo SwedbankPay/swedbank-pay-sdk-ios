@@ -2,23 +2,44 @@
 
 Swedbank Pay iOS SDK enables simple embedding of [PayEx Checkout](https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/payex-checkout) to an iOS application. You may also be interested in [Android version](https://github.com/SwedbankPay/swedbank-pay-sdk-android) of the SDK and [backend documentation for the merchant API](https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant).
 
-### Example app
+## Table of contents
+
+1. [Example app](#example-app)
+2. [Requirements](#requirements)
+3. [Installation](#installation)
+4. [Usage](#usage)
+   - [Configuring the SDK](#configuring-the-sdk)
+     - [Backend url](#backend-url)
+     - [Headers](#headers)
+     - [Domain whitelisting](#domain-whitelisting)
+     - [Certificate pinning](#certificate-pinning)
+   - [Making A Payment](#making-a-payment)
+   - [The Payment process](#the-payment-process)
+   - [Problems](#problems)
+5. [Test data](#test-data)
+6. [License](#license)
+
+<a name="example-app"></a>
+## Example app
 
 There is an [example app](https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app) written in Swift.
 
-### Requirements
+<a name="requirements"></a>
+## Requirements
 
 - The SDK requires iOS 9.0+.
 - [Cocoapods](https://guides.cocoapods.org/using/getting-started.html)
 - To use the SDK you must have a "merchant backend" server running. Please refer to the [merchant backend example documentation](https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant) on how to set one up.
 
-### Installation
+<a name="installation"></a>
+## Installation
 
 1. Add `pod 'SwedbankPaySDK'` into your `Podfile`
 2. Run `pod install`
 3. Restart Xcode if it was open
 
-### Usage
+<a name="usage"></a>
+## Usage
 
 To use Swedbank Pay iOS SDK you `import SwedbankPaySDK` in your `UIViewController` and instantiate the `SwedbankPaySDKController` the way you see fit. For instance in the example app it is instantiated inside an UIView named webViewContainer:
 ```swift
@@ -41,18 +62,21 @@ NSLayoutConstraint.activate([
 swedbankPaySDKController.didMove(toParent: self)
 ```
 
-#### Configuring The SDK
+<a name="configuring-the-sdk"></a>
+### Configuring The SDK
 
 First, you must create a `SwedbankPaySDK.Configuration` object specific to your merchant backend.
 ```swift
 let configuration = SwedbankPaySDK.Configuration.init(...
 ```
 
-##### Backend url
+<a name="backend-url"></a>
+#### Backend url
 
 Add the merchant backend url into the Configuration. Only the entry point url is specified in the client configuration, and other needed endpoints are found by following links returned by the backend.
 
-##### Headers
+<a name="headers"></a>
+#### Headers
 
 Add request headers specific to your merchant backend into the Configuration:
 ```swift
@@ -62,7 +86,8 @@ private let headers: Dictionary<String, String> = [
 ]
 ```
 
-##### Domain whitelisting
+<a name="domain-whitelisting"></a>
+#### Domain whitelisting
 
 For security purposes, the SDK restricts the domains of the links. This is known as the domain whitelist; any link that points to a non-whitelisted domain will not be followed, causing the relevant operation to fail.
 
@@ -79,9 +104,10 @@ SwedbankPaySDK.WhitelistedDomain.init(domain: "pay.example.com/api/start", inclu
 SwedbankPaySDK.WhitelistedDomain.init(domain: "some-other.example.com", includeSubdomains: true)
 ```
 
-##### Certificate pinning (optional)
+<a name="certificate-pinning"></a>
+#### Certificate pinning
 
-You can add certificate pins for relevant domains in the Configuration. This can increase security, but it does have drawbacks.
+Optionally you can add certificate pins for relevant domains in the Configuration. This can increase security, but it does have drawbacks.
 
 Certificate pinning is done by comparing public keys. You may specify the certificate hostname pattern and the SDK will search all available certificates (files ending in ".cer", ".CER", ".crt", ".CRT", ".der", ".DER") in the app bundle and tries to match them:
 ```swift
@@ -93,7 +119,8 @@ SwedbankPaySDK.PinPublicKeys.init(pattern: "pay.example.com", certificateFileNam
 ```
 The certificate files can be located anywhere in the app bundle.
 
-#### Making A Payment
+<a name="making-a-payment"></a>
+### Making A Payment
 
 To make a payment, you show the `SwedbankPaySDKController`. This `UIViewController` initializer requires `merchantData` besides valid `SwedbankPaySDK.Configuration`. The SDK API does not specify the type of this argument, but it must conform to `Encodable` protocol:
 ```swift
@@ -105,7 +132,8 @@ let consumerData = SwedbankPaySDK.Consumer.init(...
 ```
 Then supply it with the SwedbankPaySDKController initializer.
 
-#### The Payment Process
+<a name="the-payment-process"></a>
+### The Payment Process
 
 SwedbankPaySDKController handles the UI for the payment process. It will call `paymentComplete` delegate method if the payment was successful, and `paymentFailed` with a `SwedbankPaySDK.Problem` if the payment failed:
 ```swift
@@ -120,7 +148,8 @@ extension PaymentViewController: SwedbankPaySDKDelegate {
 }
 ```
 
-#### Problems
+<a name="problems"></a>
+### Problems
 
 Swedbank Pay, and the example merchant backend both use [Problem Details for HTTP APIs](https://tools.ietf.org/html/rfc7807) application/problem+json for error reporting. Your custom merchant backend is encouraged to do so as well.
 
@@ -132,10 +161,12 @@ A Server problem is one where the service understood the request, but could not 
 
 This separation to Client and Server errors provides a crude but often effective way of distinguishing between temporary service unavailability and permanent configuration errors. Client and Server errors are further divided to specific types.
 
-### Test Data
+<a name="test-data"></a>
+## Test Data
 
 During implementation you can use the [test data](https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/resources/test-data/) related to the different payment methods.
 
-### License
+<a name="license"></a>
+## License
 
 Swedbank Pay iOS SDK is released under the [Apache 2.0 license](LICENSE).
