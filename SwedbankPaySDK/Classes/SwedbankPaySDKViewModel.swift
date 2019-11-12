@@ -15,8 +15,9 @@ final class SwedbankPaySDKViewModel: NSObject {
     public func setConfiguration(_ configuration: SwedbankPaySDK.Configuration) {
         self.configuration = configuration
         
-        /// If `configuration.domainWhitelist` is empty, add backendUrl as whitelisted domain
-        if let empty = self.configuration?.domainWhitelist?.isEmpty, empty {
+        /// If `configuration.domainWhitelist` is nil or empty, add backendUrl as whitelisted domain
+        let list = self.configuration?.domainWhitelist
+        if list == nil || list?.isEmpty == true {
             if let backendUrl = self.configuration?.backendUrl {
                 let host = URL.init(string: backendUrl)?.host
                 let domain = SwedbankPaySDK.WhitelistedDomain.init(

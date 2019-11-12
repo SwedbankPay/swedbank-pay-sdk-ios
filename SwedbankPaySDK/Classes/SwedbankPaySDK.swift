@@ -16,7 +16,7 @@ public final class SwedbankPaySDK {
         /// - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
         /// - parameter domainWhitelist: Optional array of domains allowed to be connected to; defaults to `backendURL` if nil
         /// - parameter certificatePins: Optional array of domains for certification pinning, matched against any certificate found anywhere in the app bundle
-        public init(backendUrl: String?, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]?, pinPublicKeys: [PinPublicKeys]?) {
+        public init(backendUrl: String?, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]? = nil, pinPublicKeys: [PinPublicKeys]? = nil) {
             self.backendUrl = backendUrl
             self.headers = headers
             self.domainWhitelist = domainWhitelist
