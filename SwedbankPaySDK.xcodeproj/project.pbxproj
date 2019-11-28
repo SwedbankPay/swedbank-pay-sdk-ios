@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		12D2874E8792C44CC0C01D64 /* Pods_SwedbankPaySDKTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A88F6FC2C0FDDDD83A2DDFEF /* Pods_SwedbankPaySDKTests.framework */; };
 		74A338E7B5914B7895F6C183 /* Pods_SwedbankPaySDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 111BB8C928CC879B20328A64 /* Pods_SwedbankPaySDK.framework */; };
+		A59E006A2386AF760070A82D /* SwedbankPaySDKViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A59E00692386AF760070A82D /* SwedbankPaySDKViewModelTests.swift */; };
 		C50CF68B237AA204003F79DF /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68A237AA204003F79DF /* Operation.swift */; };
 		C50CF68D237AA3B0003F79DF /* TypeAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68C237AA3B0003F79DF /* TypeAliases.swift */; };
 		C50CF68F237AA43E003F79DF /* SDKProblemString.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68E237AA43E003F79DF /* SDKProblemString.swift */; };
@@ -72,6 +73,7 @@
 		110CDE8EA475CE5CC951BFC4 /* Pods-SwedbankPaySDK.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK.release.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK/Pods-SwedbankPaySDK.release.xcconfig"; sourceTree = "<group>"; };
 		111BB8C928CC879B20328A64 /* Pods_SwedbankPaySDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SwedbankPaySDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D457A0E796800259ABC0664 /* Pods-SwedbankPaySDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK.debug.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK/Pods-SwedbankPaySDK.debug.xcconfig"; sourceTree = "<group>"; };
+		A59E00692386AF760070A82D /* SwedbankPaySDKViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKViewModelTests.swift; sourceTree = "<group>"; };
 		A88F6FC2C0FDDDD83A2DDFEF /* Pods_SwedbankPaySDKTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SwedbankPaySDKTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB85979580F4719F54964406 /* Pods-SwedbankPaySDKTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDKTests.debug.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDKTests/Pods-SwedbankPaySDKTests.debug.xcconfig"; sourceTree = "<group>"; };
 		B91F2029A3536C2C20B660C3 /* Pods-SwedbankPaySDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDKTests.release.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDKTests/Pods-SwedbankPaySDKTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 			children = (
 				C573118B237070E200EA98A6 /* Info.plist */,
 				C552630723706467005E97DC /* SwedbankPaySDKTests.swift */,
+				A59E00692386AF760070A82D /* SwedbankPaySDKViewModelTests.swift */,
 			);
 			path = SwedbankPaySDKTests;
 			sourceTree = "<group>";
@@ -460,6 +463,7 @@
 				C50CF6BF237ABACF003F79DF /* SDKProblemString.swift in Sources */,
 				C50CF6C3237ABAD8003F79DF /* Configuration.swift in Sources */,
 				C50CF6CE237ABAE2003F79DF /* SwedbankPaySDKViewModel.swift in Sources */,
+				A59E006A2386AF760070A82D /* SwedbankPaySDKViewModelTests.swift in Sources */,
 				C50CF6C9237ABAD8003F79DF /* SwedbankPaySubProblem.swift in Sources */,
 				C50CF6BC237ABACF003F79DF /* EndPointName.swift in Sources */,
 				C50CF6C0237ABACF003F79DF /* ServerProblemType.swift in Sources */,
@@ -608,7 +612,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = E799KWE993;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -634,7 +638,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = E799KWE993;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -660,7 +664,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 2RLYKMD3U8;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = SwedbankPaySDKTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -680,7 +684,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 2RLYKMD3U8;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = SwedbankPaySDKTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
