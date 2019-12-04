@@ -17,13 +17,15 @@ import Alamofire
 import ObjectMapper
 
 final class SwedbankPaySDKViewModel: NSObject {
-
+    
     private(set) var configuration: SwedbankPaySDK.Configuration?
     private(set) var consumerData: SwedbankPaySDK.Consumer?
     private(set) var merchantData: Any?
     private(set) var consumerProfileRef: String?
-    
+        
     var sessionManager: SessionManager = Alamofire.SessionManager(configuration: URLSessionConfiguration.default)
+    
+    var viewPaymentOrderLink: String?
     
     /// Sets the `SwedbankPaySDK.Configuration`
     /// - parameter configuration: Configuration to be set
@@ -34,7 +36,7 @@ final class SwedbankPaySDKViewModel: NSObject {
         let list = self.configuration?.domainWhitelist
         if list == nil || list?.isEmpty == true {
             if let backendUrl = self.configuration?.backendUrl {
-                let host = URL.init(string: backendUrl)?.host
+                let host = backendUrl.host
                 let domain = SwedbankPaySDK.WhitelistedDomain.init(
                     domain: host,
                     includeSubdomains: true
@@ -83,8 +85,8 @@ final class SwedbankPaySDKViewModel: NSObject {
     /// Check if the request is being made to a whitelisted domain
     /// - parameter url: request URL as a String to check
     /// - returns: Boolean idicating was the domain whitelisted or not
-    func isDomainWhitelisted(_ url: String) -> Bool {
-        if let url = URL(string: url), let host = url.host, let whitelist = configuration?.domainWhitelist {
+    func isDomainWhitelisted(_ url: URL) -> Bool {
+        if let host = url.host, let whitelist = configuration?.domainWhitelist {
             for whitelistObj in whitelist {
                 if whitelistObj.includeSubdomains {
                     if let domain = whitelistObj.domain, host == domain || host.hasSuffix(".\(domain)") {
@@ -100,12 +102,19 @@ final class SwedbankPaySDKViewModel: NSObject {
         return false
     }
     
+    func parseCallbackUrl(_ url: URL) -> CallbackUrl? {
+        guard let prefix = configuration?.callbackPrefix else {
+            return nil
+        }
+        return CallbackUrl(url: url, prefix: prefix)
+    }
+    
     /// Makes a request to the `backendUrl` and returns the endpoints
     /// - parameter backendUrl: backend URL
     /// - parameter successCallback: called on success
     /// - parameter errorCallback: called on failure
     /// - returns: Dictionary containing the endpoints in successCallback, `SwedbankPaySDK.Problem` in errorCallback
-    private func getEndPoints(_ backendUrl: String, successCallback: Closure<Dictionary<String, String>?>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
+    private func getEndPoints(_ backendUrl: URL, successCallback: Closure<Dictionary<String, String>?>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         sessionManager.request(backendUrl, method: .get, parameters: nil, encoding: JSONEncoding.default, headers: configuration?.headers).responseJSON(completionHandler: { response in
             if let responseValue = response.result.value {
                 // Alamofire request succeeded (backend might have responded with error)
@@ -139,7 +148,7 @@ final class SwedbankPaySDKViewModel: NSObject {
     /// - parameter successCallback: called on success
     /// - parameter errorCallback: called on failure
     /// - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
-    func createPaymentOrder(_ backendUrl: String, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
+    func createPaymentOrder(_ backendUrl: URL, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         getEndPoints(backendUrl, successCallback: { [weak self] endPoints in
             // getEndPoints success
@@ -155,21 +164,31 @@ final class SwedbankPaySDKViewModel: NSObject {
                 return
             }
             
+            guard let endPointUrl = URL.init(string: endPoint, relativeTo: backendUrl) else {
+                let msg: String = SDKProblemString.backendRequestUrlCreationFailed.rawValue
+                errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                return
+            }
+            
             guard let merchantData = self?.merchantData else {
                 let msg: String = SDKProblemString.merchantDataMissing.rawValue
                 errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
             
-            var parameters: [String: Any]? = [
+            var parameters: [String: Any] = [
                 "merchantData": merchantData
             ]
             
             if self?.consumerProfileRef != nil {
-                parameters?["consumerProfileRef"] = self?.consumerProfileRef
+                parameters["consumerProfileRef"] = self?.consumerProfileRef
             }
             
-            self?.sessionManager.request(backendUrl + endPoint, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: self?.configuration?.headers).responseJSON(completionHandler: { [weak self] response in
+            if let callbackPrefix = self?.configuration?.callbackPrefix {
+                parameters["callbackPrefix"] = callbackPrefix.absoluteString
+            }
+            
+            self?.sessionManager.request(endPointUrl, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: self?.configuration?.headers).responseJSON(completionHandler: { [weak self] response in
                 self?.handleResponse(response, successCallback: { operationsList in
                     successCallback?(operationsList)
                 }, errorCallback: { problem in
@@ -182,12 +201,14 @@ final class SwedbankPaySDKViewModel: NSObject {
         })
     }
     
+    
+    
     /// Creates consumer identification request for registered consumer
     /// - parameter backendUrl: backend URL
     /// - parameter successCallback: called on success
     /// - parameter errorCallback: called on failure
     /// - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
-    func identifyConsumer(_ backendUrl: String, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
+    func identifyConsumer(_ backendUrl: URL, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         
         getEndPoints(backendUrl, successCallback: { [weak self] endPoints in
             // getEndPoints success
@@ -203,7 +224,7 @@ final class SwedbankPaySDKViewModel: NSObject {
                 return
             }
             
-            guard let url = URL.init(string: backendUrl + endPoint) else {
+            guard let url = URL.init(string: endPoint, relativeTo: backendUrl) else {
                 let msg: String = SDKProblemString.backendRequestUrlCreationFailed.rawValue
                 errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
@@ -254,6 +275,7 @@ final class SwedbankPaySDKViewModel: NSObject {
             if let statusCode = response.response?.statusCode {
                 if (200...299).contains(statusCode) {
                     // Success
+                    
                     if let result = Mapper<OperationsList>().map(JSONObject: responseValue) {
                         successCallback?(result)
                     }

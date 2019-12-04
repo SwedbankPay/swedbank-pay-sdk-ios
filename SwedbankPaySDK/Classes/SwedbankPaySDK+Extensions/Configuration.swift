@@ -17,21 +17,27 @@ public extension SwedbankPaySDK {
     
     /// Swedbank Pay SDK Configuration
     struct Configuration {
-        var backendUrl: String?
+        var backendUrl: URL
+        var callbackPrefix: URL
         var headers: Dictionary<String, String>?
         var domainWhitelist: [WhitelistedDomain]?
         var pinPublicKeys: [PinPublicKeys]?
-
+        
         /// Initializer for `SwedbankPaySDK.Configuration`
         /// - parameter backendUrl: backend URL
         /// - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
         /// - parameter domainWhitelist: Optional array of domains allowed to be connected to; defaults to `backendURL` if nil
         /// - parameter certificatePins: Optional array of domains for certification pinning, matched against any certificate found anywhere in the app bundle
-        public init(backendUrl: String?, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]? = nil, pinPublicKeys: [PinPublicKeys]? = nil) {
+        public init(backendUrl: URL, callbackPrefix: URL? = nil, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]? = nil, pinPublicKeys: [PinPublicKeys]? = nil) {
             self.backendUrl = backendUrl
+            self.callbackPrefix = callbackPrefix ?? Configuration.getDefaultCallbackPrefix(backendUrl: backendUrl)
             self.headers = headers
             self.domainWhitelist = domainWhitelist
             self.pinPublicKeys = pinPublicKeys
+        }
+        
+        private static func getDefaultCallbackPrefix(backendUrl: URL) -> URL {
+            return URL(string: "sdk-callback", relativeTo: backendUrl)!
         }
     }
 }

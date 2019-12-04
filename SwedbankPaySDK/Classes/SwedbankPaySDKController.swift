@@ -16,6 +16,10 @@
 import UIKit
 import WebKit
 
+private let storeLinksForSchemes = [
+    "swish": URL(string: "itms-apps://apps.apple.com/fi/app/swish-betalningar/id563204724")!
+]
+
 /// Swedbank Pay SDK protocol, conform to this to get the result of the payment process
 public protocol SwedbankPaySDKDelegate: AnyObject {
     func paymentComplete()
@@ -45,13 +49,7 @@ public final class SwedbankPaySDKController: UIViewController {
         viewModel.setConsumerData(consumerData)
         viewModel.setConsumerProfileRef(nil)
         
-        guard let backendUrl = configuration.backendUrl else {
-            let msg: String = SDKProblemString.backendUrlMissing.rawValue
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
-                self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-            })
-            return
-        }
+        let backendUrl = configuration.backendUrl
         
         guard viewModel.isDomainWhitelisted(backendUrl) else {
             let msg: String = "\(SDKProblemString.domainWhitelistError.rawValue)\(backendUrl)"
@@ -92,8 +90,12 @@ public final class SwedbankPaySDKController: UIViewController {
         
     }
     
+    deinit {
+        SwedbankPaySDK.removeContinueWebBrowsingUserActivityDelegate(self)
+    }
+    
     /// Creates paymentOrder
-    private func createPaymentOrder(_ backendUrl: String) {
+    private func createPaymentOrder(_ backendUrl: URL) {
         viewModel.createPaymentOrder(backendUrl, successCallback: { [weak self] operationsList in
             self?.createPaymentOrderURL(operationsList)
         }, errorCallback: { [weak self] problem in
@@ -103,8 +105,19 @@ public final class SwedbankPaySDKController: UIViewController {
     
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+        SwedbankPaySDK.addContinueWebBrowsingUserActivityDelegate(self)
         self.view.backgroundColor = UIColor.white
+    }
+    
+    public override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        SwedbankPaySDK.removeContinueWebBrowsingUserActivityDelegate(self)
+    }
+    
+    private func reloadPaymentMenu() {
+        if let link = viewModel.viewPaymentOrderLink {
+            loadWebViewURL(link, type: .paymentOrder)
+        }
     }
     
     /// Dismisses the viewcontroller when close button has been pressed
@@ -129,6 +142,7 @@ public final class SwedbankPaySDKController: UIViewController {
     private func createPaymentOrderURL(_ list: OperationsList) {
         let operationType = Operation.TypeString.viewPaymentOrder.rawValue
         if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
+            viewModel.viewPaymentOrderLink = jsURL
             loadWebViewURL(jsURL, type: .paymentOrder)
         } else {
             let msg: String = SDKProblemString.paymentWebviewCreationFailed.rawValue
@@ -143,20 +157,21 @@ public final class SwedbankPaySDKController: UIViewController {
         
         let html: String
         let contentController = WKUserContentController();
+        let messageHandler = MyScriptMessageHandler(owner: self)
         switch type {
         case .consumerIdentification:
             html = SwedbankWebView.createCheckinHTML(url)
-            contentController.add(self, name: SwedbankWebView.ConsumerEvent.onConsumerIdentified.rawValue)
-            contentController.add(self, name: SwedbankWebView.ConsumerEvent.onShippingDetailsAvailable.rawValue)
-            contentController.add(self, name: SwedbankWebView.ConsumerEvent.onError.rawValue)
+            contentController.add(messageHandler, name: SwedbankWebView.ConsumerEvent.onConsumerIdentified.rawValue)
+            contentController.add(messageHandler, name: SwedbankWebView.ConsumerEvent.onShippingDetailsAvailable.rawValue)
+            contentController.add(messageHandler, name: SwedbankWebView.ConsumerEvent.onError.rawValue)
         case .paymentOrder:
             html = SwedbankWebView.createCheckoutHTML(url)
-            contentController.add(self, name: SwedbankWebView.PaymentEvent.onPaymentMenuInstrumentSelected.rawValue)
-            contentController.add(self, name: SwedbankWebView.PaymentEvent.onPaymentCompleted.rawValue)
-            contentController.add(self, name: SwedbankWebView.PaymentEvent.onPaymentFailed.rawValue)
-            contentController.add(self, name: SwedbankWebView.PaymentEvent.onPaymentCreated.rawValue)
-            contentController.add(self, name: SwedbankWebView.PaymentEvent.onPaymentToS.rawValue)
-            contentController.add(self, name: SwedbankWebView.PaymentEvent.onError.rawValue)
+            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onPaymentMenuInstrumentSelected.rawValue)
+            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onPaymentCompleted.rawValue)
+            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onPaymentFailed.rawValue)
+            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onPaymentCreated.rawValue)
+            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onPaymentToS.rawValue)
+            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onError.rawValue)
         }
         
         let config = WKWebViewConfiguration()
@@ -177,7 +192,7 @@ public final class SwedbankPaySDKController: UIViewController {
         ])
         
         // Load the created HTML
-        webView.loadHTMLString(html, baseURL: nil)
+        webView.loadHTMLString(html, baseURL: viewModel.configuration?.backendUrl)
     }
     
     /// Show terms and conditions URL using SwedbankPaySDKToSViewController
@@ -187,11 +202,59 @@ public final class SwedbankPaySDKController: UIViewController {
         let tos = SwedbankPaySDKToSViewController.init(tosUrl: url)
         self.present(tos, animated: true, completion: nil)
     }
+    
+    private func openRedirect(url: URL) {
+        if #available(iOS 10, *) {
+            UIApplication.shared.open(url, options: [:]) {
+                self.handleRedirectCompletion(url: url, success: $0)
+            }
+        } else {
+            let success = UIApplication.shared.openURL(url)
+            handleRedirectCompletion(url: url, success: success)
+        }
+    }
+    
+    private func handleRedirectCompletion(url: URL, success: Bool) {
+        if (!success) {
+            if let scheme = url.scheme, let storeLink = storeLinksForSchemes[scheme] {
+                if #available(iOS 10, *) {
+                    UIApplication.shared.open(storeLink, options: [:], completionHandler: nil)
+                } else {
+                    UIApplication.shared.openURL(storeLink)
+                    handleRedirectCompletion(url: url, success: success)
+                }
+            }
+        }
+    }
 }
 
 /// Extension for WKNavigationDelegate
 extension SwedbankPaySDKController: WKNavigationDelegate {
     
+    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if navigationAction.targetFrame?.isMainFrame == false {
+            decisionHandler(.allow)
+            return
+        }
+        
+        let isBaseUrlNavigation: Bool
+        let url = navigationAction.request.url
+        if let baseUrl = viewModel.configuration?.backendUrl {
+            isBaseUrlNavigation = url == baseUrl
+        } else {
+            isBaseUrlNavigation = url?.absoluteString == "about:blank"
+        }
+        if isBaseUrlNavigation {
+            decisionHandler(.allow)
+            return
+        }
+        
+        if let url = navigationAction.request.url {
+            openRedirect(url: url)
+        }
+        decisionHandler(.cancel)
+    }
+        
     fileprivate func paymentFailed(_ problem: SwedbankPaySDK.Problem) {
         debugPrint("SwedbankPaySDK: Payment failed")
         
@@ -206,72 +269,92 @@ extension SwedbankPaySDKController: WKNavigationDelegate {
 }
 
 /// Extension to handle the WKWebview JavaScript events
-extension SwedbankPaySDKController: WKScriptMessageHandler {
-    
-    // Create event handlers
-    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        switch message.name {
-            
-        // Consumer identification events
-        case SwedbankWebView.ConsumerEvent.onConsumerIdentified.rawValue:
-            handleConsumerIdentifiedEvent(message.body)
-        case SwedbankWebView.ConsumerEvent.onShippingDetailsAvailable.rawValue:
-            debugPrint("SwedbankPaySDK: onShippingDetailsAvailable event received")
-        case SwedbankWebView.ConsumerEvent.onError.rawValue:
-            let msg: String = message.body as? String ?? "Unknown error"
-            self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-            
-        // Payment events
-        case SwedbankWebView.PaymentEvent.onPaymentMenuInstrumentSelected.rawValue:
-            debugPrint("SwedbankPaySDK: onPaymentMenuInstrumentSelected event received")
-        case SwedbankWebView.PaymentEvent.onPaymentCompleted.rawValue:
-            debugPrint("SwedbankPaySDK: onPaymentCompleted event received")
-            paymentComplete()
-        case SwedbankWebView.PaymentEvent.onPaymentFailed.rawValue:
-            let msg: String = message.body as? String ?? "Unknown error"
-            self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-        case SwedbankWebView.PaymentEvent.onPaymentCreated.rawValue:
-            debugPrint("SwedbankPaySDK: onPaymentCreated event received")
-        case SwedbankWebView.PaymentEvent.onPaymentToS.rawValue:
-            handleToSEvent(message.body)
-        case SwedbankWebView.PaymentEvent.onError.rawValue:
-            let msg: String = message.body as? String ?? "Unknown error"
-            self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-        default:
-            debugPrint("SwedbankPaySDK: undefined event received")
-        }
-    }
-    
-    /// Consumer identified event received
-    /// - parameter messageBody: consumer identification String saved as consumerProfileRef
-    private func handleConsumerIdentifiedEvent(_ messageBody: Any) {
-        debugPrint("SwedbankPaySDK: onConsumerIdentified event received")
-        if let str = messageBody as? String {
-            viewModel.setConsumerProfileRef(str)
-            
-            #if DEBUG
-            debugPrint("SwedbankPaySDK: consumerProfileRef set to: \(str)")
-            #endif
-        } else {
-            debugPrint("SwedbankPaySDK: onConsumerIdentified - failed to get consumerProfileRef")
+private extension SwedbankPaySDKController {
+    private class MyScriptMessageHandler: NSObject, WKScriptMessageHandler {
+        private weak var owner: SwedbankPaySDKController?
+        
+        init(owner: SwedbankPaySDKController) {
+            super.init()
+            self.owner = owner
         }
         
-        if let backendUrl = viewModel.configuration?.backendUrl {
-            createPaymentOrder(backendUrl)
-        }
-    }
-    
-    /// Terms of service event received
-    /// - parameter messageBody: terms of service URL String in an NSDictionary
-    private func handleToSEvent(_ messageBody: Any) {
-        debugPrint("SwedbankPaySDK: onPaymentToS event received")
-        if let dict = messageBody as? NSDictionary {
-            if let url = dict["openUrl"] as? String {
-                showTos(url: url)
+        // Create event handlers
+        public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            switch message.name {
+                
+            // Consumer identification events
+            case SwedbankWebView.ConsumerEvent.onConsumerIdentified.rawValue:
+                handleConsumerIdentifiedEvent(message.body)
+            case SwedbankWebView.ConsumerEvent.onShippingDetailsAvailable.rawValue:
+                debugPrint("SwedbankPaySDK: onShippingDetailsAvailable event received")
+            case SwedbankWebView.ConsumerEvent.onError.rawValue:
+                let msg: String = message.body as? String ?? "Unknown error"
+                owner?.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                
+            // Payment events
+            case SwedbankWebView.PaymentEvent.onPaymentMenuInstrumentSelected.rawValue:
+                debugPrint("SwedbankPaySDK: onPaymentMenuInstrumentSelected event received")
+            case SwedbankWebView.PaymentEvent.onPaymentCompleted.rawValue:
+                debugPrint("SwedbankPaySDK: onPaymentCompleted event received")
+                owner?.paymentComplete()
+            case SwedbankWebView.PaymentEvent.onPaymentFailed.rawValue:
+                let msg: String = message.body as? String ?? "Unknown error"
+                owner?.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            case SwedbankWebView.PaymentEvent.onPaymentCreated.rawValue:
+                debugPrint("SwedbankPaySDK: onPaymentCreated event received")
+            case SwedbankWebView.PaymentEvent.onPaymentToS.rawValue:
+                handleToSEvent(message.body)
+            case SwedbankWebView.PaymentEvent.onError.rawValue:
+                let msg: String = message.body as? String ?? "Unknown error"
+                owner?.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            default:
+                debugPrint("SwedbankPaySDK: undefined event received")
             }
-        } else {
-            debugPrint("SwedbankPaySDK: Terms of Service URL could not be found")
+        }
+        
+        /// Consumer identified event received
+        /// - parameter messageBody: consumer identification String saved as consumerProfileRef
+        private func handleConsumerIdentifiedEvent(_ messageBody: Any) {
+            debugPrint("SwedbankPaySDK: onConsumerIdentified event received")
+            if let str = messageBody as? String {
+                owner?.viewModel.setConsumerProfileRef(str)
+                
+                #if DEBUG
+                debugPrint("SwedbankPaySDK: consumerProfileRef set to: \(str)")
+                #endif
+            } else {
+                debugPrint("SwedbankPaySDK: onConsumerIdentified - failed to get consumerProfileRef")
+            }
+            
+            if let backendUrl = owner?.viewModel.configuration?.backendUrl {
+                owner?.createPaymentOrder(backendUrl)
+            }
+        }
+        
+        /// Terms of service event received
+        /// - parameter messageBody: terms of service URL String in an NSDictionary
+        private func handleToSEvent(_ messageBody: Any) {
+            debugPrint("SwedbankPaySDK: onPaymentToS event received")
+            if let dict = messageBody as? NSDictionary {
+                if let url = dict["openUrl"] as? String {
+                    owner?.showTos(url: url)
+                }
+            } else {
+                debugPrint("SwedbankPaySDK: Terms of Service URL could not be found")
+            }
         }
     }
 }
 
+extension SwedbankPaySDKController : ContinueWebBrowsingUserActivityDelegate {
+    func continueWebBrowsingActivity(url: URL) -> Bool {
+        if let callbackUrl = viewModel.parseCallbackUrl(url) {
+            switch callbackUrl {
+            case .reloadPaymentMenu: reloadPaymentMenu()
+            }
+            return true
+        } else {
+            return false
+        }
+    }
+}
