@@ -238,9 +238,10 @@ extension SwedbankPaySDKController: WKNavigationDelegate {
         }
         
         let isBaseUrlNavigation: Bool
-        let url = navigationAction.request.url
-        if let baseUrl = viewModel.configuration?.backendUrl {
-            isBaseUrlNavigation = url == baseUrl
+        let url = navigationAction.request.url?.absoluteURL
+        if let baseUrl = viewModel.configuration?.backendUrl.absoluteURL {
+            // WKWebView will silently turn a navigation to https://foo.bar to https://foo.bar/
+            isBaseUrlNavigation = url == baseUrl || url == URL(string: "/", relativeTo: baseUrl)?.absoluteURL
         } else {
             isBaseUrlNavigation = url?.absoluteString == "about:blank"
         }
