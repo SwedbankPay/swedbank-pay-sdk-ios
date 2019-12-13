@@ -13,14 +13,94 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-class SwedbankWebView {
+import WebKit
+
+private let paymentMenuDelay = "500"
+
+enum SwedbankWebView {}
+
+extension SwedbankWebView {
+    static let scriptMessageHandlerName = "swedbankpay"
+}
+
+extension SwedbankWebView {
+    struct HTMLTemplate<T: RawRepresentable> where T.RawValue == String {
+        private let components: [TemplateComponent]
+        
+        func buildPage(scriptUrl: String, delay: Bool = false) -> String {
+            let strings: [String] = components.map {
+                switch $0 {
+                case .literal(let literal):
+                    return literal
+                case .delay:
+                    return delay.description
+                case .scriptUrl:
+                    return scriptUrl
+                }
+            }
+            return strings.joined()
+        }
+        
+        func createScriptMessageHandler(eventHandler: @escaping (T, Any?) -> Void) -> WKScriptMessageHandler {
+            return CallbackScriptMessageHandler(eventHandler: eventHandler)
+        }
+    }
+}
+
+extension SwedbankWebView {
     enum ConsumerEvent: String {
+        case onScriptLoaded
+        case onScriptError
         case onConsumerIdentified
         case onShippingDetailsAvailable
         case onError
     }
+    
+    static let checkInTemplate: HTMLTemplate<ConsumerEvent> = """
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Swedbank Pay Checkin is Awesome!</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+            <script language="javascript">
+                window.onload = function () {
+                    var url = '\(TemplateComponent.scriptUrl)';
+                    var script = document.createElement('script');
+                    script.setAttribute('src', url);
+                    script.onload = function () {
+                        \(ConsumerEvent.onScriptLoaded, "null");
+                        payex.hostedView.consumer({
+                            container: "checkin",
+                            onConsumerIdentified: function(consumerIdentifiedEvent) {
+                                \(ConsumerEvent.onConsumerIdentified, "consumerIdentifiedEvent.consumerProfileRef");
+                            },
+                            onShippingDetailsAvailable: function(shippingDetailsAvailable) {
+                                \(ConsumerEvent.onShippingDetailsAvailable, "shippingDetailsAvailable");
+                            },
+                            onError: function(error) {
+                                \(ConsumerEvent.onError, "error");
+                            }
+                        }).open();
+                    };
+                    script.onerror = function(event) {
+                        \(ConsumerEvent.onScriptError, "url");
+                    };
+                    var head = document.getElementsByTagName('head')[0];
+                    head.appendChild(script);
+                };
+            </script>
+        </head>
+        <body>
+            <div id="checkin" />
+        </body>
+    </html>
+    """
+}
 
+extension SwedbankWebView {
     enum PaymentEvent: String {
+        case onScriptLoaded
+        case onScriptError
         case onPaymentMenuInstrumentSelected
         case onPaymentCompleted
         case onPaymentFailed
@@ -28,79 +108,132 @@ class SwedbankWebView {
         case onPaymentToS
         case onError
     }
-
-    enum ActionType {
-        case consumerIdentification // "checkin"
-        case paymentOrder           // "checkout"
-    }
-
-    class func createCheckinHTML(_ url: String) -> String {
-        return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Swedbank Pay Checkin is Awesome!</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-            </head>
-            <body>
-            <div id="checkin" />
-            <script data-payex-hostedview="checkin" src="\(url)"></script>
+    
+    static let paymentTemplate: HTMLTemplate<PaymentEvent> = """
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Swedbank Pay Checkout is Awesome!</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    
             <script language="javascript">
-                payex.hostedView.consumer({
-                    container: "checkin",
-                    onConsumerIdentified: function(consumerIdentifiedEvent) {
-                        webkit.messageHandlers.onConsumerIdentified.postMessage(consumerIdentifiedEvent.consumerProfileRef);
-                    },
-                    onShippingDetailsAvailable: function(shippingDetailsAvailable){
-                        webkit.messageHandlers.onShippingDetailsAvailable.postMessage(shippingDetailsAvailable);
-                    },
-                    onError: function(error) {
-                        webkit.messageHandlers.onIdentifyError.postMessage(error);
+                function loadPaymentMenu() {
+                    var url = '\(TemplateComponent.scriptUrl)';
+                    var script = document.createElement('script');
+                    script.setAttribute('src', url);
+                    script.onload = function () {
+                        \(PaymentEvent.onScriptLoaded, "null");
+                        payex.hostedView.paymentMenu({
+                            container: "checkout",
+                            onPaymentMenuInstrumentSelected: function(event) {
+                                \(PaymentEvent.onPaymentMenuInstrumentSelected, "event");
+                            },
+                            onPaymentCompleted: function(event) {
+                                \(PaymentEvent.onPaymentCompleted, "event");
+                            },
+                            onPaymentFailed: function(event) {
+                                \(PaymentEvent.onPaymentFailed, "event")
+                            },
+                            onPaymentCreated: function(event) {
+                                \(PaymentEvent.onPaymentCreated, "event");
+                            },
+                            onPaymentToS: function(event) {
+                                \(PaymentEvent.onPaymentToS, "event");
+                            },
+                            onError: function(error) {
+                                \(PaymentEvent.onError, "event");
+                            }
+                        }).open();
+                    };
+                    script.onerror = function(event) {
+                        \(PaymentEvent.onScriptError, "url");
+                    };
+                    var head = document.getElementsByTagName('head')[0];
+                    head.appendChild(script);
+                }
+    
+                window.onload = function () {
+                    if (\(TemplateComponent.delay)) {
+                        window.setTimeout(loadPaymentMenu, \(TemplateComponent.literal(paymentMenuDelay)));
+                    } else {
+                        loadPaymentMenu();
                     }
-                }).open();
+                };
             </script>
-            </body>
-            </html>
-        """
-    }
-
-    class func createCheckoutHTML(_ url: String) -> String {
-        return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Swedbank Pay Checkout is Awesome!</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-            </head>
-            <body>
+        </head>
+        <body>
             <div id="checkout" />
-            <script src="\(url)"></script>
-            <script language="javascript">
-                payex.hostedView.paymentMenu({
-                    container: "checkout",
-                    onPaymentMenuInstrumentSelected: function(event) {
-                        webkit.messageHandlers.onPaymentMenuInstrumentSelected.postMessage(event);
-                    },
-                    onPaymentCompleted: function(event) {
-                        webkit.messageHandlers.onPaymentCompleted.postMessage(event);
-                    },
-                    onPaymentFailed: function(event) {
-                        webkit.messageHandlers.onPaymentFailed.postMessage(event);
-                    },
-                    onPaymentCreated: function(event) {
-                        webkit.messageHandlers.onPaymentCreated.postMessage(event);
-                    },
-                    onPaymentToS: function(event) {
-                        webkit.messageHandlers.onPaymentToS.postMessage(event);
-                    },
-                    onError: function(error) {
-                        webkit.messageHandlers.onPaymentError.postMessage(event);
-                    }
-                }).open();
-            </script>
-            </body>
-            </html>
-        """
+        </body>
+    </html>
+    """
+}
+
+private extension SwedbankWebView {
+    enum TemplateComponent {
+        case literal(String)
+        case delay
+        case scriptUrl
     }
 }
 
+extension SwedbankWebView.HTMLTemplate : ExpressibleByStringInterpolation {
+    init(stringInterpolation: StringInterpolation) {
+        components = stringInterpolation.components
+    }
+    init(stringLiteral value: String) {
+        components = [.literal(value)]
+    }
+    
+    struct StringInterpolation : StringInterpolationProtocol {
+        fileprivate var components: [SwedbankWebView.TemplateComponent] = []
+        
+        init(literalCapacity: Int, interpolationCount: Int) {
+            components.reserveCapacity(2 * interpolationCount + 1)
+        }
+        
+        mutating func appendLiteral(_ literal: String) {
+            components.append(.literal(literal))
+        }
+        
+        mutating func appendInterpolation(_ event: T, _ argument: String) {
+            appendLiteral(SwedbankWebView.emitCallback(event: event.rawValue, argument: argument))
+        }
+        
+        fileprivate mutating func appendInterpolation(_ component: SwedbankWebView.TemplateComponent) {
+            components.append(component)
+        }
+    }
+}
+
+private extension SwedbankWebView {
+    private static let messageNameKey = "msg"
+    private static let messageArgumentKey = "arg"
+    
+    private static func buildMessageBody(event: String, argument: String) -> String {
+        return "{\(messageNameKey):'\(event)',\(messageArgumentKey):\(argument)}"
+    }
+    private static func parse<T: RawRepresentable>(messageBody: Any) -> (event: T, argument: Any?)? where T.RawValue == String {
+        let bodyDict = messageBody as? [String: Any]
+        let name = bodyDict?[messageNameKey] as? String
+        let event = name.flatMap(T.init(rawValue:))
+        return event.map { ($0, bodyDict?[messageArgumentKey]) }
+    }
+    
+    static func emitCallback(event: String, argument: String) -> String {
+        let body = buildMessageBody(event: event, argument: argument)
+        return "webkit.messageHandlers.\(scriptMessageHandlerName).postMessage(\(body))"
+    }
+    
+    class CallbackScriptMessageHandler<T: RawRepresentable> : NSObject, WKScriptMessageHandler where T.RawValue == String {
+        let eventHandler: (T, Any?) -> Void
+        init(eventHandler: @escaping (T, Any?) -> Void) {
+            self.eventHandler = eventHandler
+            super.init()
+        }
+        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            if message.name == scriptMessageHandlerName, let body: (T, Any?) = parse(messageBody: message.body) {
+                eventHandler(body.0, body.1)
+            }
+        }
+    }
+}

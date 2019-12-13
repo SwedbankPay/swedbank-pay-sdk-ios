@@ -32,7 +32,32 @@ public final class SwedbankPaySDKController: UIViewController {
     
     public weak var delegate: SwedbankPaySDKDelegate?
     
-    lazy private var viewModel = SwedbankPaySDKViewModel()
+    private let userContentController = WKUserContentController()
+    private lazy var rootWebViewController = createRootWebViewController()
+    
+    private lazy var initialLoadingIndicator = UIActivityIndicatorView(style: .gray)
+    
+    private lazy var viewModel = SwedbankPaySDKViewModel()
+    
+    private var applicationDidBecomeActiveObserver: NSObjectProtocol?
+    private var observingApplicationDidBecomeActive: Bool {
+        get {
+            return applicationDidBecomeActiveObserver != nil
+        }
+        set {
+            switch (newValue, applicationDidBecomeActiveObserver) {
+            case (true, nil):
+                applicationDidBecomeActiveObserver = NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
+                    self?.reloadPaymentMenuIfAtRoot()
+                }
+            case (false, let observer?):
+                NotificationCenter.default.removeObserver(observer)
+                applicationDidBecomeActiveObserver = nil
+            default:
+                break
+            }
+        }
+    }
     
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -44,7 +69,7 @@ public final class SwedbankPaySDKController: UIViewController {
     /// - parameter consumerData: consumer identification information; *optional* - if not provided, consumer will be anonymous
     public init<T: Encodable>(configuration: SwedbankPaySDK.Configuration, merchantData: T?, consumerData: SwedbankPaySDK.Consumer? = nil) {
         super.init(nibName: nil, bundle: nil)
-
+        
         viewModel.setConfiguration(configuration)
         viewModel.setConsumerData(consumerData)
         viewModel.setConsumerProfileRef(nil)
@@ -92,6 +117,58 @@ public final class SwedbankPaySDKController: UIViewController {
     
     deinit {
         SwedbankPaySDK.removeContinueWebBrowsingUserActivityDelegate(self)
+        observingApplicationDidBecomeActive = false
+        set(scriptMessageHandler: nil)
+    }
+    
+    private func createRootWebViewController() -> SwedbankPayWebViewController {
+        let config = WKWebViewConfiguration()
+        config.userContentController = userContentController
+        return SwedbankPayWebViewController(configuration: config, delegate: self)
+    }
+    
+    public override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        addRootWebViewController()
+        addInitialLoadingIndicator()
+    }
+    
+    private func addRootWebViewController() {
+        let view = self.view!
+        
+        addChild(rootWebViewController)
+        let webView = rootWebViewController.view!
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(webView)
+        NSLayoutConstraint.activate([
+            webView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            webView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            webView.topAnchor.constraint(equalTo: view.topAnchor),
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        rootWebViewController.didMove(toParent: self)
+    }
+    
+    private func addInitialLoadingIndicator() {
+        let view = self.view!
+        
+        initialLoadingIndicator.stopAnimating()
+        initialLoadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(initialLoadingIndicator)
+        let topConstraint: NSLayoutConstraint
+        if #available(iOS 11.0, *) {
+            topConstraint = initialLoadingIndicator.topAnchor.constraint(
+                equalToSystemSpacingBelow: view.safeAreaLayoutGuide.topAnchor,
+                multiplier: 1
+            )
+        } else {
+            topConstraint = initialLoadingIndicator.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor, constant: 20)
+        }
+        NSLayoutConstraint.activate([
+            initialLoadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            topConstraint
+        ])
     }
     
     /// Creates paymentOrder
@@ -107,17 +184,28 @@ public final class SwedbankPaySDKController: UIViewController {
         super.viewWillAppear(animated)
         SwedbankPaySDK.addContinueWebBrowsingUserActivityDelegate(self)
         self.view.backgroundColor = UIColor.white
+        reloadPaymentMenuIfAtRoot()
+        observingApplicationDidBecomeActive = true
     }
     
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         SwedbankPaySDK.removeContinueWebBrowsingUserActivityDelegate(self)
+        observingApplicationDidBecomeActive = false
     }
     
-    private func reloadPaymentMenu() {
-        if let link = viewModel.viewPaymentOrderLink {
-            loadWebViewURL(link, type: .paymentOrder)
+    private func reloadPaymentMenuIfAtRoot() {
+        if rootWebViewController.isAtRoot == true {
+            reloadPaymentMenu()
         }
+    }
+    
+    private func reloadPaymentMenu(delay: Bool = false) {
+        if let link = viewModel.viewPaymentOrderLink {
+            dismissExtraWebViews(reloadPaymentMenuIfAtRoot: false)
+            loadPage(template: SwedbankWebView.paymentTemplate, scriptUrl: link, delay: delay) { [weak self] (event, argument) in
+                self?.on(paymentEvent: event, argument: argument)
+            }        }
     }
     
     /// Dismisses the viewcontroller when close button has been pressed
@@ -130,7 +218,9 @@ public final class SwedbankPaySDKController: UIViewController {
     private func createConsumerURL(_ list: OperationsList) {
         let operationType = Operation.TypeString.viewConsumerIdentification.rawValue
         if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
-            loadWebViewURL(jsURL, type: .consumerIdentification)
+            loadPage(template: SwedbankWebView.checkInTemplate, scriptUrl: jsURL) { [weak self] (event, argument) in
+                self?.on(consumerEvent: event, argument: argument)
+            }
         } else {
             let msg: String = SDKProblemString.consumerIdentificationWebviewCreationFailed.rawValue
             self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
@@ -143,56 +233,32 @@ public final class SwedbankPaySDKController: UIViewController {
         let operationType = Operation.TypeString.viewPaymentOrder.rawValue
         if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
             viewModel.viewPaymentOrderLink = jsURL
-            loadWebViewURL(jsURL, type: .paymentOrder)
+            loadPage(template: SwedbankWebView.paymentTemplate, scriptUrl: jsURL) { [weak self] (event, argument) in
+                self?.on(paymentEvent: event, argument: argument)
+            }
         } else {
             let msg: String = SDKProblemString.paymentWebviewCreationFailed.rawValue
             self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
         }
     }
     
-    /// Creates a HTML string to load into WKWebView
-    /// - parameter url: JavaScript URL String to replace a placeholder with from HTML template
-    /// - parameter type: the type of the WKWebView HTML to load, and what kind of JavaScript events to create for it
-    private func loadWebViewURL(_ url: String, type: SwedbankWebView.ActionType) {
-        
-        let html: String
-        let contentController = WKUserContentController();
-        let messageHandler = MyScriptMessageHandler(owner: self)
-        switch type {
-        case .consumerIdentification:
-            html = SwedbankWebView.createCheckinHTML(url)
-            contentController.add(messageHandler, name: SwedbankWebView.ConsumerEvent.onConsumerIdentified.rawValue)
-            contentController.add(messageHandler, name: SwedbankWebView.ConsumerEvent.onShippingDetailsAvailable.rawValue)
-            contentController.add(messageHandler, name: SwedbankWebView.ConsumerEvent.onError.rawValue)
-        case .paymentOrder:
-            html = SwedbankWebView.createCheckoutHTML(url)
-            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onPaymentMenuInstrumentSelected.rawValue)
-            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onPaymentCompleted.rawValue)
-            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onPaymentFailed.rawValue)
-            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onPaymentCreated.rawValue)
-            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onPaymentToS.rawValue)
-            contentController.add(messageHandler, name: SwedbankWebView.PaymentEvent.onError.rawValue)
+    private func set(scriptMessageHandler: WKScriptMessageHandler?) {
+        debugPrint("setting script message handler to \(scriptMessageHandler == nil ? "" : "non-")nil")
+        userContentController.removeScriptMessageHandler(forName: SwedbankWebView.scriptMessageHandlerName)
+        if let scriptMessageHandler = scriptMessageHandler {
+            userContentController.add(scriptMessageHandler, name: SwedbankWebView.scriptMessageHandlerName)
         }
+    }
+    
+    private func loadPage<T>(template: SwedbankWebView.HTMLTemplate<T>, scriptUrl: String, delay: Bool = false, eventHandler: @escaping (T, Any?) -> Void) {
         
-        let config = WKWebViewConfiguration()
-        config.userContentController = contentController
+        let html = template.buildPage(scriptUrl: scriptUrl, delay: delay)
+        debugPrint("creating script message handler for \(T.self)")
+        let scriptMessageHandler = template.createScriptMessageHandler(eventHandler: eventHandler)
+        set(scriptMessageHandler: scriptMessageHandler)
         
-        let webView = WKWebView(frame: view.bounds, configuration: config)
-        webView.navigationDelegate = self
-        webView.contentMode = .scaleAspectFill
-        view.addSubview(webView)
-        webView.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Constrain the WKWebView
-        NSLayoutConstraint.activate([
-            webView.topAnchor.constraint(equalTo: view.topAnchor),
-            webView.leftAnchor.constraint(equalTo: view.leftAnchor),
-            webView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-        ])
-        
-        // Load the created HTML
-        webView.loadHTMLString(html, baseURL: viewModel.configuration?.backendUrl)
+        initialLoadingIndicator.startAnimating()
+        rootWebViewController.load(htmlString: html, baseURL: viewModel.configuration?.backendUrl)
     }
     
     /// Show terms and conditions URL using SwedbankPaySDKToSViewController
@@ -202,60 +268,10 @@ public final class SwedbankPaySDKController: UIViewController {
         let tos = SwedbankPaySDKToSViewController.init(tosUrl: url)
         self.present(tos, animated: true, completion: nil)
     }
-    
-    private func openRedirect(url: URL) {
-        if #available(iOS 10, *) {
-            UIApplication.shared.open(url, options: [:]) {
-                self.handleRedirectCompletion(url: url, success: $0)
-            }
-        } else {
-            let success = UIApplication.shared.openURL(url)
-            handleRedirectCompletion(url: url, success: success)
-        }
-    }
-    
-    private func handleRedirectCompletion(url: URL, success: Bool) {
-        if (!success) {
-            if let scheme = url.scheme, let storeLink = storeLinksForSchemes[scheme] {
-                if #available(iOS 10, *) {
-                    UIApplication.shared.open(storeLink, options: [:], completionHandler: nil)
-                } else {
-                    UIApplication.shared.openURL(storeLink)
-                    handleRedirectCompletion(url: url, success: success)
-                }
-            }
-        }
-    }
 }
 
-/// Extension for WKNavigationDelegate
-extension SwedbankPaySDKController: WKNavigationDelegate {
-    
-    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        if navigationAction.targetFrame?.isMainFrame == false {
-            decisionHandler(.allow)
-            return
-        }
-        
-        let isBaseUrlNavigation: Bool
-        let url = navigationAction.request.url?.absoluteURL
-        if let baseUrl = viewModel.configuration?.backendUrl.absoluteURL {
-            // WKWebView will silently turn a navigation to https://foo.bar to https://foo.bar/
-            isBaseUrlNavigation = url == baseUrl || url == URL(string: "/", relativeTo: baseUrl)?.absoluteURL
-        } else {
-            isBaseUrlNavigation = url?.absoluteString == "about:blank"
-        }
-        if isBaseUrlNavigation {
-            decisionHandler(.allow)
-            return
-        }
-        
-        if let url = navigationAction.request.url {
-            openRedirect(url: url)
-        }
-        decisionHandler(.cancel)
-    }
-        
+
+extension SwedbankPaySDKController {
     fileprivate func paymentFailed(_ problem: SwedbankPaySDK.Problem) {
         debugPrint("SwedbankPaySDK: Payment failed")
         
@@ -271,78 +287,75 @@ extension SwedbankPaySDKController: WKNavigationDelegate {
 
 /// Extension to handle the WKWebview JavaScript events
 private extension SwedbankPaySDKController {
-    private class MyScriptMessageHandler: NSObject, WKScriptMessageHandler {
-        private weak var owner: SwedbankPaySDKController?
-        
-        init(owner: SwedbankPaySDKController) {
-            super.init()
-            self.owner = owner
+    func on(consumerEvent: SwedbankWebView.ConsumerEvent, argument: Any?) {
+        switch consumerEvent {
+        case .onScriptLoaded:
+            initialLoadingIndicator.stopAnimating()
+        case .onScriptError:
+            paymentFailed(.Server(.UnexpectedContent(status: -1, contentType: nil, body: nil))) // TODO: Better error
+        case .onConsumerIdentified:
+            handleConsumerIdentifiedEvent(argument)
+        case .onShippingDetailsAvailable:
+            debugPrint("SwedbankPaySDK: onShippingDetailsAvailable event received")
+        case .onError:
+            let msg: String = argument as? String ?? "Unknown error"
+            paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
         }
-        
-        // Create event handlers
-        public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-            switch message.name {
-                
-            // Consumer identification events
-            case SwedbankWebView.ConsumerEvent.onConsumerIdentified.rawValue:
-                handleConsumerIdentifiedEvent(message.body)
-            case SwedbankWebView.ConsumerEvent.onShippingDetailsAvailable.rawValue:
-                debugPrint("SwedbankPaySDK: onShippingDetailsAvailable event received")
-            case SwedbankWebView.ConsumerEvent.onError.rawValue:
-                let msg: String = message.body as? String ?? "Unknown error"
-                owner?.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-                
-            // Payment events
-            case SwedbankWebView.PaymentEvent.onPaymentMenuInstrumentSelected.rawValue:
-                debugPrint("SwedbankPaySDK: onPaymentMenuInstrumentSelected event received")
-            case SwedbankWebView.PaymentEvent.onPaymentCompleted.rawValue:
-                debugPrint("SwedbankPaySDK: onPaymentCompleted event received")
-                owner?.paymentComplete()
-            case SwedbankWebView.PaymentEvent.onPaymentFailed.rawValue:
-                let msg: String = message.body as? String ?? "Unknown error"
-                owner?.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-            case SwedbankWebView.PaymentEvent.onPaymentCreated.rawValue:
-                debugPrint("SwedbankPaySDK: onPaymentCreated event received")
-            case SwedbankWebView.PaymentEvent.onPaymentToS.rawValue:
-                handleToSEvent(message.body)
-            case SwedbankWebView.PaymentEvent.onError.rawValue:
-                let msg: String = message.body as? String ?? "Unknown error"
-                owner?.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-            default:
-                debugPrint("SwedbankPaySDK: undefined event received")
-            }
+    }
+    
+    func on(paymentEvent: SwedbankWebView.PaymentEvent, argument: Any?) {
+        switch paymentEvent {
+        case .onScriptLoaded:
+            initialLoadingIndicator.stopAnimating()
+        case .onScriptError:
+            paymentFailed(.Server(.UnexpectedContent(status: -1, contentType: nil, body: nil))) // TODO: Better error
+        case SwedbankWebView.PaymentEvent.onPaymentMenuInstrumentSelected:
+            debugPrint("SwedbankPaySDK: onPaymentMenuInstrumentSelected event received")
+        case SwedbankWebView.PaymentEvent.onPaymentCompleted:
+            debugPrint("SwedbankPaySDK: onPaymentCompleted event received")
+            paymentComplete()
+        case SwedbankWebView.PaymentEvent.onPaymentFailed:
+            let msg: String = argument as? String ?? "Unknown error"
+            paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+        case SwedbankWebView.PaymentEvent.onPaymentCreated:
+            debugPrint("SwedbankPaySDK: onPaymentCreated event received")
+        case SwedbankWebView.PaymentEvent.onPaymentToS:
+            handleToSEvent(argument)
+        case SwedbankWebView.PaymentEvent.onError:
+            let msg: String = argument as? String ?? "Unknown error"
+            paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
         }
-        
-        /// Consumer identified event received
-        /// - parameter messageBody: consumer identification String saved as consumerProfileRef
-        private func handleConsumerIdentifiedEvent(_ messageBody: Any) {
-            debugPrint("SwedbankPaySDK: onConsumerIdentified event received")
-            if let str = messageBody as? String {
-                owner?.viewModel.setConsumerProfileRef(str)
-                
-                #if DEBUG
-                debugPrint("SwedbankPaySDK: consumerProfileRef set to: \(str)")
-                #endif
-            } else {
-                debugPrint("SwedbankPaySDK: onConsumerIdentified - failed to get consumerProfileRef")
-            }
+    }
+    
+    /// Consumer identified event received
+    /// - parameter messageBody: consumer identification String saved as consumerProfileRef
+    private func handleConsumerIdentifiedEvent(_ messageBody: Any?) {
+        debugPrint("SwedbankPaySDK: onConsumerIdentified event received")
+        if let str = messageBody as? String {
+            viewModel.setConsumerProfileRef(str)
             
-            if let backendUrl = owner?.viewModel.configuration?.backendUrl {
-                owner?.createPaymentOrder(backendUrl)
-            }
+            #if DEBUG
+            debugPrint("SwedbankPaySDK: consumerProfileRef set to: \(str)")
+            #endif
+        } else {
+            debugPrint("SwedbankPaySDK: onConsumerIdentified - failed to get consumerProfileRef")
         }
         
-        /// Terms of service event received
-        /// - parameter messageBody: terms of service URL String in an NSDictionary
-        private func handleToSEvent(_ messageBody: Any) {
-            debugPrint("SwedbankPaySDK: onPaymentToS event received")
-            if let dict = messageBody as? NSDictionary {
-                if let url = dict["openUrl"] as? String {
-                    owner?.showTos(url: url)
-                }
-            } else {
-                debugPrint("SwedbankPaySDK: Terms of Service URL could not be found")
+        if let backendUrl = viewModel.configuration?.backendUrl {
+            createPaymentOrder(backendUrl)
+        }
+    }
+    
+    /// Terms of service event received
+    /// - parameter messageBody: terms of service URL String in an NSDictionary
+    private func handleToSEvent(_ messageBody: Any?) {
+        debugPrint("SwedbankPaySDK: onPaymentToS event received")
+        if let dict = messageBody as? NSDictionary {
+            if let url = dict["openUrl"] as? String {
+                showTos(url: url)
             }
+        } else {
+            debugPrint("SwedbankPaySDK: Terms of Service URL could not be found")
         }
     }
 }
@@ -351,11 +364,75 @@ extension SwedbankPaySDKController : ContinueWebBrowsingUserActivityDelegate {
     func continueWebBrowsingActivity(url: URL) -> Bool {
         if let callbackUrl = viewModel.parseCallbackUrl(url) {
             switch callbackUrl {
-            case .reloadPaymentMenu: reloadPaymentMenu()
+            case .reloadPaymentMenu:
+                // I have witnessed the reload not immediately resulting in onPaymentSuccess.
+                // This does not happen often, but hopefully this will fix it.
+                reloadPaymentMenu(delay: true)
             }
             return true
         } else {
             return false
+        }
+    }
+}
+
+extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
+    func add(webViewController: SwedbankPayWebViewController) {
+        let presentedViewController = self.presentedViewController
+        if let navigationController = presentedViewController as? UINavigationController {
+            navigationController.pushViewController(webViewController, animated: true)
+        } else {
+            if presentedViewController != nil {
+                dismiss(animated: false, completion: nil)
+            }
+            webViewController.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(onWebViewDoneButtonPressed))
+            let navigationController = UINavigationController(rootViewController: webViewController)
+            present(navigationController, animated: true, completion: nil)
+        }
+    }
+    
+    @objc private func onWebViewDoneButtonPressed() {
+        dismissExtraWebViews(reloadPaymentMenuIfAtRoot: true)
+    }
+    
+    func remove(webViewController: SwedbankPayWebViewController) {
+        if webViewController === rootWebViewController {
+            reloadPaymentMenu()
+        } else if let navigationController = presentedViewController as? UINavigationController {
+            if navigationController.visibleViewController === webViewController {
+                if navigationController.viewControllers.count > 1 {
+                    navigationController.popViewController(animated: true)
+                } else {
+                    dismissExtraWebViews(reloadPaymentMenuIfAtRoot: true)
+                }
+            } else {
+                let viewControllers = navigationController.viewControllers.filter {
+                    $0 !== webViewController
+                }
+                if viewControllers.isEmpty {
+                    dismissExtraWebViews(reloadPaymentMenuIfAtRoot: true)
+                } else {
+                    navigationController.viewControllers = viewControllers
+                }
+            }
+        }
+    }
+    
+    func overrideNavigation(request: URLRequest) -> Bool {
+        return request.url.map(continueWebBrowsingActivity(url:)) == true
+    }
+    
+    func webViewControllerDidNavigateOutOfRoot(_ webViewController: SwedbankPayWebViewController) {
+        if webViewController === rootWebViewController {
+            set(scriptMessageHandler: nil)
+            initialLoadingIndicator.stopAnimating()
+        }
+    }
+    
+    private func dismissExtraWebViews(reloadPaymentMenuIfAtRoot: Bool) {
+        dismiss(animated: true, completion: nil)
+        if reloadPaymentMenuIfAtRoot {
+            self.reloadPaymentMenuIfAtRoot()
         }
     }
 }
