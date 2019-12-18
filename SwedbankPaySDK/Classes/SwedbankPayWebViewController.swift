@@ -62,7 +62,7 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
     }
     
     private func attemptOpenExternalApp(request: URLRequest, completionHandler: @escaping (Bool) -> Void) {
-        guard let url = request.url, let scheme = url.scheme, scheme != "http" && scheme != "https" else {
+        guard let url = request.url, let scheme = url.scheme, scheme != "https" else {
             completionHandler(false)
             return
         }
