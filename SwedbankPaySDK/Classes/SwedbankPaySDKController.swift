@@ -292,6 +292,7 @@ private extension SwedbankPaySDKController {
         case .onScriptLoaded:
             initialLoadingIndicator.stopAnimating()
         case .onScriptError:
+            debugPrint("Script \(String(describing: argument)) failed to load")
             paymentFailed(.Server(.UnexpectedContent(status: -1, contentType: nil, body: nil))) // TODO: Better error
         case .onConsumerIdentified:
             handleConsumerIdentifiedEvent(argument)
@@ -308,6 +309,7 @@ private extension SwedbankPaySDKController {
         case .onScriptLoaded:
             initialLoadingIndicator.stopAnimating()
         case .onScriptError:
+            debugPrint("Script \(String(describing: argument)) failed to load")
             paymentFailed(.Server(.UnexpectedContent(status: -1, contentType: nil, body: nil))) // TODO: Better error
         case SwedbankWebView.PaymentEvent.onPaymentMenuInstrumentSelected:
             debugPrint("SwedbankPaySDK: onPaymentMenuInstrumentSelected event received")
