@@ -203,7 +203,7 @@ public final class SwedbankPaySDKController: UIViewController {
     private func reloadPaymentMenu(delay: Bool = false) {
         if let link = viewModel.viewPaymentOrderLink {
             dismissExtraWebViews(reloadPaymentMenuIfAtRoot: false)
-            loadPage(template: SwedbankWebView.paymentTemplate, scriptUrl: link, delay: delay) { [weak self] (event, argument) in
+            loadPage(template: SwedbankPayWebContent.paymentTemplate, scriptUrl: link, delay: delay) { [weak self] (event, argument) in
                 self?.on(paymentEvent: event, argument: argument)
             }        }
     }
@@ -218,7 +218,7 @@ public final class SwedbankPaySDKController: UIViewController {
     private func createConsumerURL(_ list: OperationsList) {
         let operationType = Operation.TypeString.viewConsumerIdentification.rawValue
         if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
-            loadPage(template: SwedbankWebView.checkInTemplate, scriptUrl: jsURL) { [weak self] (event, argument) in
+            loadPage(template: SwedbankPayWebContent.checkInTemplate, scriptUrl: jsURL) { [weak self] (event, argument) in
                 self?.on(consumerEvent: event, argument: argument)
             }
         } else {
@@ -233,7 +233,7 @@ public final class SwedbankPaySDKController: UIViewController {
         let operationType = Operation.TypeString.viewPaymentOrder.rawValue
         if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
             viewModel.viewPaymentOrderLink = jsURL
-            loadPage(template: SwedbankWebView.paymentTemplate, scriptUrl: jsURL) { [weak self] (event, argument) in
+            loadPage(template: SwedbankPayWebContent.paymentTemplate, scriptUrl: jsURL) { [weak self] (event, argument) in
                 self?.on(paymentEvent: event, argument: argument)
             }
         } else {
@@ -244,13 +244,13 @@ public final class SwedbankPaySDKController: UIViewController {
     
     private func set(scriptMessageHandler: WKScriptMessageHandler?) {
         debugPrint("setting script message handler to \(scriptMessageHandler == nil ? "" : "non-")nil")
-        userContentController.removeScriptMessageHandler(forName: SwedbankWebView.scriptMessageHandlerName)
+        userContentController.removeScriptMessageHandler(forName: SwedbankPayWebContent.scriptMessageHandlerName)
         if let scriptMessageHandler = scriptMessageHandler {
-            userContentController.add(scriptMessageHandler, name: SwedbankWebView.scriptMessageHandlerName)
+            userContentController.add(scriptMessageHandler, name: SwedbankPayWebContent.scriptMessageHandlerName)
         }
     }
     
-    private func loadPage<T>(template: SwedbankWebView.HTMLTemplate<T>, scriptUrl: String, delay: Bool = false, eventHandler: @escaping (T, Any?) -> Void) {
+    private func loadPage<T>(template: SwedbankPayWebContent.HTMLTemplate<T>, scriptUrl: String, delay: Bool = false, eventHandler: @escaping (T, Any?) -> Void) {
         
         let html = template.buildPage(scriptUrl: scriptUrl, delay: delay)
         debugPrint("creating script message handler for \(T.self)")
@@ -287,7 +287,7 @@ extension SwedbankPaySDKController {
 
 /// Extension to handle the WKWebview JavaScript events
 private extension SwedbankPaySDKController {
-    func on(consumerEvent: SwedbankWebView.ConsumerEvent, argument: Any?) {
+    func on(consumerEvent: SwedbankPayWebContent.ConsumerEvent, argument: Any?) {
         switch consumerEvent {
         case .onScriptLoaded:
             initialLoadingIndicator.stopAnimating()
@@ -304,26 +304,26 @@ private extension SwedbankPaySDKController {
         }
     }
     
-    func on(paymentEvent: SwedbankWebView.PaymentEvent, argument: Any?) {
+    func on(paymentEvent: SwedbankPayWebContent.PaymentEvent, argument: Any?) {
         switch paymentEvent {
         case .onScriptLoaded:
             initialLoadingIndicator.stopAnimating()
         case .onScriptError:
             debugPrint("Script \(String(describing: argument)) failed to load")
             paymentFailed(.Server(.UnexpectedContent(status: -1, contentType: nil, body: nil))) // TODO: Better error
-        case SwedbankWebView.PaymentEvent.onPaymentMenuInstrumentSelected:
+        case .onPaymentMenuInstrumentSelected:
             debugPrint("SwedbankPaySDK: onPaymentMenuInstrumentSelected event received")
-        case SwedbankWebView.PaymentEvent.onPaymentCompleted:
+        case .onPaymentCompleted:
             debugPrint("SwedbankPaySDK: onPaymentCompleted event received")
             paymentComplete()
-        case SwedbankWebView.PaymentEvent.onPaymentFailed:
+        case .onPaymentFailed:
             let msg: String = argument as? String ?? "Unknown error"
             paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-        case SwedbankWebView.PaymentEvent.onPaymentCreated:
+        case .onPaymentCreated:
             debugPrint("SwedbankPaySDK: onPaymentCreated event received")
-        case SwedbankWebView.PaymentEvent.onPaymentToS:
+        case .onPaymentToS:
             handleToSEvent(argument)
-        case SwedbankWebView.PaymentEvent.onError:
+        case .onError:
             let msg: String = argument as? String ?? "Unknown error"
             paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
         }

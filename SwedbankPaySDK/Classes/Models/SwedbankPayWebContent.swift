@@ -17,13 +17,13 @@ import WebKit
 
 private let paymentMenuDelay = "500"
 
-enum SwedbankWebView {}
+enum SwedbankPayWebContent {}
 
-extension SwedbankWebView {
+extension SwedbankPayWebContent {
     static let scriptMessageHandlerName = "swedbankpay"
 }
 
-extension SwedbankWebView {
+extension SwedbankPayWebContent {
     struct HTMLTemplate<T: RawRepresentable> where T.RawValue == String {
         private let components: [TemplateComponent]
         
@@ -47,7 +47,7 @@ extension SwedbankWebView {
     }
 }
 
-extension SwedbankWebView {
+extension SwedbankPayWebContent {
     enum ConsumerEvent: String {
         case onScriptLoaded
         case onScriptError
@@ -97,7 +97,7 @@ extension SwedbankWebView {
     """
 }
 
-extension SwedbankWebView {
+extension SwedbankPayWebContent {
     enum PaymentEvent: String {
         case onScriptLoaded
         case onScriptError
@@ -168,7 +168,7 @@ extension SwedbankWebView {
     """
 }
 
-private extension SwedbankWebView {
+private extension SwedbankPayWebContent {
     enum TemplateComponent {
         case literal(String)
         case delay
@@ -176,7 +176,7 @@ private extension SwedbankWebView {
     }
 }
 
-extension SwedbankWebView.HTMLTemplate : ExpressibleByStringInterpolation {
+extension SwedbankPayWebContent.HTMLTemplate : ExpressibleByStringInterpolation {
     init(stringInterpolation: StringInterpolation) {
         components = stringInterpolation.components
     }
@@ -185,7 +185,7 @@ extension SwedbankWebView.HTMLTemplate : ExpressibleByStringInterpolation {
     }
     
     struct StringInterpolation : StringInterpolationProtocol {
-        fileprivate var components: [SwedbankWebView.TemplateComponent] = []
+        fileprivate var components: [SwedbankPayWebContent.TemplateComponent] = []
         
         init(literalCapacity: Int, interpolationCount: Int) {
             components.reserveCapacity(2 * interpolationCount + 1)
@@ -196,16 +196,16 @@ extension SwedbankWebView.HTMLTemplate : ExpressibleByStringInterpolation {
         }
         
         mutating func appendInterpolation(_ event: T, _ argument: String) {
-            appendLiteral(SwedbankWebView.emitCallback(event: event.rawValue, argument: argument))
+            appendLiteral(SwedbankPayWebContent.emitCallback(event: event.rawValue, argument: argument))
         }
         
-        fileprivate mutating func appendInterpolation(_ component: SwedbankWebView.TemplateComponent) {
+        fileprivate mutating func appendInterpolation(_ component: SwedbankPayWebContent.TemplateComponent) {
             components.append(component)
         }
     }
 }
 
-private extension SwedbankWebView {
+private extension SwedbankPayWebContent {
     private static let messageNameKey = "msg"
     private static let messageArgumentKey = "arg"
     

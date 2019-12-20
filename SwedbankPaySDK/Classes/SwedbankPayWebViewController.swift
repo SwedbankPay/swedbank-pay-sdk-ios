@@ -20,10 +20,10 @@ class SwedbankPayWebViewController : UIViewController {
     private weak var delegate: SwedbankPayWebViewControllerDelegate?
     
     private let webView: WKWebView
-    private var lastRootNavigation: WKNavigation?
+    private var lastRootPage: (navigation: WKNavigation?, baseURL: URL?)?
     
     var isAtRoot: Bool {
-        return lastRootNavigation != nil
+        return lastRootPage != nil
     }
     
     init(configuration: WKWebViewConfiguration, delegate: SwedbankPayWebViewControllerDelegate) {
@@ -43,41 +43,92 @@ class SwedbankPayWebViewController : UIViewController {
     }
     
     func load(htmlString: String, baseURL: URL?) {
-        lastRootNavigation = webView.loadHTMLString(htmlString, baseURL: baseURL)
+        let navigation = webView.loadHTMLString(htmlString, baseURL: baseURL)
+        lastRootPage = (navigation, baseURL)
+    }
+}
+
+private extension WKWebView {
+    static func canOpen(url: URL) -> Bool {
+        let scheme = url.scheme
+        if #available(iOS 11, *) {
+            return scheme.map(handlesURLScheme) == true
+        } else {
+            return scheme == "http" || scheme == "https"
+        }
     }
 }
 
 extension SwedbankPayWebViewController : WKNavigationDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        let handledByDelegate = navigationAction.targetFrame?.isMainFrame == true
-            && delegate?.overrideNavigation(request: navigationAction.request) == true
-        if handledByDelegate {
+        let request = navigationAction.request
+        if isBaseUrlNavigation(navigationAction: navigationAction) {
+            decisionHandler(.allow)
+        } else if delegate?.overrideNavigation(request: request) == true {
             decisionHandler(.cancel)
+        } else if let url = request.url {
+            decidePolicyFor(url: url, decisionHandler: decisionHandler)
         } else {
-            attemptOpenExternalApp(request: navigationAction.request) { openedInExternalApp in
-                let policy: WKNavigationActionPolicy = openedInExternalApp ? .cancel : .allow
-                decisionHandler(policy)
-            }
+            decisionHandler(.cancel)
         }
     }
     
-    private func attemptOpenExternalApp(request: URLRequest, completionHandler: @escaping (Bool) -> Void) {
-        guard let url = request.url, let scheme = url.scheme, scheme != "https" else {
-            completionHandler(false)
-            return
+    private func decidePolicyFor(url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        attemptOpenUniversalLink(url: url) { opened in
+            let policy: WKNavigationActionPolicy
+            if opened {
+                policy = .cancel
+            } else {
+                let webViewCanOpen = WKWebView.canOpen(url: url)
+                if !webViewCanOpen {
+                    self.attemptOpenCustomSchemeLink(url: url)
+                }
+                policy = webViewCanOpen ? .allow : .cancel
+            }
+            decisionHandler(policy)
         }
-        
-        if #available(iOS 10, *) {
-            UIApplication.shared.open(url, options: [:], completionHandler: completionHandler)
+    }
+    
+    private func ensurePath(url: URL) -> URL {
+        return url.path.isEmpty ? URL(string: "/", relativeTo: url)!.absoluteURL : url
+    }
+    
+    private func isBaseUrlNavigation(navigationAction: WKNavigationAction) -> Bool {
+        if let lastRootPage = lastRootPage, navigationAction.targetFrame?.isMainFrame == true {
+            let url = navigationAction.request.url
+            if let baseUrl = lastRootPage.baseURL {
+                // WKWebView silently turns https://foo.bar to https://foo.bar/
+                // So append a path to baseURL if needed
+                let baseUrlWithPath = ensurePath(url: baseUrl)
+                return navigationAction.request.url?.absoluteURL == baseUrlWithPath
+            } else {
+                // A nil baseURL results in WKWebView using about:blank as the page url instead
+                return url?.absoluteString == "about:blank"
+            }
         } else {
-            let success = UIApplication.shared.openURL(url)
-            completionHandler(success)
+            return false
+        }
+    }
+    
+    private func attemptOpenUniversalLink(url: URL, completionHandler: @escaping (Bool) -> Void) {
+        if #available(iOS 10, *) {
+            UIApplication.shared.open(url, options: [.universalLinksOnly: true], completionHandler: completionHandler)
+        } else {
+            completionHandler(false)
+        }
+    }
+    
+    private func attemptOpenCustomSchemeLink(url: URL) {
+        if #available(iOS 10, *) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        } else {
+            UIApplication.shared.openURL(url)
         }
     }
     
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        if navigation != lastRootNavigation {
-            lastRootNavigation = nil
+        if navigation != lastRootPage?.navigation {
+            lastRootPage = nil
             delegate?.webViewControllerDidNavigateOutOfRoot(self)
         }
     }
