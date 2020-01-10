@@ -39,26 +39,6 @@ public final class SwedbankPaySDKController: UIViewController {
     
     private lazy var viewModel = SwedbankPaySDKViewModel()
     
-    private var applicationDidBecomeActiveObserver: NSObjectProtocol?
-    private var observingApplicationDidBecomeActive: Bool {
-        get {
-            return applicationDidBecomeActiveObserver != nil
-        }
-        set {
-            switch (newValue, applicationDidBecomeActiveObserver) {
-            case (true, nil):
-                applicationDidBecomeActiveObserver = NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
-                    self?.reloadPaymentMenuIfAtRoot()
-                }
-            case (false, let observer?):
-                NotificationCenter.default.removeObserver(observer)
-                applicationDidBecomeActiveObserver = nil
-            default:
-                break
-            }
-        }
-    }
-    
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -116,8 +96,7 @@ public final class SwedbankPaySDKController: UIViewController {
     }
     
     deinit {
-        SwedbankPaySDK.removeContinueWebBrowsingUserActivityDelegate(self)
-        observingApplicationDidBecomeActive = false
+        SwedbankPaySDK.removeCallbackUrlDelegate(self)
         set(scriptMessageHandler: nil)
     }
     
@@ -182,16 +161,13 @@ public final class SwedbankPaySDKController: UIViewController {
     
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        SwedbankPaySDK.addContinueWebBrowsingUserActivityDelegate(self)
+        SwedbankPaySDK.addCallbackUrlDelegate(self)
         self.view.backgroundColor = UIColor.white
-        reloadPaymentMenuIfAtRoot()
-        observingApplicationDidBecomeActive = true
     }
     
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        SwedbankPaySDK.removeContinueWebBrowsingUserActivityDelegate(self)
-        observingApplicationDidBecomeActive = false
+        SwedbankPaySDK.removeCallbackUrlDelegate(self)
     }
     
     private func reloadPaymentMenuIfAtRoot() {
@@ -362,8 +338,8 @@ private extension SwedbankPaySDKController {
     }
 }
 
-extension SwedbankPaySDKController : ContinueWebBrowsingUserActivityDelegate {
-    func continueWebBrowsingActivity(url: URL) -> Bool {
+extension SwedbankPaySDKController : CallbackUrlDelegate {
+    func handleCallbackUrl(_ url: URL) -> Bool {
         if let callbackUrl = viewModel.parseCallbackUrl(url) {
             switch callbackUrl {
             case .reloadPaymentMenu:
@@ -421,7 +397,7 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
     }
     
     func overrideNavigation(request: URLRequest) -> Bool {
-        return request.url.map(continueWebBrowsingActivity(url:)) == true
+        return request.url.map(handleCallbackUrl(_:)) == true
     }
     
     func webViewControllerDidNavigateOutOfRoot(_ webViewController: SwedbankPayWebViewController) {

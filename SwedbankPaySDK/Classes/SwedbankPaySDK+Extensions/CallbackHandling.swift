@@ -16,10 +16,14 @@
 import Foundation
 
 public extension SwedbankPaySDK {
+    static func open(url: URL) -> Bool {
+        return handleCallbackUrl(url)
+    }
+ 
     static func `continue`(userActivity: NSUserActivity) -> Bool {
         if userActivity.activityType == NSUserActivityTypeBrowsingWeb,
             let url = userActivity.webpageURL {
-            return continueWebBrowsingActivity(url: url)
+            return handleCallbackUrl(url)
         } else {
             return false
         }
@@ -27,24 +31,24 @@ public extension SwedbankPaySDK {
 }
 
 // needs to be @objc to be used as the type parameter of NSHashTable (!?)
-@objc protocol ContinueWebBrowsingUserActivityDelegate {
-    func continueWebBrowsingActivity(url: URL) -> Bool
+@objc protocol CallbackUrlDelegate {
+    func handleCallbackUrl(_ url: URL) -> Bool
 }
 
 extension SwedbankPaySDK {
-    private static let delegates = NSHashTable<ContinueWebBrowsingUserActivityDelegate>(options: [.weakMemory, .objectPointerPersonality])
+    private static let delegates = NSHashTable<CallbackUrlDelegate>(options: [.weakMemory, .objectPointerPersonality])
     
-    static func addContinueWebBrowsingUserActivityDelegate(_ delegate: ContinueWebBrowsingUserActivityDelegate) {
+    static func addCallbackUrlDelegate(_ delegate: CallbackUrlDelegate) {
         delegates.add(delegate)
     }
-    static func removeContinueWebBrowsingUserActivityDelegate(_ delegate: ContinueWebBrowsingUserActivityDelegate) {
+    static func removeCallbackUrlDelegate(_ delegate: CallbackUrlDelegate) {
         delegates.remove(delegate)
     }
-    private static func continueWebBrowsingActivity(url: URL) -> Bool {
+    private static func handleCallbackUrl(_ url: URL) -> Bool {
         var result = false
         for delegate in IteratorSequence(NSFastEnumerationIterator(self.delegates)) {
-            let handled = (delegate as? ContinueWebBrowsingUserActivityDelegate)?
-                .continueWebBrowsingActivity(url: url) == true
+            let handled = (delegate as? CallbackUrlDelegate)?
+                .handleCallbackUrl(url) == true
             if handled {
                 result = true
             }

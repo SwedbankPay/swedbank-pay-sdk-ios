@@ -9,13 +9,13 @@
 /* Begin PBXBuildFile section */
 		12D2874E8792C44CC0C01D64 /* Pods_SwedbankPaySDKTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A88F6FC2C0FDDDD83A2DDFEF /* Pods_SwedbankPaySDKTests.framework */; };
 		74A338E7B5914B7895F6C183 /* Pods_SwedbankPaySDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 111BB8C928CC879B20328A64 /* Pods_SwedbankPaySDK.framework */; };
-		A5AA1D6F2397B63D008A62CC /* UserActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5AA1D6E2397B63D008A62CC /* UserActivity.swift */; };
+		A504895123C8A2FD00201DEC /* SwedbankPayWebContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A504895023C8A2FD00201DEC /* SwedbankPayWebContent.swift */; };
+		A5AA1D6F2397B63D008A62CC /* CallbackHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5AA1D6E2397B63D008A62CC /* CallbackHandling.swift */; };
 		A5AA1D712397BE9D008A62CC /* CallbackUrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5AA1D702397BE9D008A62CC /* CallbackUrl.swift */; };
 		A5C3D01E23A23BC900B45085 /* SwedbankPayWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5C3D01D23A23BC900B45085 /* SwedbankPayWebViewController.swift */; };
 		C50CF68B237AA204003F79DF /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68A237AA204003F79DF /* Operation.swift */; };
 		C50CF68D237AA3B0003F79DF /* TypeAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68C237AA3B0003F79DF /* TypeAliases.swift */; };
 		C50CF68F237AA43E003F79DF /* SDKProblemString.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68E237AA43E003F79DF /* SDKProblemString.swift */; };
-		C50CF691237AA495003F79DF /* SwedbankWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF690237AA494003F79DF /* SwedbankWebView.swift */; };
 		C50CF693237AA7DE003F79DF /* ClientProblemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF692237AA7DE003F79DF /* ClientProblemType.swift */; };
 		C50CF695237AA7F7003F79DF /* ServerProblemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF694237AA7F7003F79DF /* ServerProblemType.swift */; };
 		C50CF697237AA8ED003F79DF /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF696237AA8ED003F79DF /* Configuration.swift */; };
@@ -34,7 +34,6 @@
 		C50CF6BE237ABACF003F79DF /* OperationsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF6B8237AB269003F79DF /* OperationsList.swift */; };
 		C50CF6BF237ABACF003F79DF /* SDKProblemString.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68E237AA43E003F79DF /* SDKProblemString.swift */; };
 		C50CF6C0237ABACF003F79DF /* ServerProblemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF694237AA7F7003F79DF /* ServerProblemType.swift */; };
-		C50CF6C1237ABACF003F79DF /* SwedbankWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF690237AA494003F79DF /* SwedbankWebView.swift */; };
 		C50CF6C2237ABAD3003F79DF /* TypeAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68C237AA3B0003F79DF /* TypeAliases.swift */; };
 		C50CF6C3237ABAD8003F79DF /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF696237AA8ED003F79DF /* Configuration.swift */; };
 		C50CF6C4237ABAD8003F79DF /* WhitelistedDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF698237AAC73003F79DF /* WhitelistedDomain.swift */; };
@@ -75,7 +74,8 @@
 		110CDE8EA475CE5CC951BFC4 /* Pods-SwedbankPaySDK.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK.release.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK/Pods-SwedbankPaySDK.release.xcconfig"; sourceTree = "<group>"; };
 		111BB8C928CC879B20328A64 /* Pods_SwedbankPaySDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SwedbankPaySDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D457A0E796800259ABC0664 /* Pods-SwedbankPaySDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK.debug.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK/Pods-SwedbankPaySDK.debug.xcconfig"; sourceTree = "<group>"; };
-		A5AA1D6E2397B63D008A62CC /* UserActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserActivity.swift; sourceTree = "<group>"; };
+		A504895023C8A2FD00201DEC /* SwedbankPayWebContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPayWebContent.swift; sourceTree = "<group>"; };
+		A5AA1D6E2397B63D008A62CC /* CallbackHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallbackHandling.swift; sourceTree = "<group>"; };
 		A5AA1D702397BE9D008A62CC /* CallbackUrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallbackUrl.swift; sourceTree = "<group>"; };
 		A5C3D01D23A23BC900B45085 /* SwedbankPayWebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPayWebViewController.swift; sourceTree = "<group>"; };
 		A88F6FC2C0FDDDD83A2DDFEF /* Pods_SwedbankPaySDKTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SwedbankPaySDKTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -84,7 +84,6 @@
 		C50CF68A237AA204003F79DF /* Operation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		C50CF68C237AA3B0003F79DF /* TypeAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeAliases.swift; sourceTree = "<group>"; };
 		C50CF68E237AA43E003F79DF /* SDKProblemString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKProblemString.swift; sourceTree = "<group>"; };
-		C50CF690237AA494003F79DF /* SwedbankWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankWebView.swift; sourceTree = "<group>"; };
 		C50CF692237AA7DE003F79DF /* ClientProblemType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientProblemType.swift; sourceTree = "<group>"; };
 		C50CF694237AA7F7003F79DF /* ServerProblemType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProblemType.swift; sourceTree = "<group>"; };
 		C50CF696237AA8ED003F79DF /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
@@ -165,7 +164,7 @@
 				C50CF6A8237AAFBF003F79DF /* ServerProblem.swift */,
 				C50CF6A4237AAF47003F79DF /* SwedbankPaySubProblem.swift */,
 				C50CF698237AAC73003F79DF /* WhitelistedDomain.swift */,
-				A5AA1D6E2397B63D008A62CC /* UserActivity.swift */,
+				A5AA1D6E2397B63D008A62CC /* CallbackHandling.swift */,
 			);
 			path = "SwedbankPaySDK+Extensions";
 			sourceTree = "<group>";
@@ -173,13 +172,13 @@
 		C50CF6BA237AB922003F79DF /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A504895023C8A2FD00201DEC /* SwedbankPayWebContent.swift */,
 				C50CF692237AA7DE003F79DF /* ClientProblemType.swift */,
 				C585AF29237066EE006C2E16 /* EndPointName.swift */,
 				C50CF68A237AA204003F79DF /* Operation.swift */,
 				C50CF6B8237AB269003F79DF /* OperationsList.swift */,
 				C50CF68E237AA43E003F79DF /* SDKProblemString.swift */,
 				C50CF694237AA7F7003F79DF /* ServerProblemType.swift */,
-				C50CF690237AA494003F79DF /* SwedbankWebView.swift */,
 				A5AA1D702397BE9D008A62CC /* CallbackUrl.swift */,
 			);
 			path = Models;
@@ -428,11 +427,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				C50CF6A5237AAF47003F79DF /* SwedbankPaySubProblem.swift in Sources */,
+				A504895123C8A2FD00201DEC /* SwedbankPayWebContent.swift in Sources */,
 				C50CF69D237AACC3003F79DF /* Consumer.swift in Sources */,
 				C585AF2E237066EE006C2E16 /* EndPointName.swift in Sources */,
 				C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */,
 				C50CF68D237AA3B0003F79DF /* TypeAliases.swift in Sources */,
-				A5AA1D6F2397B63D008A62CC /* UserActivity.swift in Sources */,
+				A5AA1D6F2397B63D008A62CC /* CallbackHandling.swift in Sources */,
 				C50CF6A7237AAF85003F79DF /* ClientProblem.swift in Sources */,
 				C50CF6A9237AAFBF003F79DF /* ServerProblem.swift in Sources */,
 				C50CF6A1237AAD15003F79DF /* Problem.swift in Sources */,
@@ -448,7 +448,6 @@
 				C585AF2D237066EE006C2E16 /* SwedbankPaySDKViewModel.swift in Sources */,
 				C50CF69F237AACEC003F79DF /* NationalIdentifier.swift in Sources */,
 				A5AA1D712397BE9D008A62CC /* CallbackUrl.swift in Sources */,
-				C50CF691237AA495003F79DF /* SwedbankWebView.swift in Sources */,
 				C585AF2B237066EE006C2E16 /* SwedbankPaySDKToSViewController.swift in Sources */,
 				C50CF68B237AA204003F79DF /* Operation.swift in Sources */,
 			);
@@ -458,7 +457,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C50CF6C1237ABACF003F79DF /* SwedbankWebView.swift in Sources */,
 				C50CF6C6237ABAD8003F79DF /* Consumer.swift in Sources */,
 				C50CF6BB237ABACF003F79DF /* ClientProblemType.swift in Sources */,
 				C50CF6BE237ABACF003F79DF /* OperationsList.swift in Sources */,
