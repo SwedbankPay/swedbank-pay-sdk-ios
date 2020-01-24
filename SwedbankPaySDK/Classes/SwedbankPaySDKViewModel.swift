@@ -103,10 +103,18 @@ final class SwedbankPaySDKViewModel: NSObject {
     }
     
     func parseCallbackUrl(_ url: URL) -> CallbackUrl? {
-        guard let prefix = configuration?.callbackPrefix else {
-            return nil
-        }
-        return CallbackUrl(url: url, prefix: prefix)
+        return parsePrefixedCallbackUrl(url) ?? parseCustomSchemeCallbackUrl(url)
+    }
+    
+    private func parsePrefixedCallbackUrl(_ url: URL) -> CallbackUrl? {
+        let prefix = configuration?.callbackPrefix
+        return prefix.flatMap { CallbackUrl(url: url, prefix: $0) }
+    }
+    
+    private func parseCustomSchemeCallbackUrl(_ url: URL) -> CallbackUrl? {
+        let scheme = configuration?.callbackScheme
+        let prefix = scheme.flatMap { URL(string: "\($0):///")! }
+        return prefix.flatMap { CallbackUrl(url: url, prefix: $0) }
     }
     
     /// Makes a request to the `backendUrl` and returns the endpoints
@@ -184,8 +192,11 @@ final class SwedbankPaySDKViewModel: NSObject {
                 parameters["consumerProfileRef"] = self?.consumerProfileRef
             }
             
-            if let callbackPrefix = self?.configuration?.callbackPrefix {
-                parameters["callbackPrefix"] = callbackPrefix.absoluteString
+            if let callbackScheme = self?.configuration?.callbackScheme {
+                parameters["callbackScheme"] = callbackScheme
+                if let callbackPrefix = self?.configuration?.callbackPrefix {
+                    parameters["callbackPrefix"] = callbackPrefix.absoluteString
+                }
             }
             
             self?.sessionManager.request(endPointUrl, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: self?.configuration?.headers).responseJSON(completionHandler: { [weak self] response in

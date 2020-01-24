@@ -26,7 +26,7 @@ extension CallbackUrl {
         let callbackComponents = callbackPath.map(String.init).flatMap(URLComponents.init(string:))
         switch callbackComponents?.path {
         case "reload":
-            let urlString = callbackComponents?.queryItems?.first(where: { $0.name == "url" })?.value
+            let urlString = callbackComponents?.queryItems?.first(where: { $0.name == "token" })?.value
             guard let url = urlString.flatMap(URL.init(string:)) else {
                 return nil
             }

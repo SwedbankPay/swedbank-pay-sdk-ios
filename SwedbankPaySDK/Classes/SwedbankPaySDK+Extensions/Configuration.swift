@@ -22,6 +22,7 @@ public extension SwedbankPaySDK {
     /// Swedbank Pay SDK Configuration
     struct Configuration {
         var backendUrl: URL
+        var callbackScheme: String
         var callbackPrefix: URL
         var headers: Dictionary<String, String>?
         var domainWhitelist: [WhitelistedDomain]?
@@ -39,26 +40,17 @@ public extension SwedbankPaySDK {
         /// - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
         /// - parameter domainWhitelist: Optional array of domains allowed to be connected to; defaults to `backendURL` if nil
         /// - parameter certificatePins: Optional array of domains for certification pinning, matched against any certificate found anywhere in the app bundle
-        public init(backendUrl: URL, callbackPrefix: URL? = nil, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]? = nil, pinPublicKeys: [PinPublicKeys]? = nil) {
+        public init(backendUrl: URL, callbackScheme: String? = nil, callbackPrefix: URL? = nil, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]? = nil, pinPublicKeys: [PinPublicKeys]? = nil) {
             self.backendUrl = backendUrl
-            self.callbackPrefix = callbackPrefix ?? Configuration.buildCallbackPrefix()
+            self.callbackScheme = callbackScheme ?? Configuration.getDefaultCallbackScheme()
+            self.callbackPrefix = callbackPrefix ?? Configuration.getDefaultCallbackPrefix(backendUrl: backendUrl)
             self.headers = headers
             self.domainWhitelist = domainWhitelist
             self.pinPublicKeys = pinPublicKeys
         }
         
-        private static func buildCallbackPrefix() -> URL {
+        private static func getDefaultCallbackScheme() -> String {
             let infoDictionary = Bundle.main.infoDictionary
-            let scheme = getDefaultCallbackScheme(infoDictionary: infoDictionary)
-            let bundleId = infoDictionary?["CFBundleIdentifier"] ?? "com.swedbankpay.user"
-            // If we don't have a host here, some overly-smart
-            // part of the system causes an additional slash to be
-            // added to our callback urls. The host is arbitrary,
-            // but using the bundle id for extra uniqueness.
-            return URL(string: "\(scheme)://\(bundleId)/")!
-        }
-        
-        private static func getDefaultCallbackScheme(infoDictionary: [String : Any]?) -> String {
             let urlTypes = infoDictionary?["CFBundleURLTypes"] as? [Any]
             let urlTypeDicts = urlTypes?.lazy.compactMap { $0 as? [AnyHashable : Any] }
             guard let callbackUrlType = urlTypeDicts?.filter({
@@ -73,6 +65,10 @@ public extension SwedbankPaySDK {
                     fatalError("Unable to infer callback scheme: URL type marked as Swedbank Pay SDK callback does not have exactly one scheme: \(callbackUrlType)")
             }
             return scheme
+        }
+        
+        private static func getDefaultCallbackPrefix(backendUrl: URL) -> URL {
+            return URL(string: "sdk-callback/", relativeTo: backendUrl)!
         }
     }
 }
