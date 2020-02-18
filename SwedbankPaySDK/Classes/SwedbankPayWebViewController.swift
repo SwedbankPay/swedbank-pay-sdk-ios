@@ -162,7 +162,6 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
                 if !webViewCanOpen {
                     self.attemptOpenCustomSchemeLink(url: url)
                 }
-                print("navigate to: \(url)")
                 policy = webViewCanOpen ? .allow : .cancel
             }
             decisionHandler(policy)
