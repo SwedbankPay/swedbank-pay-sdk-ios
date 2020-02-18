@@ -16,9 +16,6 @@
 import UIKit
 import WebKit
 
-private let storeLinksForSchemes = [
-    "swish": URL(string: "itms-apps://apps.apple.com/fi/app/swish-betalningar/id563204724")!
-]
 
 /// Swedbank Pay SDK protocol, conform to this to get the result of the payment process
 public protocol SwedbankPaySDKDelegate: AnyObject {
@@ -45,13 +42,14 @@ public final class SwedbankPaySDKController: UIViewController {
     
     /// Initializes the Swedbank Pay SDK, and depending on the `consumerData`, starts the payment process with consumer identification or anonymous process
     /// - parameter configuration: Configuration object containing `backendUrl`, `headers`, `domainWhitelist` and `pinPublicKeys`; of these, `domainWhitelist` and `pinPublicKeys` are *optional*
-    /// - parameter merchantData: merchant and purchase information
-    /// - parameter consumerData: consumer identification information; *optional* - if not provided, consumer will be anonymous
-    public init<T: Encodable>(configuration: SwedbankPaySDK.Configuration, merchantData: T?, consumerData: SwedbankPaySDK.Consumer? = nil) {
+    /// - parameter consumer: consumer identification information; *optional* - if not provided, consumer will be anonymous
+    /// - parameter paymentOrder: the payment order to create
+    public init(configuration: SwedbankPaySDK.Configuration, consumer: SwedbankPaySDK.Consumer? = nil, paymentOrder: SwedbankPaySDK.PaymentOrder) {
         super.init(nibName: nil, bundle: nil)
         
         viewModel.setConfiguration(configuration)
-        viewModel.setConsumerData(consumerData)
+        viewModel.setConsumerData(consumer)
+        viewModel.setPaymentOrder(paymentOrder)
         viewModel.setConsumerProfileRef(nil)
         
         let backendUrl = configuration.backendUrl
@@ -64,26 +62,8 @@ public final class SwedbankPaySDKController: UIViewController {
             return
         }
         
-        /// Convert merchantData into JSON
-        if let merchantData = merchantData {
-            
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            if let data = try? encoder.encode(merchantData) {
-                // viewModel.merchantData = String(data: data, encoding: .utf8)
-                let jsonStr = String(data: data, encoding: .utf8)
-                viewModel.setMerchantData(jsonStr)
-            } else {
-                let msg: String = SDKProblemString.merchantDataSerializationFailed.rawValue
-                self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-            }
-        } else {
-            let msg: String = SDKProblemString.merchantDataMissing.rawValue
-            self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-        }
-        
         /// Start the payment process
-        if consumerData == nil {
+        if consumer == nil {
             createPaymentOrder(backendUrl)
         } else {
             viewModel.identifyConsumer(backendUrl, successCallback: { [weak self] operationsList in
@@ -340,14 +320,17 @@ private extension SwedbankPaySDKController {
 
 extension SwedbankPaySDKController : CallbackUrlDelegate {
     func handleCallbackUrl(_ url: URL) -> Bool {
-        if let callbackUrl = viewModel.parseCallbackUrl(url) {
+        if let token = viewModel.paymentOrder?.urls.paymentToken,
+            let callbackUrl = viewModel.parseCallbackUrl(url) {
             switch callbackUrl {
-            case .reloadPaymentMenu:
+            case .reloadPaymentMenu(token):
                 // I have witnessed the reload not immediately resulting in onPaymentSuccess.
                 // This does not happen often, but hopefully this will fix it.
                 reloadPaymentMenu(delay: true)
+                return true
+            default:
+                return false
             }
-            return true
         } else {
             return false
         }

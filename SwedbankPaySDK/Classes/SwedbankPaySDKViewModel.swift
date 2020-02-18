@@ -20,7 +20,7 @@ final class SwedbankPaySDKViewModel: NSObject {
     
     private(set) var configuration: SwedbankPaySDK.Configuration?
     private(set) var consumerData: SwedbankPaySDK.Consumer?
-    private(set) var merchantData: Any?
+    private(set) var paymentOrder: SwedbankPaySDK.PaymentOrder?
     private(set) var consumerProfileRef: String?
         
     var sessionManager: SessionManager = Alamofire.SessionManager(configuration: URLSessionConfiguration.default)
@@ -70,10 +70,10 @@ final class SwedbankPaySDKViewModel: NSObject {
         self.consumerData = consumerData
     }
     
-    /// Sets the `merchantData`
-    /// - parameter merchantData: merchantData to set
-    func setMerchantData(_ merchantData: Any?) {
-        self.merchantData = merchantData
+    /// Sets the `SwedbankPaySDK.PaymentOrder`
+    /// - parameter paymentOrder: paymentOrder to set
+    func setPaymentOrder(_ paymentOrder: SwedbankPaySDK.PaymentOrder) {
+        self.paymentOrder = paymentOrder
     }
     
     /// Sets the `consumerProfileRef`
@@ -178,28 +178,24 @@ final class SwedbankPaySDKViewModel: NSObject {
                 return
             }
             
-            guard let merchantData = self?.merchantData else {
+            guard var paymentOrder = self?.paymentOrder else {
                 let msg: String = SDKProblemString.merchantDataMissing.rawValue
                 errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
             }
-            
-            var parameters: [String: Any] = [
-                "merchantData": merchantData
-            ]
-            
-            if self?.consumerProfileRef != nil {
-                parameters["consumerProfileRef"] = self?.consumerProfileRef
+            if let consumerProfileRef = self?.consumerProfileRef {
+                paymentOrder.payer = .init(consumerProfileRef: consumerProfileRef)
             }
             
-            if let callbackScheme = self?.configuration?.callbackScheme {
-                parameters["callbackScheme"] = callbackScheme
-                if let callbackPrefix = self?.configuration?.callbackPrefix {
-                    parameters["callbackPrefix"] = callbackPrefix.absoluteString
-                }
-            }
+            let json = try! JSONEncoder().encode(["paymentorder": paymentOrder])
             
-            self?.sessionManager.request(endPointUrl, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: self?.configuration?.headers).responseJSON(completionHandler: { [weak self] response in
+            var request = try! URLRequest(url: endPointUrl, method: .post, headers: self?.configuration?.headers)
+            if request.value(forHTTPHeaderField: "Content-Type") == nil {
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            }
+            request.httpBody = json
+            
+            self?.sessionManager.request(request).responseJSON(completionHandler: { [weak self] response in
                 self?.handleResponse(response, successCallback: { operationsList in
                     successCallback?(operationsList)
                 }, errorCallback: { problem in

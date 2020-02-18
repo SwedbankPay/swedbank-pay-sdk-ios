@@ -131,12 +131,21 @@ private extension WKWebView {
 extension SwedbankPayWebViewController : WKNavigationDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         let request = navigationAction.request
-        if isBaseUrlNavigation(navigationAction: navigationAction) {
+        // Mirror Android behaviour here: do not allow overriding POST requests
+        if request.httpMethod == "POST" {
+            let canOpen = request.url.map(WKWebView.canOpen(url:))
+            decisionHandler(canOpen == true ? .allow : .cancel)
+        } else if isBaseUrlNavigation(navigationAction: navigationAction) {
             decisionHandler(.allow)
         } else if delegate?.overrideNavigation(request: request) == true {
             decisionHandler(.cancel)
         } else if let url = request.url {
-            decidePolicyFor(url: url, decisionHandler: decisionHandler)
+            if navigationAction.targetFrame?.isMainFrame == true {
+                decidePolicyFor(url: url, decisionHandler: decisionHandler)
+            } else {
+                let canOpen = WKWebView.canOpen(url: url)
+                decisionHandler(canOpen ? .allow : .cancel)
+            }
         } else {
             decisionHandler(.cancel)
         }
@@ -148,6 +157,7 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
             if opened {
                 policy = .cancel
             } else {
+                // TODO: check against whitelist
                 let webViewCanOpen = WKWebView.canOpen(url: url)
                 if !webViewCanOpen {
                     self.attemptOpenCustomSchemeLink(url: url)

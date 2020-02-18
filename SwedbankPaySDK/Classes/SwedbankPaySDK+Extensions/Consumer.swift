@@ -14,24 +14,30 @@
 // limitations under the License.
 
 public extension SwedbankPaySDK {
+    enum Language : String, Codable {
+        case English = "en-US"
+        case Norwegian = "nb-NO"
+        case Swedish = "sv-SE"
+    }
     
     ///  Consumer object for Swedbank Pay SDK
     struct Consumer: Codable {
-        var consumerCountryCode: String?
-        var msisdn: String?
-        var email: String?
-        var nationalIdentifier: NationalIdentifier?
+        var operation: ConsumerOperation
+        var language: Language
+        var shippingAddressRestrictedToCountryCodes: [String]
         
-        /// Initializer for `SwedbankPaySDK.Consumer`
-        /// - parameter consumerCountryCode: String representing consumer's country code
-        /// - parameter msisdn: String representing consumer's phone number
-        /// - parameter email: String representing consumer's email address
-        /// - parameter nationalIdentifier: `NationalIdentifier`object representing consumer's social security number and country code
-        public init(consumerCountryCode: String?, msisdn: String?, email: String?, nationalIdentifier: NationalIdentifier?) {
-            self.consumerCountryCode = consumerCountryCode
-            self.msisdn = msisdn
-            self.email = email
-            self.nationalIdentifier = nationalIdentifier
+        public init(
+            operation: ConsumerOperation = .InitiateConsumerSession,
+            language: Language = .English,
+            shippingAddressRestrictedToCountryCodes: [String]
+        ) {
+            self.operation = operation
+            self.language = language
+            self.shippingAddressRestrictedToCountryCodes = shippingAddressRestrictedToCountryCodes
         }
+    }
+    
+    enum ConsumerOperation : String, Codable {
+        case InitiateConsumerSession = "initiate-consumer-session"
     }
 }
