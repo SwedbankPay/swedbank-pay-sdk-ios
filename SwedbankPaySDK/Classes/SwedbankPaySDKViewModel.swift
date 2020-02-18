@@ -20,7 +20,7 @@ final class SwedbankPaySDKViewModel: NSObject {
     
     private(set) var configuration: SwedbankPaySDK.Configuration?
     private(set) var consumerData: SwedbankPaySDK.Consumer?
-    private(set) var merchantData: Any?
+    private(set) var paymentOrder: SwedbankPaySDK.PaymentOrder?
     private(set) var consumerProfileRef: String?
         
     var sessionManager: SessionManager = Alamofire.SessionManager(configuration: URLSessionConfiguration.default)
@@ -72,8 +72,8 @@ final class SwedbankPaySDKViewModel: NSObject {
     
     /// Sets the `merchantData`
     /// - parameter merchantData: merchantData to set
-    func setMerchantData(_ merchantData: Any?) {
-        self.merchantData = merchantData
+    func setPaymernOrder(_ paymentOrder: SwedbankPaySDK.PaymentOrder) {
+        self.paymentOrder = paymentOrder
     }
     
     /// Sets the `consumerProfileRef`
@@ -178,7 +178,7 @@ final class SwedbankPaySDKViewModel: NSObject {
                 return
             }
             
-            guard let merchantData = self?.merchantData else {
+            /*guard let merchantData = self?.merchantData else {
                 let msg: String = SDKProblemString.merchantDataMissing.rawValue
                 errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
                 return
@@ -197,9 +197,34 @@ final class SwedbankPaySDKViewModel: NSObject {
                 if let callbackPrefix = self?.configuration?.callbackPrefix {
                     parameters["callbackPrefix"] = callbackPrefix.absoluteString
                 }
+            }*/
+            guard var paymentOrder = self?.paymentOrder else {
+                let msg: String = SDKProblemString.merchantDataMissing.rawValue
+                errorCallback?(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                return
+            }
+            if let consumerProfileRef = self?.consumerProfileRef {
+                paymentOrder.payer = .init(consumerProfileRef: consumerProfileRef)
             }
             
-            self?.sessionManager.request(endPointUrl, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: self?.configuration?.headers).responseJSON(completionHandler: { [weak self] response in
+            let json = try! JSONEncoder().encode(["paymentorder": paymentOrder])
+            /*let aaa = String(data: json, encoding: .utf8)
+            print(aaa)
+            struct AAa : Encodable {
+                let paymentorder: SwedbankPaySDK.PaymentOrder
+            }
+            let json2 = try! JSONEncoder().encode(AAa(paymentorder: paymentOrder))
+            let bbb = String(data: json2, encoding: .utf8)
+            print(bbb)*/
+            
+            var request = try! URLRequest(url: endPointUrl, method: .post, headers: self?.configuration?.headers)
+            if request.value(forHTTPHeaderField: "Content-Type") == nil {
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            }
+            request.httpBody = json
+            self?.sessionManager.request(request)
+            
+           /* self?.sessionManager.request(endPointUrl, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: self?.configuration?.headers)*/.responseJSON(completionHandler: { [weak self] response in
                 self?.handleResponse(response, successCallback: { operationsList in
                     successCallback?(operationsList)
                 }, errorCallback: { problem in

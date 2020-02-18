@@ -16,7 +16,7 @@
 import Foundation
 
 enum CallbackUrl {
-    case reloadPaymentMenu(url: URL)
+    case reloadPaymentMenu(token: String)
 }
 
 extension CallbackUrl {
@@ -26,14 +26,26 @@ extension CallbackUrl {
         let callbackComponents = callbackPath.map(String.init).flatMap(URLComponents.init(string:))
         switch callbackComponents?.path {
         case "reload":
-            let urlString = callbackComponents?.queryItems?.first(where: { $0.name == "token" })?.value
-            guard let url = urlString.flatMap(URL.init(string:)) else {
+            guard let token = callbackComponents?.queryItems?.first(where: { $0.name == "token" })?.value else {
                 return nil
             }
-            self = .reloadPaymentMenu(url: url)
+            self = .reloadPaymentMenu(token: token)
             
         default:
             return nil
+        }
+    }
+    
+    func toUrl(prefix: URL, fallbackScheme: String) -> URL {
+        switch self {
+        case .reloadPaymentMenu(let token):
+            var urlComponents = URLComponents()
+            urlComponents.path = "reload"
+            urlComponents.queryItems = [
+                URLQueryItem(name: "token", value: token),
+                URLQueryItem(name: "scheme", value: fallbackScheme)
+            ]
+            return urlComponents.url(relativeTo: prefix)!
         }
     }
 }

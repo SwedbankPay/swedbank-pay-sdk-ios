@@ -47,11 +47,12 @@ public final class SwedbankPaySDKController: UIViewController {
     /// - parameter configuration: Configuration object containing `backendUrl`, `headers`, `domainWhitelist` and `pinPublicKeys`; of these, `domainWhitelist` and `pinPublicKeys` are *optional*
     /// - parameter merchantData: merchant and purchase information
     /// - parameter consumerData: consumer identification information; *optional* - if not provided, consumer will be anonymous
-    public init<T: Encodable>(configuration: SwedbankPaySDK.Configuration, merchantData: T?, consumerData: SwedbankPaySDK.Consumer? = nil) {
+    public init(configuration: SwedbankPaySDK.Configuration, consumer: SwedbankPaySDK.Consumer? = nil, paymentOrder: SwedbankPaySDK.PaymentOrder) {
         super.init(nibName: nil, bundle: nil)
         
         viewModel.setConfiguration(configuration)
-        viewModel.setConsumerData(consumerData)
+        viewModel.setConsumerData(consumer)
+        viewModel.setPaymernOrder(paymentOrder)
         viewModel.setConsumerProfileRef(nil)
         
         let backendUrl = configuration.backendUrl
@@ -65,25 +66,20 @@ public final class SwedbankPaySDKController: UIViewController {
         }
         
         /// Convert merchantData into JSON
-        if let merchantData = merchantData {
-            
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            if let data = try? encoder.encode(merchantData) {
-                // viewModel.merchantData = String(data: data, encoding: .utf8)
-                let jsonStr = String(data: data, encoding: .utf8)
-                viewModel.setMerchantData(jsonStr)
-            } else {
-                let msg: String = SDKProblemString.merchantDataSerializationFailed.rawValue
-                self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-            }
+        /*let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        if let data = try? encoder.encode(paymentOrder) {
+            // viewModel.merchantData = String(data: data, encoding: .utf8)
+            let jsonStr = String(data: data, encoding: .utf8)
+            viewModel.setMerchantData(jsonStr)
         } else {
-            let msg: String = SDKProblemString.merchantDataMissing.rawValue
+            let msg: String = SDKProblemString.merchantDataSerializationFailed.rawValue
             self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-        }
+        }*/
+        
         
         /// Start the payment process
-        if consumerData == nil {
+        if consumer == nil {
             createPaymentOrder(backendUrl)
         } else {
             viewModel.identifyConsumer(backendUrl, successCallback: { [weak self] operationsList in
