@@ -72,7 +72,7 @@ final class SwedbankPaySDKViewModel: NSObject {
     
     /// Sets the `merchantData`
     /// - parameter merchantData: merchantData to set
-    func setPaymernOrder(_ paymentOrder: SwedbankPaySDK.PaymentOrder) {
+    func setPaymentOrder(_ paymentOrder: SwedbankPaySDK.PaymentOrder) {
         self.paymentOrder = paymentOrder
     }
     

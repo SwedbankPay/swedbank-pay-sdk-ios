@@ -52,7 +52,7 @@ public final class SwedbankPaySDKController: UIViewController {
         
         viewModel.setConfiguration(configuration)
         viewModel.setConsumerData(consumer)
-        viewModel.setPaymernOrder(paymentOrder)
+        viewModel.setPaymentOrder(paymentOrder)
         viewModel.setConsumerProfileRef(nil)
         
         let backendUrl = configuration.backendUrl
@@ -336,14 +336,17 @@ private extension SwedbankPaySDKController {
 
 extension SwedbankPaySDKController : CallbackUrlDelegate {
     func handleCallbackUrl(_ url: URL) -> Bool {
-        if let callbackUrl = viewModel.parseCallbackUrl(url) {
+        if let token = viewModel.paymentOrder?.urls.paymentToken,
+            let callbackUrl = viewModel.parseCallbackUrl(url) {
             switch callbackUrl {
-            case .reloadPaymentMenu:
+            case .reloadPaymentMenu(token):
                 // I have witnessed the reload not immediately resulting in onPaymentSuccess.
                 // This does not happen often, but hopefully this will fix it.
                 reloadPaymentMenu(delay: true)
-            }
-            return true
+                return true
+            default:
+                return false
+            }            
         } else {
             return false
         }
