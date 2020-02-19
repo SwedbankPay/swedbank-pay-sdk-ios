@@ -23,11 +23,13 @@ public extension SwedbankPaySDK {
         var userAgent: String
         var language: Language
         var generateRecurrenceToken: Bool
+        var restrictedToInstruments: [String]?
         var urls: PaymentOrderUrls
         var payeeInfo: PayeeInfo
         var payer: PaymentOrderPayer?
         var orderItems: [OrderItem]?
         var riskIndicator: RiskIndicator?
+        var disablePaymentMenu: Bool
         
         public init(
             operation: PaymentOrderOperation = .Purchase,
@@ -38,11 +40,13 @@ public extension SwedbankPaySDK {
             userAgent: String = defaultUserAgent,
             language: Language = .English,
             generateRecurrenceToken: Bool = false,
+            restrictedToInstruments: [String]? = nil,
             urls: PaymentOrderUrls,
             payeeInfo: PayeeInfo = .init(),
             payer: PaymentOrderPayer? = nil,
             orderItems: [OrderItem]? = nil,
-            riskIndicator: RiskIndicator? = nil
+            riskIndicator: RiskIndicator? = nil,
+            disablePaymentMenu: Bool = false
         ) {
             self.operation = operation
             self.currency = currency
@@ -52,11 +56,13 @@ public extension SwedbankPaySDK {
             self.userAgent = userAgent
             self.language = language
             self.generateRecurrenceToken = generateRecurrenceToken
+            self.restrictedToInstruments = restrictedToInstruments
             self.urls = urls
             self.payeeInfo = payeeInfo
             self.payer = payer
             self.orderItems = orderItems
             self.riskIndicator = riskIndicator
+            self.disablePaymentMenu = disablePaymentMenu
         }
     }
     
