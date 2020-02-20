@@ -1,5 +1,7 @@
 # Swedbank Pay SDK for iOS
 
+![Swedbank Pay SDK for iOS][opengraph-image]
+
 Swedbank Pay iOS SDK enables simple embedding of [Swedbank Pay Checkout](https://developer.swedbankpay.com/checkout/) to an iOS application. You may also be interested in [Android version](https://github.com/SwedbankPay/swedbank-pay-sdk-android) of the SDK and [backend documentation for the merchant API](https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant).
 
 ## Table of contents
@@ -170,3 +172,5 @@ During implementation you can use the [test data](https://developer.payex.com/xw
 ## License
 
 Swedbank Pay iOS SDK is released under the [Apache 2.0 license](LICENSE).
+
+[opengraph-image]: https://repository-images.githubusercontent.com/209730241/1bf8d880-53e9-11ea-846c-c2e2512334b6
