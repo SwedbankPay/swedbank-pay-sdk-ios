@@ -2,6 +2,10 @@
 
 ![Swedbank Pay SDK for iOS][opengraph-image]
 
+## About
+
+**IMPORTANT**: This SDK is at an early stage and not yet used in production. We do not offer support for this version, but will release supported versions in the future. Feel free to play around, but for full functionality and support, please wait for the supported, stable release.
+
 Swedbank Pay iOS SDK enables simple embedding of [Swedbank Pay Checkout](https://developer.swedbankpay.com/checkout/) to an iOS application. You may also be interested in [Android version](https://github.com/SwedbankPay/swedbank-pay-sdk-android) of the SDK and [backend documentation for the merchant API](https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant).
 
 ## Table of contents
