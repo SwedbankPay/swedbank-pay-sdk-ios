@@ -29,6 +29,15 @@ public final class SwedbankPaySDKController: UIViewController {
     
     public weak var delegate: SwedbankPaySDKDelegate?
     
+    public var openRedirectsInBrowser: Bool {
+        get {
+            return rootWebViewController.openRedirectsInBrowser
+        }
+        set {
+            rootWebViewController.openRedirectsInBrowser = newValue
+        }
+    }
+    
     private let userContentController = WKUserContentController()
     private lazy var rootWebViewController = createRootWebViewController()
     

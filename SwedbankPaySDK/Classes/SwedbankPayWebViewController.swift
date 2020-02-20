@@ -24,6 +24,8 @@ class SwedbankPayWebViewController : UIViewController {
     
     private var onJavascriptDialogDismissed: (() -> Void)?
     
+    var openRedirectsInBrowser = false
+    
     var isAtRoot: Bool {
         return lastRootPage != nil
     }
@@ -158,7 +160,7 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
                 policy = .cancel
             } else {
                 // TODO: check against whitelist
-                let webViewCanOpen = WKWebView.canOpen(url: url)
+                let webViewCanOpen = !self.openRedirectsInBrowser && WKWebView.canOpen(url: url)
                 if !webViewCanOpen {
                     self.attemptOpenCustomSchemeLink(url: url)
                 }
