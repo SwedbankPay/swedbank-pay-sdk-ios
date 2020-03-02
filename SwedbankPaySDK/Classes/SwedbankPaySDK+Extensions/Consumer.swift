@@ -22,9 +22,9 @@ public extension SwedbankPaySDK {
     
     ///  Consumer object for Swedbank Pay SDK
     struct Consumer: Codable {
-        var operation: ConsumerOperation
-        var language: Language
-        var shippingAddressRestrictedToCountryCodes: [String]
+        public var operation: ConsumerOperation
+        public var language: Language
+        public var shippingAddressRestrictedToCountryCodes: [String]
         
         public init(
             operation: ConsumerOperation = .InitiateConsumerSession,

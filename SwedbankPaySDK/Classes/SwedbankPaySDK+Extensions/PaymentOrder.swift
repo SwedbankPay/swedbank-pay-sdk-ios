@@ -15,21 +15,21 @@ public extension SwedbankPaySDK {
     }()
     
     struct PaymentOrder : Encodable {
-        var operation: PaymentOrderOperation
-        var currency: String
-        var amount: Int64
-        var vatAmount: Int64
-        var description: String
-        var userAgent: String
-        var language: Language
-        var generateRecurrenceToken: Bool
-        var restrictedToInstruments: [String]?
-        var urls: PaymentOrderUrls
-        var payeeInfo: PayeeInfo
-        var payer: PaymentOrderPayer?
-        var orderItems: [OrderItem]?
-        var riskIndicator: RiskIndicator?
-        var disablePaymentMenu: Bool
+        public var operation: PaymentOrderOperation
+        public var currency: String
+        public var amount: Int64
+        public var vatAmount: Int64
+        public var description: String
+        public var userAgent: String
+        public var language: Language
+        public var generateRecurrenceToken: Bool
+        public var restrictedToInstruments: [String]?
+        public var urls: PaymentOrderUrls
+        public var payeeInfo: PayeeInfo
+        public var payer: PaymentOrderPayer?
+        public var orderItems: [OrderItem]?
+        public var riskIndicator: RiskIndicator?
+        public var disablePaymentMenu: Bool
         
         public init(
             operation: PaymentOrderOperation = .Purchase,
@@ -72,14 +72,14 @@ public extension SwedbankPaySDK {
     }
     
     struct PaymentOrderUrls : Encodable {
-        var hostUrls: [URL]
-        var completeUrl: URL
-        var cancelUrl: URL?
-        var paymentUrl: URL?
-        var callbackUrl: URL?
-        var termsOfServiceUrl: URL?
+        public var hostUrls: [URL]
+        public var completeUrl: URL
+        public var cancelUrl: URL?
+        public var paymentUrl: URL?
+        public var callbackUrl: URL?
+        public var termsOfServiceUrl: URL?
         
-        var paymentToken: String
+        public var paymentToken: String
         
         public init(
             hostUrls: [URL],
@@ -112,12 +112,12 @@ public extension SwedbankPaySDK {
     }
     
     struct PayeeInfo : Codable {
-        var payeeId: String
-        var payeeReference: String
-        var payeeName: String?
-        var productCategory: String?
-        var orderReference: String?
-        var subsite: String?
+        public var payeeId: String
+        public var payeeReference: String
+        public var payeeName: String?
+        public var productCategory: String?
+        public var orderReference: String?
+        public var subsite: String?
         
         public init(
             payeeId: String = "",
@@ -137,7 +137,7 @@ public extension SwedbankPaySDK {
     }
     
     struct PaymentOrderPayer : Codable {
-        var consumerProfileRef: String
+        public var consumerProfileRef: String
         
         public init(consumerProfileRef: String) {
             self.consumerProfileRef = consumerProfileRef
@@ -145,35 +145,35 @@ public extension SwedbankPaySDK {
     }
     
     struct OrderItem : Codable {
-        var reference: String
-        var name: String
-        var type: ItemType
-        var `class`: String
-        var itemUrl: URL?
-        var imageUrl: URL?
-        var description: String?
-        var discountDescription: String?
-        var quantity: Int
-        var quantityUnit: String
-        var unitPrice: Int64
-        var discountPrice: Int64
-        var vatPercent: Int
-        var amount: Int64
-        var vatAmount: Int64
+        public var reference: String
+        public var name: String
+        public var type: ItemType
+        public var `class`: String
+        public var itemUrl: URL?
+        public var imageUrl: URL?
+        public var description: String?
+        public var discountDescription: String?
+        public var quantity: Int
+        public var quantityUnit: String
+        public var unitPrice: Int64
+        public var discountPrice: Int64?
+        public var vatPercent: Int
+        public var amount: Int64
+        public var vatAmount: Int64
         
         public init(
             reference: String,
             name: String,
             type: ItemType,
             class: String,
-            itemUrl: URL?,
-            imageUrl: URL?,
-            description: String?,
-            discountDescription: String?,
+            itemUrl: URL? = nil,
+            imageUrl: URL? = nil,
+            description: String? = nil,
+            discountDescription: String? = nil,
             quantity: Int,
             quantityUnit: String,
             unitPrice: Int64,
-            discountPrice: Int64,
+            discountPrice: Int64? = nil,
             vatPercent: Int,
             amount: Int64,
             vatAmount: Int64
@@ -207,14 +207,14 @@ public extension SwedbankPaySDK {
     }
     
     struct RiskIndicator : Codable {
-        var deliveryEmailAddress: String?
-        var deliveryTimeFrameIndicator: DeliveryTimeFrameIndicator?
-        var preOrderDate: String?
-        var preOrderPurchaseIndicator: PurchaseIndicator?
-        var shipIndicator: ShipIndicator.Raw?
-        var pickUpAddress: PickUpAddress?
-        var giftCardPurchase: Bool?
-        var reOrderPurchaseIndicator: PurchaseIndicator?
+        public var deliveryEmailAddress: String?
+        public var deliveryTimeFrameIndicator: DeliveryTimeFrameIndicator?
+        public var preOrderDate: String?
+        public var preOrderPurchaseIndicator: PurchaseIndicator?
+        public var shipIndicator: ShipIndicator.Raw?
+        public var pickUpAddress: PickUpAddress?
+        public var giftCardPurchase: Bool?
+        public var reOrderPurchaseIndicator: PurchaseIndicator?
         
         public init(
             deliveryEmailAddress: String? = nil,
@@ -272,12 +272,12 @@ public extension SwedbankPaySDK {
     }
     
     struct PickUpAddress : Codable {
-        var name: String?
-        var streetAddress: String?
-        var coAddress: String?
-        var city: String?
-        var zipCode: String?
-        var countryCode: String?
+        public var name: String?
+        public var streetAddress: String?
+        public var coAddress: String?
+        public var city: String?
+        public var zipCode: String?
+        public var countryCode: String?
     }
 }
 
