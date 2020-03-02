@@ -23,7 +23,6 @@
 		C50CF699237AAC73003F79DF /* WhitelistedDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF698237AAC73003F79DF /* WhitelistedDomain.swift */; };
 		C50CF69B237AAC99003F79DF /* PinPublicKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF69A237AAC99003F79DF /* PinPublicKeys.swift */; };
 		C50CF69D237AACC3003F79DF /* Consumer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF69C237AACC3003F79DF /* Consumer.swift */; };
-		C50CF69F237AACEC003F79DF /* NationalIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF69E237AACEC003F79DF /* NationalIdentifier.swift */; };
 		C50CF6A1237AAD15003F79DF /* Problem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF6A0237AAD15003F79DF /* Problem.swift */; };
 		C50CF6A5237AAF47003F79DF /* SwedbankPaySubProblem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF6A4237AAF47003F79DF /* SwedbankPaySubProblem.swift */; };
 		C50CF6A7237AAF85003F79DF /* ClientProblem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF6A6237AAF85003F79DF /* ClientProblem.swift */; };
@@ -40,7 +39,6 @@
 		C50CF6C4237ABAD8003F79DF /* WhitelistedDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF698237AAC73003F79DF /* WhitelistedDomain.swift */; };
 		C50CF6C5237ABAD8003F79DF /* PinPublicKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF69A237AAC99003F79DF /* PinPublicKeys.swift */; };
 		C50CF6C6237ABAD8003F79DF /* Consumer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF69C237AACC3003F79DF /* Consumer.swift */; };
-		C50CF6C7237ABAD8003F79DF /* NationalIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF69E237AACEC003F79DF /* NationalIdentifier.swift */; };
 		C50CF6C8237ABAD8003F79DF /* Problem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF6A0237AAD15003F79DF /* Problem.swift */; };
 		C50CF6C9237ABAD8003F79DF /* SwedbankPaySubProblem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF6A4237AAF47003F79DF /* SwedbankPaySubProblem.swift */; };
 		C50CF6CA237ABAD8003F79DF /* ClientProblem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF6A6237AAF85003F79DF /* ClientProblem.swift */; };
@@ -92,7 +90,6 @@
 		C50CF698237AAC73003F79DF /* WhitelistedDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitelistedDomain.swift; sourceTree = "<group>"; };
 		C50CF69A237AAC99003F79DF /* PinPublicKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinPublicKeys.swift; sourceTree = "<group>"; };
 		C50CF69C237AACC3003F79DF /* Consumer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Consumer.swift; sourceTree = "<group>"; };
-		C50CF69E237AACEC003F79DF /* NationalIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NationalIdentifier.swift; sourceTree = "<group>"; };
 		C50CF6A0237AAD15003F79DF /* Problem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Problem.swift; sourceTree = "<group>"; };
 		C50CF6A4237AAF47003F79DF /* SwedbankPaySubProblem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPaySubProblem.swift; sourceTree = "<group>"; };
 		C50CF6A6237AAF85003F79DF /* ClientProblem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientProblem.swift; sourceTree = "<group>"; };
@@ -161,7 +158,6 @@
 				C50CF6A6237AAF85003F79DF /* ClientProblem.swift */,
 				C50CF696237AA8ED003F79DF /* Configuration.swift */,
 				C50CF69C237AACC3003F79DF /* Consumer.swift */,
-				C50CF69E237AACEC003F79DF /* NationalIdentifier.swift */,
 				C50CF69A237AAC99003F79DF /* PinPublicKeys.swift */,
 				C50CF6A0237AAD15003F79DF /* Problem.swift */,
 				C50CF6A8237AAFBF003F79DF /* ServerProblem.swift */,
@@ -450,7 +446,6 @@
 				C50CF695237AA7F7003F79DF /* ServerProblemType.swift in Sources */,
 				A5F3416923FD9293005D65BA /* PaymentOrder.swift in Sources */,
 				C585AF2D237066EE006C2E16 /* SwedbankPaySDKViewModel.swift in Sources */,
-				C50CF69F237AACEC003F79DF /* NationalIdentifier.swift in Sources */,
 				A5AA1D712397BE9D008A62CC /* CallbackUrl.swift in Sources */,
 				C585AF2B237066EE006C2E16 /* SwedbankPaySDKToSViewController.swift in Sources */,
 				C50CF68B237AA204003F79DF /* Operation.swift in Sources */,
@@ -466,7 +461,6 @@
 				C50CF6BE237ABACF003F79DF /* OperationsList.swift in Sources */,
 				C50CF6CC237ABADC003F79DF /* SwedbankPaySDK.swift in Sources */,
 				C50CF6CB237ABAD8003F79DF /* ServerProblem.swift in Sources */,
-				C50CF6C7237ABAD8003F79DF /* NationalIdentifier.swift in Sources */,
 				C50CF6C2237ABAD3003F79DF /* TypeAliases.swift in Sources */,
 				C50CF6C5237ABAD8003F79DF /* PinPublicKeys.swift in Sources */,
 				C552630823706467005E97DC /* SwedbankPaySDKTests.swift in Sources */,
