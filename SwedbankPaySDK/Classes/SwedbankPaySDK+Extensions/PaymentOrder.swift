@@ -137,13 +137,21 @@ public extension SwedbankPaySDK {
     }
     
     struct PaymentOrderPayer : Codable {
-        public var consumerProfileRef: String
-        
-        public init(consumerProfileRef: String) {
+        public var consumerProfileRef: String?
+        public var email: String?
+        public var msisdn: String?
+         
+        public init(
+            consumerProfileRef: String? = nil,
+            email: String? = nil,
+            msisdn: String? = nil
+        ) {
             self.consumerProfileRef = consumerProfileRef
+            self.email = email
+            self.msisdn = msisdn
         }
     }
-    
+
     struct OrderItem : Codable {
         public var reference: String
         public var name: String
