@@ -19,13 +19,14 @@ import WebKit
 /// SwedbankPaySDKToSViewController handles terms of service (ToS) URL by showing it in a WKWebview
 final class SwedbankPaySDKToSViewController: UIViewController, WKNavigationDelegate {
     
-    private var tosUrl: String?
+    private let tosUrl: URL
     
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    init(tosUrl: String?) {
+    init(tosUrl: URL) {
+        self.tosUrl = tosUrl
         super.init(nibName: nil, bundle: nil)
         
         if #available(iOS 13, *) {
@@ -33,7 +34,6 @@ final class SwedbankPaySDKToSViewController: UIViewController, WKNavigationDeleg
         } else {
             self.modalPresentationStyle = .overCurrentContext
         }
-        self.tosUrl = tosUrl
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -76,10 +76,8 @@ final class SwedbankPaySDKToSViewController: UIViewController, WKNavigationDeleg
         ])
         
         // Load given URL into webview
-        if let tosUrl = tosUrl, let url = URL.init(string: tosUrl) {
-            let request = URLRequest.init(url: url)
-            webView.load(request)
-        }
+        let request = URLRequest.init(url: tosUrl)
+        webView.load(request)
     }
     
     @objc func closeButtonPressed() -> Void {

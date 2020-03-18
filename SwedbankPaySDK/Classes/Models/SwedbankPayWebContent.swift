@@ -101,11 +101,6 @@ extension SwedbankPayWebContent {
     enum PaymentEvent: String {
         case onScriptLoaded
         case onScriptError
-        case onPaymentMenuInstrumentSelected
-        case onPaymentCompleted
-        case onPaymentFailed
-        case onPaymentCreated
-        case onPaymentToS
         case onError
     }
     
@@ -125,21 +120,6 @@ extension SwedbankPayWebContent {
                         \(PaymentEvent.onScriptLoaded, "null");
                         payex.hostedView.paymentMenu({
                             container: "checkout",
-                            onPaymentMenuInstrumentSelected: function(event) {
-                                \(PaymentEvent.onPaymentMenuInstrumentSelected, "event");
-                            },
-                            onPaymentCompleted: function(event) {
-                                \(PaymentEvent.onPaymentCompleted, "event");
-                            },
-                            onPaymentFailed: function(event) {
-                                \(PaymentEvent.onPaymentFailed, "event")
-                            },
-                            onPaymentCreated: function(event) {
-                                \(PaymentEvent.onPaymentCreated, "event");
-                            },
-                            onPaymentToS: function(event) {
-                                \(PaymentEvent.onPaymentToS, "event");
-                            },
                             onError: function(error) {
                                 \(PaymentEvent.onError, "event");
                             }

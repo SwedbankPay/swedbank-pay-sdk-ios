@@ -20,12 +20,22 @@ import WebKit
 /// Swedbank Pay SDK protocol, conform to this to get the result of the payment process
 public protocol SwedbankPaySDKDelegate: AnyObject {
     func paymentComplete()
-    
-    func paymentFailed(_ problem: SwedbankPaySDK.Problem)
+    func paymentCanceled()
+    func paymentFailed(failureReason: SwedbankPaySDKController.FailureReason)
 }
 
 /// Swedbank Pay SDK ViewController, initialize this to start the payment process
 public final class SwedbankPaySDKController: UIViewController {
+    public enum FailureReason {
+        case NetworkError(Error)
+        case Problem(SwedbankPaySDK.Problem)
+        case ScriptLoadingFailure(scriptUrl: URL?)
+        case ScriptError(SwedbankPaySDK.TerminalFailure?)
+        
+        case NonWhitelistedDomain(failingUrl: URL?)
+        case MissingField(String)
+        case MissingOperation(String)
+    }
     
     public weak var delegate: SwedbankPaySDKDelegate?
     
@@ -64,9 +74,8 @@ public final class SwedbankPaySDKController: UIViewController {
         let backendUrl = configuration.backendUrl
         
         guard viewModel.isDomainWhitelisted(backendUrl) else {
-            let msg: String = "\(SDKProblemString.domainWhitelistError.rawValue)\(backendUrl)"
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
-                self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+                self.paymentFailed(failureReason: .NonWhitelistedDomain(failingUrl: backendUrl))
             })
             return
         }
@@ -78,7 +87,7 @@ public final class SwedbankPaySDKController: UIViewController {
             viewModel.identifyConsumer(backendUrl, successCallback: { [weak self] operationsList in
                 self?.createConsumerURL(operationsList)
             }, errorCallback: { [weak self] problem in
-                self?.paymentFailed(problem)
+                self?.paymentFailed(failureReason: .Problem(problem))
             })
         }
         
@@ -144,7 +153,7 @@ public final class SwedbankPaySDKController: UIViewController {
         viewModel.createPaymentOrder(backendUrl, successCallback: { [weak self] operationsList in
             self?.createPaymentOrderURL(operationsList)
         }, errorCallback: { [weak self] problem in
-            self?.paymentFailed(problem)
+            self?.paymentFailed(failureReason: .Problem(problem))
         })
     }
     
@@ -187,8 +196,7 @@ public final class SwedbankPaySDKController: UIViewController {
                 self?.on(consumerEvent: event, argument: argument)
             }
         } else {
-            let msg: String = SDKProblemString.consumerIdentificationWebviewCreationFailed.rawValue
-            self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            self.paymentFailed(failureReason: .MissingOperation(operationType))
         }
     }
     
@@ -202,8 +210,7 @@ public final class SwedbankPaySDKController: UIViewController {
                 self?.on(paymentEvent: event, argument: argument)
             }
         } else {
-            let msg: String = SDKProblemString.paymentWebviewCreationFailed.rawValue
-            self.paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            self.paymentFailed(failureReason: .MissingOperation(operationType))
         }
     }
     
@@ -227,7 +234,7 @@ public final class SwedbankPaySDKController: UIViewController {
     }
     
     /// Show terms and conditions URL using SwedbankPaySDKToSViewController
-    fileprivate func showTos(url: String) {
+    private func showTos(url: URL) {
         debugPrint("SwedbankPaySDK: Open Terms of Service URL \(url)")
         
         let tos = SwedbankPaySDKToSViewController.init(tosUrl: url)
@@ -235,37 +242,71 @@ public final class SwedbankPaySDKController: UIViewController {
     }
 }
 
-
-extension SwedbankPaySDKController {
-    fileprivate func paymentFailed(_ problem: SwedbankPaySDK.Problem) {
-        debugPrint("SwedbankPaySDK: Payment failed")
+// MARK: Payment process URLs
+private extension SwedbankPaySDKController {
+    func handlePaymentProcessUrl(url: URL) -> Bool {
+        guard let urls = viewModel.paymentOrder?.urls else {
+            return false
+        }
         
-        self.delegate?.paymentFailed(problem)
+        switch url.absoluteURL {
+        case urls.completeUrl.absoluteURL:
+            paymentComplete()
+            return true
+        case urls.cancelUrl?.absoluteURL:
+            paymentCanceled()
+            return true
+        case urls.paymentUrl?.absoluteURL:
+            reloadPaymentMenu(delay: true)
+            return true
+        case urls.termsOfServiceUrl?.absoluteURL:
+            showTos(url: url)
+            return true
+        default:
+            return false
+        }
     }
     
-    fileprivate func paymentComplete() {
-        debugPrint("SwedbankPaySDK: Payment complete")
-        
+    func paymentComplete() {
         self.delegate?.paymentComplete()
     }
+    
+    func paymentCanceled() {
+        self.delegate?.paymentCanceled()
+    }
+    
+    func paymentFailed(failureReason: FailureReason) {
+        self.delegate?.paymentFailed(failureReason: failureReason)
+    }
+
 }
 
 /// Extension to handle the WKWebview JavaScript events
 private extension SwedbankPaySDKController {
+    private func parseTerminalFailure(jsTerminalFailure: Any?) -> SwedbankPaySDK.TerminalFailure? {
+        return (jsTerminalFailure as? [AnyHashable : Any]).map {
+            SwedbankPaySDK.TerminalFailure(
+                origin: $0["origin"] as? String,
+                messageId: $0["messageId"] as? String,
+                details: $0["details"] as? String
+            )
+        }
+    }
+    
     func on(consumerEvent: SwedbankPayWebContent.ConsumerEvent, argument: Any?) {
         switch consumerEvent {
         case .onScriptLoaded:
             initialLoadingIndicator.stopAnimating()
         case .onScriptError:
-            debugPrint("Script \(String(describing: argument)) failed to load")
-            paymentFailed(.Server(.UnexpectedContent(status: -1, contentType: nil, body: nil))) // TODO: Better error
+            let url = (argument as? String).flatMap(URL.init(string:))
+            paymentFailed(failureReason: .ScriptLoadingFailure(scriptUrl: url))
         case .onConsumerIdentified:
             handleConsumerIdentifiedEvent(argument)
         case .onShippingDetailsAvailable:
             debugPrint("SwedbankPaySDK: onShippingDetailsAvailable event received")
         case .onError:
-            let msg: String = argument as? String ?? "Unknown error"
-            paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            let failure = parseTerminalFailure(jsTerminalFailure: argument)
+            paymentFailed(failureReason: .ScriptError(failure))
         }
     }
     
@@ -274,23 +315,11 @@ private extension SwedbankPaySDKController {
         case .onScriptLoaded:
             initialLoadingIndicator.stopAnimating()
         case .onScriptError:
-            debugPrint("Script \(String(describing: argument)) failed to load")
-            paymentFailed(.Server(.UnexpectedContent(status: -1, contentType: nil, body: nil))) // TODO: Better error
-        case .onPaymentMenuInstrumentSelected:
-            debugPrint("SwedbankPaySDK: onPaymentMenuInstrumentSelected event received")
-        case .onPaymentCompleted:
-            debugPrint("SwedbankPaySDK: onPaymentCompleted event received")
-            paymentComplete()
-        case .onPaymentFailed:
-            let msg: String = argument as? String ?? "Unknown error"
-            paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
-        case .onPaymentCreated:
-            debugPrint("SwedbankPaySDK: onPaymentCreated event received")
-        case .onPaymentToS:
-            handleToSEvent(argument)
+            let url = (argument as? String).flatMap(URL.init(string:))
+            paymentFailed(failureReason: .ScriptLoadingFailure(scriptUrl: url))
         case .onError:
-            let msg: String = argument as? String ?? "Unknown error"
-            paymentFailed(SwedbankPaySDK.Problem.Client(.MobileSDK(.InvalidRequest(message: msg, raw: nil))))
+            let failure = parseTerminalFailure(jsTerminalFailure: argument)
+            paymentFailed(failureReason: .ScriptError(failure))
         }
     }
     
@@ -310,19 +339,6 @@ private extension SwedbankPaySDKController {
         
         if let backendUrl = viewModel.configuration?.backendUrl {
             createPaymentOrder(backendUrl)
-        }
-    }
-    
-    /// Terms of service event received
-    /// - parameter messageBody: terms of service URL String in an NSDictionary
-    private func handleToSEvent(_ messageBody: Any?) {
-        debugPrint("SwedbankPaySDK: onPaymentToS event received")
-        if let dict = messageBody as? NSDictionary {
-            if let url = dict["openUrl"] as? String {
-                showTos(url: url)
-            }
-        } else {
-            debugPrint("SwedbankPaySDK: Terms of Service URL could not be found")
         }
     }
 }
@@ -389,7 +405,11 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
     }
     
     func overrideNavigation(request: URLRequest) -> Bool {
-        return request.url.map(handleCallbackUrl(_:)) == true
+        guard let url = request.url else {
+            return false
+        }
+        return handlePaymentProcessUrl(url: url)
+            || handleCallbackUrl(url)
     }
     
     func webViewControllerDidNavigateOutOfRoot(_ webViewController: SwedbankPayWebViewController) {

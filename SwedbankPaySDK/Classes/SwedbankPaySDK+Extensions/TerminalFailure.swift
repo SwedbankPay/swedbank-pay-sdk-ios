@@ -14,18 +14,9 @@
 // limitations under the License.
 
 public extension SwedbankPaySDK {
-    
-    ///  Whitelisted domains
-    struct WhitelistedDomain {
-        public var domain: String?
-        public var includeSubdomains: Bool
-
-        /// Initializer for `SwedbankPaySDK.WhitelistedDomain`
-        /// - parameter domain: URL of the domain as a String
-        /// - parameter includeSubdomains: if `true`, means any subdomain of `domain` is valid
-        public init(domain: String?, includeSubdomains: Bool) {
-            self.domain = domain
-            self.includeSubdomains = includeSubdomains
-        }
+    struct TerminalFailure {
+        public var origin: String?
+        public var messageId: String?
+        public var details: String?
     }
 }
