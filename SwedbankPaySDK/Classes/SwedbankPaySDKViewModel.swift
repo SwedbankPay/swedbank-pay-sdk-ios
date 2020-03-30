@@ -102,21 +102,6 @@ final class SwedbankPaySDKViewModel: NSObject {
         return false
     }
     
-    func parseCallbackUrl(_ url: URL) -> CallbackUrl? {
-        return parsePrefixedCallbackUrl(url) ?? parseCustomSchemeCallbackUrl(url)
-    }
-    
-    private func parsePrefixedCallbackUrl(_ url: URL) -> CallbackUrl? {
-        let prefix = configuration?.callbackPrefix
-        return prefix.flatMap { CallbackUrl(url: url, prefix: $0) }
-    }
-    
-    private func parseCustomSchemeCallbackUrl(_ url: URL) -> CallbackUrl? {
-        let scheme = configuration?.callbackScheme
-        let prefix = scheme.flatMap { URL(string: "\($0):///")! }
-        return prefix.flatMap { CallbackUrl(url: url, prefix: $0) }
-    }
-    
     /// Makes a request to the `backendUrl` and returns the endpoints
     /// - parameter backendUrl: backend URL
     /// - parameter successCallback: called on success

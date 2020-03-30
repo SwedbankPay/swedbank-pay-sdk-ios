@@ -23,35 +23,29 @@ public extension SwedbankPaySDK {
     struct Configuration {
         var backendUrl: URL
         var callbackScheme: String
-        var callbackPrefix: URL
         var headers: Dictionary<String, String>?
         var domainWhitelist: [WhitelistedDomain]?
         var pinPublicKeys: [PinPublicKeys]?
         
         /// Initializer for `SwedbankPaySDK.Configuration`
         /// - parameter backendUrl: backend URL
-        /// - paramerer callbackPrefix: A prefix for callback urls.
-        ///                             This must either have a custom scheme registered to your app,
-        ///                             or it must be a prefix for universal links to your app.
+        /// - paramerer callbackScheme: A custom scheme for callback urls. This scheme must be registered to your app.
         ///                             If nil, the Info.plist will be searched for a URL type
         ///                             with a com.swedbank.SwedbankPaySDK.callback property having
-        ///                             a Boolean type and a YES value, and a callback scheme is created
-        ///                             from that.
+        ///                             a Boolean type and a YES value.
         /// - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
         /// - parameter domainWhitelist: Optional array of domains allowed to be connected to; defaults to `backendURL` if nil
         /// - parameter certificatePins: Optional array of domains for certification pinning, matched against any certificate found anywhere in the app bundle
-        public init(backendUrl: URL, callbackScheme: String? = nil, callbackPrefix: URL? = nil, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]? = nil, pinPublicKeys: [PinPublicKeys]? = nil) {
+        public init(backendUrl: URL, callbackScheme: String? = nil, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]? = nil, pinPublicKeys: [PinPublicKeys]? = nil) {
             self.backendUrl = backendUrl
             self.callbackScheme = callbackScheme ?? Configuration.getDefaultCallbackScheme()
-            self.callbackPrefix = callbackPrefix ?? Configuration.getDefaultCallbackPrefix(backendUrl: backendUrl)
             self.headers = headers
             self.domainWhitelist = domainWhitelist
             self.pinPublicKeys = pinPublicKeys
         }
         
         private static func getDefaultCallbackScheme() -> String {
-            let infoDictionary = Bundle.main.infoDictionary
-            let urlTypes = infoDictionary?["CFBundleURLTypes"] as? [Any]
+            let urlTypes = Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [Any]
             let urlTypeDicts = urlTypes?.lazy.compactMap { $0 as? [AnyHashable : Any] }
             guard let callbackUrlType = urlTypeDicts?.filter({
                 $0[callbackURLTypeKey] as? Bool == true
@@ -65,10 +59,6 @@ public extension SwedbankPaySDK {
                     fatalError("Unable to infer callback scheme: URL type marked as Swedbank Pay SDK callback does not have exactly one scheme: \(callbackUrlType)")
             }
             return scheme
-        }
-        
-        private static func getDefaultCallbackPrefix(backendUrl: URL) -> URL {
-            return URL(string: "sdk-callback/", relativeTo: backendUrl)!
         }
     }
 }

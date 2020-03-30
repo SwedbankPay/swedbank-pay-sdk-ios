@@ -18,11 +18,11 @@ import Foundation
 public extension SwedbankPaySDK {
     static var defaultUserAgent: String = {
         let bundle = Bundle(for: SwedbankPaySDK.self)
-        let version = bundle.infoDictionary?[kCFBundleVersionKey as String] as? String
+        let version = bundle.infoDictionary?["CFBundleShortVersionString"] as? String
         return "SwedbankPaySDK-iOS/\(version ?? "Unknown")"
     }()
     
-    struct PaymentOrder : Encodable {
+    struct PaymentOrder : Codable {
         public var operation: PaymentOrderOperation
         public var currency: String
         public var amount: Int64
@@ -79,25 +79,21 @@ public extension SwedbankPaySDK {
         case Verify
     }
     
-    struct PaymentOrderUrls : Encodable {
+    struct PaymentOrderUrls : Codable {
         public var hostUrls: [URL]
         public var completeUrl: URL
         public var cancelUrl: URL?
         public var paymentUrl: URL?
         public var callbackUrl: URL?
         public var termsOfServiceUrl: URL?
-        
-        public var paymentToken: String
-        
+                
         public init(
             hostUrls: [URL],
             completeUrl: URL,
             cancelUrl: URL? = nil,
             paymentUrl: URL? = nil,
             callbackUrl: URL? = nil,
-            termsOfServiceUrl: URL? = nil,
-            
-            paymentToken: String = UUID().uuidString
+            termsOfServiceUrl: URL? = nil
         ) {
             self.hostUrls = hostUrls
             self.completeUrl = completeUrl
@@ -105,17 +101,6 @@ public extension SwedbankPaySDK {
             self.paymentUrl = paymentUrl
             self.callbackUrl = callbackUrl
             self.termsOfServiceUrl = termsOfServiceUrl
-            
-            self.paymentToken = paymentToken
-        }
-        
-        enum CodingKeys : CodingKey {
-            case hostUrls
-            case completeUrl
-            case cancelUrl
-            case paymentUrl
-            case callbackUrl
-            case termsOfServiceUrl
         }
     }
     
@@ -298,42 +283,62 @@ public extension SwedbankPaySDK {
 }
 
 public extension SwedbankPaySDK.PaymentOrderUrls {
+    private static func buildCompleteUrl(configuration: SwedbankPaySDK.Configuration) -> URL {
+        return URL(string: "complete", relativeTo: configuration.backendUrl)!
+    }
+    private static func buildCancelUrl(configuration: SwedbankPaySDK.Configuration) -> URL {
+        return URL(string: "cancel", relativeTo: configuration.backendUrl)!
+    }
+    private static func buildPaymentUrl(configuration: SwedbankPaySDK.Configuration, language: SwedbankPaySDK.Language, id: String) -> URL {
+        var components = URLComponents()
+        components.path = "sdk-callback/ios-universal-link"
+        var queryItems: [URLQueryItem] = [
+            .init(name: "scheme", value: configuration.callbackScheme),
+            .init(name: "language", value: language.rawValue),
+            .init(name: "id", value: id)
+        ]
+        if let appName = getAppName() {
+            queryItems.append(.init(name: "app", value: appName))
+        }
+        components.queryItems = queryItems
+        return components.url(relativeTo: configuration.backendUrl)!
+    }
+    private static func getAppName() -> String? {
+        let bundle = Bundle.main
+        let displayName = bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+        return displayName ?? bundle.object(forInfoDictionaryKey: "CFBundleName") as? String
+    }
+    
     init(
         configuration: SwedbankPaySDK.Configuration,
+        language: SwedbankPaySDK.Language,
         callbackUrl: URL? = nil,
         termsOfServiceUrl: URL? = nil,
-        paymentToken: String = UUID().uuidString
+        identifier: String = UUID().uuidString
     ) {
         self.init(
             configuration: configuration,
+            language: language,
             hostUrl: configuration.backendUrl,
             callbackUrl: callbackUrl,
-            termsOfServiceUrl: termsOfServiceUrl,
-            paymentToken: paymentToken
+            termsOfServiceUrl: termsOfServiceUrl
         )
     }
     
     init(
         configuration: SwedbankPaySDK.Configuration,
+        language: SwedbankPaySDK.Language,
         hostUrl: URL,
         callbackUrl: URL? = nil,
         termsOfServiceUrl: URL? = nil,
-        paymentToken: String = UUID().uuidString
+        identifier: String = UUID().uuidString
     ) {
-        let callback = CallbackUrl.reloadPaymentMenu(token: paymentToken)
-        let paymentUrl = callback.toUrl(
-            prefix: configuration.callbackPrefix,
-            fallbackScheme: configuration.callbackScheme
-        )
-        
         self.hostUrls = [hostUrl]
-        self.completeUrl = URL(string: "complete", relativeTo: hostUrl)!
-        self.cancelUrl = URL(string: "cancel", relativeTo: hostUrl)!
-        self.paymentUrl = paymentUrl
+        self.completeUrl = SwedbankPaySDK.PaymentOrderUrls.buildCompleteUrl(configuration: configuration)
+        self.cancelUrl = SwedbankPaySDK.PaymentOrderUrls.buildCancelUrl(configuration: configuration)
+        self.paymentUrl = SwedbankPaySDK.PaymentOrderUrls.buildPaymentUrl(configuration: configuration, language: language, id: identifier)
         self.callbackUrl = callbackUrl
         self.termsOfServiceUrl = termsOfServiceUrl
-        
-        self.paymentToken = paymentToken
     }
 }
 
