@@ -31,6 +31,8 @@ class SwedbankPayWebViewController : UIViewController {
     
     private var onJavascriptDialogDismissed: (() -> Void)?
     
+    var navigationLogger: ((URL) -> Void)?
+    
     var openRedirectsInBrowser = false
     
     var isAtRoot: Bool {
@@ -140,16 +142,14 @@ private extension WKWebView {
 extension SwedbankPayWebViewController : WKNavigationDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         let request = navigationAction.request
-        // Mirror Android behaviour here: do not allow overriding POST requests
-        if request.httpMethod == "POST" {
-            let canOpen = request.url.map(WKWebView.canOpen(url:))
-            decisionHandler(canOpen == true ? .allow : .cancel)
-        } else if isBaseUrlNavigation(navigationAction: navigationAction) {
+        
+        if isBaseUrlNavigation(navigationAction: navigationAction) {
             decisionHandler(.allow)
         } else if delegate?.overrideNavigation(request: request) == true {
             decisionHandler(.cancel)
         } else if let url = request.url {
             if navigationAction.targetFrame?.isMainFrame == true {
+                navigationLogger?(url)
                 decidePolicyFor(url: url, decisionHandler: decisionHandler)
             } else {
                 let canOpen = WKWebView.canOpen(url: url)

@@ -39,6 +39,16 @@ public final class SwedbankPaySDKController: UIViewController {
     
     public weak var delegate: SwedbankPaySDKDelegate?
     
+    // Useful for investigating issuers' compatibility with WKWebView
+    public var webNavigationLogger: ((URL) -> Void)? {
+        get {
+            return rootWebViewController.navigationLogger
+        }
+        set {
+            rootWebViewController.navigationLogger = newValue
+        }
+    }
+    
     public var openRedirectsInBrowser: Bool {
         get {
             return rootWebViewController.openRedirectsInBrowser
