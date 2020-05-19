@@ -22,3 +22,5 @@ jobs:
       run: pod lib lint
     - name: Push
       run: pod repo push SPECS SwedbankPaySDK.podspec
+      env:
+        RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
