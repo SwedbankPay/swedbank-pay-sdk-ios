@@ -16,8 +16,8 @@ jobs:
     - name: Setup Podspec Repo
       run: pod repo add SPECS https://$PODSPECS_REPO_USER:$PODSPECS_REPO_TOKEN@github.com/SwedbankPay/swedbank-pay-sdk-ios-podspecs.git
       env:
-        REPO_USER: ${{ secrets.REPO_USER }}
-        REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+        PODSPECS_REPO_USER: ${{ secrets.PODSPECS_REPO_USER }}
+        PODSPECS_REPO_TOKEN: ${{ secrets.PODSPECS_REPO_TOKEN }}
     - name: Lint
       run: pod lib lint
     - name: Push
