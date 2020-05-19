@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SwedbankPaySDK'
-  s.version          = '0.1.20'
+  s.version          = ENV['GITHUB_REF'] || '0.1-local'
   s.summary          = 'Swedbank Pay SDK for iOS.'
 
   s.description      = <<-DESC

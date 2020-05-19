@@ -75,6 +75,7 @@
 		9D457A0E796800259ABC0664 /* Pods-SwedbankPaySDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK.debug.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK/Pods-SwedbankPaySDK.debug.xcconfig"; sourceTree = "<group>"; };
 		A504895023C8A2FD00201DEC /* SwedbankPayWebContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPayWebContent.swift; sourceTree = "<group>"; };
 		A560BE422420C7CE00C1D023 /* TerminalFailure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalFailure.swift; sourceTree = "<group>"; };
+		A57669FE2472BCBF002651A6 /* pod_push_release.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = pod_push_release.yml; sourceTree = "<group>"; };
 		A5AA1D6E2397B63D008A62CC /* CallbackHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallbackHandling.swift; sourceTree = "<group>"; };
 		A5C3D01D23A23BC900B45085 /* SwedbankPayWebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPayWebViewController.swift; sourceTree = "<group>"; };
 		A5F3416823FD9293005D65BA /* PaymentOrder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentOrder.swift; sourceTree = "<group>"; };
@@ -151,6 +152,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		A57669FD2472BB37002651A6 /* .github/workflows */ = {
+			isa = PBXGroup;
+			children = (
+				A57669FE2472BCBF002651A6 /* pod_push_release.yml */,
+			);
+			path = .github/workflows;
+			sourceTree = "<group>";
+		};
 		C50CF6A3237AAE21003F79DF /* SwedbankPaySDK+Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -194,6 +203,7 @@
 		C55262EF23706467005E97DC = {
 			isa = PBXGroup;
 			children = (
+				A57669FD2472BB37002651A6 /* .github/workflows */,
 				C585AF21237066DC006C2E16 /* LICENSE */,
 				C585AF22237066DC006C2E16 /* README.md */,
 				C585AF30237066FB006C2E16 /* SwedbankPaySDK.podspec */,
