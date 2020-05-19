@@ -14,7 +14,7 @@ jobs:
     - name: Install CocoaPods
       run: gem install cocoapods
     - name: Setup Podspec Repo
-      run: pod repo add SPECS "https://$PODSPECS_REPO_USER:$PODSPECS_REPO_TOKEN@github.com/SwedbankPay/swedbank-pay-sdk-ios-podspecs.git
+      run: pod repo add SPECS https://$PODSPECS_REPO_USER:$PODSPECS_REPO_TOKEN@github.com/SwedbankPay/swedbank-pay-sdk-ios-podspecs.git
       env:
         REPO_USER: ${{ secrets.REPO_USER }}
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
