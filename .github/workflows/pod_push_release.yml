@@ -19,6 +19,6 @@ jobs:
         REPO_USER: ${{ secrets.REPO_USER }}
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
     - name: Lint
-      run: pod lib Lint
+      run: pod lib lint
     - name: Push
       run: pod repo push SPECS SwedbankPaySDK.podspec
