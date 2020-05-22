@@ -719,8 +719,10 @@
 			baseConfigurationReference = AB85979580F4719F54964406 /* Pods-SwedbankPaySDKTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 2RLYKMD3U8;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = SwedbankPaySDKTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -729,6 +731,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.swedbank.SwedbankPaySDKTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -739,8 +743,10 @@
 			baseConfigurationReference = B91F2029A3536C2C20B660C3 /* Pods-SwedbankPaySDKTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 2RLYKMD3U8;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = SwedbankPaySDKTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -749,6 +755,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.swedbank.SwedbankPaySDKTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
