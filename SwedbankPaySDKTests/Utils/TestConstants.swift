@@ -9,8 +9,8 @@ enum TestConstants {
     static let paymentordersUrl = "paymentordersurl"
     static let absolutePaymentordersUrl = URL(string: "\(MockURLProtocol.scheme)://backendurl.invalid/paymentordersurl")!
     
-    static let viewConsumerSessionLink = "consumerLink"
-    static let viewPaymentorderLink = "paymentorderLink"
+    static let viewConsumerSessionLink = "data:,/*consumerLink*/"
+    static let viewPaymentorderLink = "data:,/*paymentorderLink*/"
     
     static let rootBody = [
         "consumers": consumersUrl,
@@ -20,6 +20,7 @@ enum TestConstants {
         "operations": [
             [
                 "rel": "view-consumer-identification",
+                "contentType": "application/javascript",
                 "href": viewConsumerSessionLink
             ]
         ]
@@ -28,6 +29,7 @@ enum TestConstants {
         "operations": [
             [
                 "rel": "view-paymentorder",
+                "contentType": "application/javascript",
                 "href": viewPaymentorderLink
             ]
         ]

@@ -1,30 +1,24 @@
 import Foundation
 import XCTest
-import Alamofire
 @testable import SwedbankPaySDK
 
-class ViewModelIdentifiedConsumerTests : XCTestCase {
-    private let timeout = 3 as TimeInterval
+class ViewModelTests : XCTestCase {
+    private let timeout = 1 as TimeInterval
     
     private var viewModel: SwedbankPaySDKViewModel!
     
     override func setUp() {
-        let sessionConf = URLSessionConfiguration.default
-        sessionConf.protocolClasses = [MockURLProtocol.self]
+        SwedbankPaySDKViewModel.overrideUrlSessionConfigurationForTests = MockURLProtocol.urlSessionConfiguration
         
         viewModel = SwedbankPaySDKViewModel()
-        viewModel.sessionManager = Alamofire.SessionManager(configuration: sessionConf)
         viewModel.setConfiguration(TestConstants.configuration)
     }
     
-    override class func tearDown() {
+    override func tearDown() {
+        SwedbankPaySDKViewModel.overrideUrlSessionConfigurationForTests = nil
         MockURLProtocol.reset()
     }
-    
-    private func stubBackendUrl() {
-        MockURLProtocol.stubJson(url: TestConstants.backendUrl, json: TestConstants.rootBody)
-    }
-    
+        
     func testItShouldMakeGetRequestToBackendUrl() {
         expectRequest(to: TestConstants.backendUrl, expectedRequest: .get)
         viewModel.identifyConsumer(TestConstants.backendUrl)
@@ -49,7 +43,7 @@ class ViewModelIdentifiedConsumerTests : XCTestCase {
     func testItShouldMakePostRequestToConsumersUrl() {
         viewModel.setConsumerData(TestConstants.consumerData)
         
-        stubBackendUrl()
+        MockURLProtocol.stubBackendUrl()
         
         expectRequest(to: TestConstants.absoluteConsumersUrl, expectedRequest: .postJson({
             let countryCodes = $0["shippingAddressRestrictedToCountryCodes"]
@@ -66,8 +60,8 @@ class ViewModelIdentifiedConsumerTests : XCTestCase {
     func testItShouldAcceptValidResponseToConsumersRequest() {
         viewModel.setConsumerData(TestConstants.consumerData)
         
-        stubBackendUrl()
-        MockURLProtocol.stubJson(url: TestConstants.absoluteConsumersUrl, json: TestConstants.consumersBody)
+        MockURLProtocol.stubBackendUrl()
+        MockURLProtocol.stubConsumers()
         
         let success = expectation(description: "identifyConsumer succeeded")
         let failure = expectation(description: "identifyConsumer failed")
@@ -89,7 +83,7 @@ class ViewModelIdentifiedConsumerTests : XCTestCase {
     func testItShouldRejectInvalidResponseToConsumersRequest() {
         viewModel.setConsumerData(TestConstants.consumerData)
         
-        stubBackendUrl()
+        MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubError(url: TestConstants.absoluteConsumersUrl)
         
         let success = expectation(description: "identifyConsumer succeeded")
@@ -108,7 +102,7 @@ class ViewModelIdentifiedConsumerTests : XCTestCase {
         viewModel.setPaymentOrder(TestConstants.paymentOrder)
         viewModel.setConsumerProfileRef(TestConstants.consumerProfileRef)
         
-        stubBackendUrl()
+        MockURLProtocol.stubBackendUrl()
         expectRequest(to: TestConstants.absolutePaymentordersUrl, expectedRequest: .postJson({
             let paymentorder = $0["paymentorder"]
             let paymentorderObj = try XCTUnwrap(paymentorder as? [String : Any])
@@ -128,8 +122,8 @@ class ViewModelIdentifiedConsumerTests : XCTestCase {
     func testItShouldAcceptValidResponseToPaymentOrdersRequest() {
         viewModel.setPaymentOrder(TestConstants.paymentOrder)
         
-        stubBackendUrl()
-        MockURLProtocol.stubJson(url: TestConstants.absolutePaymentordersUrl, json: TestConstants.paymentordersBody)
+        MockURLProtocol.stubBackendUrl()
+        MockURLProtocol.stubPaymentorders()
         
         let success = expectation(description: "createPaymentOrder succeeded")
         let failure = expectation(description: "createPaymentOrder failed")
@@ -151,7 +145,7 @@ class ViewModelIdentifiedConsumerTests : XCTestCase {
     func testItShouldRejectInvalidResponseToPaymentOrdersRequest() {
         viewModel.setPaymentOrder(TestConstants.paymentOrder)
 
-        stubBackendUrl()
+        MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubError(url: TestConstants.absolutePaymentordersUrl)
         let success = expectation(description: "createPaymentOrder succeeded")
         success.isInverted = true

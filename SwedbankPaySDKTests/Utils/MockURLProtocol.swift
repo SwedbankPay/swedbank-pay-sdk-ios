@@ -4,6 +4,12 @@ import XCTest
 class MockURLProtocol: URLProtocol {
     static let scheme = "mock"
     
+    static var urlSessionConfiguration: URLSessionConfiguration {
+        let configuration = URLSessionConfiguration.default
+        configuration.protocolClasses = [MockURLProtocol.self]
+        return configuration
+    }
+    
     private struct Stub {
         let handler: (URLRequest) -> MockURLResult
         var used = false
@@ -37,44 +43,51 @@ class MockURLProtocol: URLProtocol {
             return MockURLResult(response: response, data: data)
         })
     }
-    
-    private let handler: (URLRequest) -> MockURLResult
         
     override class func canInit(with request: URLRequest) -> Bool {
         return request.url?.scheme == scheme
     }
     
-    override init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
-        do {
-            let url = request.url!.absoluteString
-            var stub = try XCTUnwrap(MockURLProtocol.stubs[url], "Unexpected request for \(url). Possibly missing a stub?")
-            if !stub.used {
-                stub.used = true
-                MockURLProtocol.stubs[url] = stub
-            }
-            self.handler = stub.handler
-        } catch let error {
-            self.handler = { _ in MockURLResult(error: error) }
-        }
-        super.init(request: request, cachedResponse: cachedResponse, client: client)
-    }
-    
     override class func canonicalRequest(for request: URLRequest) -> URLRequest {
         return request
     }
-    
+        
     override func startLoading() {
-        let stub = handler(request)
-        if let response = stub.response {
-            client?.urlProtocol(self, didReceive: response.0, cacheStoragePolicy: response.1)
+        DispatchQueue.main.async {
+            let result = self.getResult() ?? .missingStub
+            self.reportResult(result)
         }
-        if let data = stub.data {
-            client?.urlProtocol(self, didLoad: data)
-        }
-        if let error = stub.error {
-            client?.urlProtocol(self, didFailWithError: error)
-        }
-        client?.urlProtocolDidFinishLoading(self)
     }
     override func stopLoading() {}
+    
+    private func getResult() -> MockURLResult? {
+        let request = self.request
+        guard
+            let url = request.url?.absoluteString,
+            var stub = MockURLProtocol.stubs[url]
+            else {
+                print("No stub for \(request.url?.absoluteString ?? "")")
+                return nil
+        }
+        if !stub.used {
+            stub.used = true
+            MockURLProtocol.stubs[url] = stub
+        }
+        return stub.handler(request)
+    }
+    
+    private func reportResult(_ result: MockURLResult) {
+        if let client = self.client {
+            if let response = result.response {
+                client.urlProtocol(self, didReceive: response.0, cacheStoragePolicy: response.1)
+            }
+            if let data = result.data {
+                client.urlProtocol(self, didLoad: data)
+            }
+            if let error = result.error {
+                client.urlProtocol(self, didFailWithError: error)
+            }
+            client.urlProtocolDidFinishLoading(self)
+        }
+    }
 }

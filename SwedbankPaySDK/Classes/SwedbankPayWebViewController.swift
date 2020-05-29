@@ -31,6 +31,15 @@ class SwedbankPayWebViewController : UIViewController {
     
     private var onJavascriptDialogDismissed: (() -> Void)?
     
+    // Overridable for testing, so we can mock UIApplication.open(_:options:completionHandler:)
+    var attemptOpenUniversalLink: (URL, @escaping (Bool) -> Void) -> Void = { url, completionHandler in
+        if #available(iOS 10, *) {
+            UIApplication.shared.open(url, options: [.universalLinksOnly: true], completionHandler: completionHandler)
+        } else {
+            completionHandler(false)
+        }
+    }
+    
     var navigationLogger: ((URL) -> Void)?
     
     var openRedirectsInBrowser = false
@@ -161,7 +170,7 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
     }
     
     private func decidePolicyFor(url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        attemptOpenUniversalLink(url: url) { opened in
+        attemptOpenUniversalLink(url) { opened in
             let policy: WKNavigationActionPolicy
             if opened {
                 policy = .cancel
@@ -195,14 +204,6 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
             }
         } else {
             return false
-        }
-    }
-    
-    private func attemptOpenUniversalLink(url: URL, completionHandler: @escaping (Bool) -> Void) {
-        if #available(iOS 10, *) {
-            UIApplication.shared.open(url, options: [.universalLinksOnly: true], completionHandler: completionHandler)
-        } else {
-            completionHandler(false)
         }
     }
     

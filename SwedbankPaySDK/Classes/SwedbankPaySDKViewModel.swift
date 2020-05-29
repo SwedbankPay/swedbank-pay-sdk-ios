@@ -18,12 +18,14 @@ import ObjectMapper
 
 final class SwedbankPaySDKViewModel: NSObject {
     
+    static var overrideUrlSessionConfigurationForTests: URLSessionConfiguration?
+    
     private(set) var configuration: SwedbankPaySDK.Configuration?
     private(set) var consumerData: SwedbankPaySDK.Consumer?
     private(set) var paymentOrder: SwedbankPaySDK.PaymentOrder?
     private(set) var consumerProfileRef: String?
         
-    var sessionManager: SessionManager = Alamofire.SessionManager(configuration: URLSessionConfiguration.default)
+    var sessionManager: SessionManager = Alamofire.SessionManager(configuration: overrideUrlSessionConfigurationForTests ?? URLSessionConfiguration.default)
     
     var viewPaymentOrderLink: String?
     

@@ -121,7 +121,7 @@ extension SwedbankPayWebContent {
                         payex.hostedView.paymentMenu({
                             container: "checkout",
                             onError: function(error) {
-                                \(PaymentEvent.onError, "event");
+                                \(PaymentEvent.onError, "error");
                             }
                         }).open();
                     };
