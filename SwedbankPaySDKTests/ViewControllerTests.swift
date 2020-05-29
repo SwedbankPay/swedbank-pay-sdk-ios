@@ -3,7 +3,7 @@ import WebKit
 @testable import SwedbankPaySDK
 
 class ViewControllerTests : SwedbankPaySDKControllerTestCase {
-    private let timeout = 1 as TimeInterval
+    private let timeout = 5 as TimeInterval
     
     override func createController() -> SwedbankPaySDKController {
         return SwedbankPaySDKController(configuration: TestConstants.configuration, paymentOrder: TestConstants.paymentOrder)

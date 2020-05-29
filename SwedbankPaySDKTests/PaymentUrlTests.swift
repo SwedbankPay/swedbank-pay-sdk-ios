@@ -3,7 +3,7 @@ import WebKit
 @testable import SwedbankPaySDK
 
 class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
-    private let timeout = 1 as TimeInterval
+    private let timeout = 5 as TimeInterval
     
     private func makePaymentUrl(scheme: String, extraQueryItems: [URLQueryItem]? = nil) -> URL {
         var paymentUrl = URLComponents(url: TestConstants.paymentOrder.urls.paymentUrl!, resolvingAgainstBaseURL: true)!
