@@ -3,6 +3,8 @@ import WebKit
 @testable import SwedbankPaySDK
 
 class SwedbankPaySDKControllerTestCase : XCTestCase {
+    private let webviewLoadingTimeout = 5 as TimeInterval
+    
     private var window: UIWindow?
     
     var viewController: SwedbankPaySDKController! {
@@ -66,9 +68,9 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
     func waitForWebViewLoaded() {
         let webView = self.webView
         let loadingStarted = XCTKVOExpectation(keyPath: #keyPath(WKWebView.isLoading), object: webView, expectedValue: true)
-        wait(for: [loadingStarted], timeout: 1)
+        wait(for: [loadingStarted], timeout: webviewLoadingTimeout)
         let loadingFinished = XCTKVOExpectation(keyPath: #keyPath(WKWebView.isLoading), object: webView, expectedValue: false)
-        wait(for: [loadingFinished], timeout: 1)
+        wait(for: [loadingFinished], timeout: webviewLoadingTimeout)
     }
     
     func expectEmptyWebView() -> XCTestExpectation {
