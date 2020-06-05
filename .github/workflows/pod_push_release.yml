@@ -13,14 +13,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install CocoaPods
       run: gem install cocoapods
-    - name: Setup Podspec Repo
-      run: pod repo add SPECS https://$PODSPECS_REPO_USER:$PODSPECS_REPO_TOKEN@github.com/SwedbankPay/swedbank-pay-sdk-ios-podspecs.git
-      env:
-        PODSPECS_REPO_USER: ${{ secrets.PODSPECS_REPO_USER }}
-        PODSPECS_REPO_TOKEN: ${{ secrets.PODSPECS_REPO_TOKEN }}
     - name: Lint
       run: pod lib lint
     - name: Push
-      run: pod repo push SPECS SwedbankPaySDK.podspec
+      run: pod trunk push SwedbankPaySDK.podspec
       env:
+        COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
         RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
