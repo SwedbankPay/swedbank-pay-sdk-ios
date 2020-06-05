@@ -221,15 +221,28 @@ types.
 During implementation you can use the [test data][test-data] related to the
 different payment methods.
 
+## Contributing
+
+Bug reports and pull requests are welcome on [GitHub][github]. This project is
+intended to be a safe, welcoming space for collaboration, and contributors are
+expected to adhere to the [code of conduct][coc] and sign the
+[contributor's license agreement][cla].
+
 ## License
 
-Swedbank Pay iOS SDK is released under the [Apache 2.0 license](LICENSE).
+The code within this repository is available as open source under the terms of
+the [Apache 2.0 License][license] and the [contributor's license
+agreement][cla].
 
-[android-sdk]: https://github.com/SwedbankPay/swedbank-pay-sdk-android
-[checkout]: https://developer.swedbankpay.com/checkout/
-[cocoapods]: https://guides.cocoapods.org/using/getting-started.html
-[example-app]: https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app
-[merchant-api-doc]: https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant
-[opengraph-image]: https://repository-images.githubusercontent.com/209730241/1bf8d880-53e9-11ea-846c-c2e2512334b6
-[rfc7807]: https://tools.ietf.org/html/rfc7807
-[test-data]: https://developer.swedbankpay.com/resources/test-data
+[android-sdk]:          https://github.com/SwedbankPay/swedbank-pay-sdk-android
+[checkout]:             https://developer.swedbankpay.com/checkout/
+[cla]:                  https://cla-assistant.io/SwedbankPay/swedbank-pay-sdk-android
+[coc]:                  ./CODE_OF_CONDUCT.md
+[cocoapods]:            https://guides.cocoapods.org/using/getting-started.html
+[example-app]:          https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app
+[github]:               https://github.com/SwedbankPay/swedbank-pay-sdk-ios
+[license]:              https://opensource.org/licenses/Apache-2.0
+[merchant-api-doc]:     https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant
+[opengraph-image]:      https://repository-images.githubusercontent.com/209730241/1bf8d880-53e9-11ea-846c-c2e2512334b6
+[rfc7807]:              https://tools.ietf.org/html/rfc7807
+[test-data]:            https://developer.swedbankpay.com/resources/test-data
