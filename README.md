@@ -2,6 +2,14 @@
 
 ![Swedbank Pay SDK for iOS][opengraph-image]
 
+![Tests][test-badge]
+[![Cocoapods][pod-version-badge]][pod]
+[![Cocoapods platforms][pod-platforms-badge]][pod]
+[![CLA assistant][cla-badge]][cla]
+[![License][license-badge]][license]
+[![Dependabot Status][dependabot-badge]][dependabot]
+[![Contributor Covenant][coc-badge]][coc]
+
 ## About
 
 **UNSUPPORTED**: This SDK is at an early stage of development and is not
@@ -9,7 +17,7 @@ supported as of yet by Swedbank Pay. It is provided as a convenience to speed
 up your development, so please feel free to play around. However, if you need
 support, please wait for a future, stable release.
 
-The Swedbank Pay SDK for iOS enables simple integration of [Swedbank Pay
+The [Swedbank Pay SDK for iOS][pod] enables simple integration of [Swedbank Pay
 Checkout][checkout] in an iOS application. You may also be interested in
 [Android version][android-sdk] of the SDK and [backend documentation for the
 merchant API][merchant-api-doc].
@@ -236,13 +244,22 @@ agreement][cla].
 
 [android-sdk]:          https://github.com/SwedbankPay/swedbank-pay-sdk-android
 [checkout]:             https://developer.swedbankpay.com/checkout/
+[cla-badge]:            https://cla-assistant.io/readme/badge/SwedbankPay/swedbank-pay-sdk-android
 [cla]:                  https://cla-assistant.io/SwedbankPay/swedbank-pay-sdk-android
+[coc-badge]:            https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
 [coc]:                  ./CODE_OF_CONDUCT.md
-[cocoapods]:            https://guides.cocoapods.org/using/getting-started.html
+[cocoapods-docs]:       https://guides.cocoapods.org/using/getting-started.html
+[dependabot-badge]:     https://api.dependabot.com/badges/status?host=github&repo=SwedbankPay/swedbank-pay-sdk-android
+[dependabot]:           https://dependabot.com
 [example-app]:          https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app
 [github]:               https://github.com/SwedbankPay/swedbank-pay-sdk-ios
+[license-badge]:        https://img.shields.io/github/license/SwedbankPay/swedbank-pay-sdk-android
 [license]:              https://opensource.org/licenses/Apache-2.0
 [merchant-api-doc]:     https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant
 [opengraph-image]:      https://repository-images.githubusercontent.com/209730241/1bf8d880-53e9-11ea-846c-c2e2512334b6
+[pod-version-badge]:    https://img.shields.io/cocoapods/v/SwedbankPaySDK
+[pod-platforms-badge]:  https://img.shields.io/cocoapods/p/SwedbankPaySDK
+[pod]:                  https://cocoapods.org/pods/SwedbankPaySDK
 [rfc7807]:              https://tools.ietf.org/html/rfc7807
+[test-badge]:           https://github.com/SwedbankPay/swedbank-pay-sdk-ios/workflows/Test/badge.svg
 [test-data]:            https://developer.swedbankpay.com/resources/test-data
