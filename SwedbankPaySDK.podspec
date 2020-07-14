@@ -23,6 +23,7 @@ The Swedbank Pay iOS SDK enables simple embedding of Swedbank Pay Checkout to an
   s.ios.deployment_target = '9.0'
   s.swift_versions = '5.0', '5.1'
   s.source_files = 'SwedbankPaySDK/Classes/**/*'
+  s.resource_bundle = { 'SwedbankPay' => 'SwedbankPaySDK/Resources/**/*' }
   
   s.frameworks = 'UIKit', 'WebKit'
   s.dependency 'Alamofire', '~> 4.9.0'

@@ -39,22 +39,40 @@ public final class SwedbankPaySDKController: UIViewController {
     
     public weak var delegate: SwedbankPaySDKDelegate?
     
-    // Useful for investigating issuers' compatibility with WKWebView
+    // These are useful for investigating issuers' compatibility with WKWebView
+    //
+    // As some 3DS pages are unfortunately incompatible with WKWebView,
+    // we err on the side of caution and only allow pages we have tested
+    // by default. You can add your own entries either by editing the
+    // good_redirects file (and please submit a pull request if you do),
+    // or by specifying them in the additionalAllowedWebViewRedirects
+    // property of your SwedbankPaySDK.Configuration.
+    //
+    // To discover more WKWebView compatible pages, you can set
+    // the SwedbankPaySDKController's webRedirectBehavior
+    // to .AlwaysUseWebView, and set a webNavigationLogger
+    // to gather the urls used. At this time the decision to
+    // use WKWebView is based on the domain name only; more
+    // sophisticated patterns can be added to the system if
+    // a reasonable need arises.
+    //
+    // To help with debugging, there is also the option to open all
+    // pages in the browser. You can use this to check if a problem
+    // with a PSP is or is not related to WKWebView.
+    public enum WebRedirectBehavior {
+        case Default
+        case AlwaysUseWebView
+        case AlwaysUseBrowser
+    }
+    
+    public var webRedirectBehavior = WebRedirectBehavior.Default
+    
     public var webNavigationLogger: ((URL) -> Void)? {
         get {
             return rootWebViewController.navigationLogger
         }
         set {
             rootWebViewController.navigationLogger = newValue
-        }
-    }
-    
-    public var openRedirectsInBrowser: Bool {
-        get {
-            return rootWebViewController.openRedirectsInBrowser
-        }
-        set {
-            rootWebViewController.openRedirectsInBrowser = newValue
         }
     }
     
@@ -507,6 +525,30 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
         dismiss(animated: true, completion: nil)
         if reloadPaymentMenuIfAtRoot {
             self.reloadPaymentMenuIfAtRoot()
+        }
+    }
+    
+    func allowWebViewNavigation(to url: URL, completion: @escaping (Bool) -> Void) {
+        if url.absoluteString == "about:blank" {
+            // Always allow loading the empty page.
+            // This is chiefly for tests.
+            completion(true)
+        } else {
+            switch webRedirectBehavior {
+            case .Default:
+                let allowedByConfig = viewModel.configuration?.additionalAllowedWebViewRedirects
+                if allowedByConfig?.contains(where: { $0.allows(url: url) }) == true {
+                    completion(true)
+                } else {
+                    GoodWebViewRedirects.instance.allows(url: url, completion: completion)
+                }
+                
+            case .AlwaysUseWebView:
+                completion(true)
+                
+            case .AlwaysUseBrowser:
+                completion(false)
+            }
         }
     }
 }

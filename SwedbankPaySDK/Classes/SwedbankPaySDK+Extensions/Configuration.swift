@@ -26,6 +26,7 @@ public extension SwedbankPaySDK {
         var headers: Dictionary<String, String>?
         var domainWhitelist: [WhitelistedDomain]?
         var pinPublicKeys: [PinPublicKeys]?
+        var additionalAllowedWebViewRedirects: [WebViewRedirect]?
         
         /// Initializer for `SwedbankPaySDK.Configuration`
         /// - parameter backendUrl: backend URL
@@ -36,12 +37,13 @@ public extension SwedbankPaySDK {
         /// - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
         /// - parameter domainWhitelist: Optional array of domains allowed to be connected to; defaults to `backendURL` if nil
         /// - parameter certificatePins: Optional array of domains for certification pinning, matched against any certificate found anywhere in the app bundle
-        public init(backendUrl: URL, callbackScheme: String? = nil, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]? = nil, pinPublicKeys: [PinPublicKeys]? = nil) {
+        public init(backendUrl: URL, callbackScheme: String? = nil, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]? = nil, pinPublicKeys: [PinPublicKeys]? = nil, additionalAllowedWebViewRedirects: [WebViewRedirect]? = nil) {
             self.backendUrl = backendUrl
             self.callbackScheme = callbackScheme ?? Configuration.getDefaultCallbackScheme()
             self.headers = headers
             self.domainWhitelist = domainWhitelist
             self.pinPublicKeys = pinPublicKeys
+            self.additionalAllowedWebViewRedirects = additionalAllowedWebViewRedirects
         }
         
         private static func getDefaultCallbackScheme() -> String {

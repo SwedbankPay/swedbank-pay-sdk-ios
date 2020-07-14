@@ -21,6 +21,8 @@ protocol SwedbankPayWebViewControllerDelegate : class {
     func remove(webViewController: SwedbankPayWebViewController)
     func overrideNavigation(request: URLRequest) -> Bool
     func webViewControllerDidNavigateOutOfRoot(_ webViewController: SwedbankPayWebViewController)
+    
+    func allowWebViewNavigation(to url: URL, completion: @escaping (Bool) -> Void)
 }
 
 class SwedbankPayWebViewController : UIViewController {
@@ -41,9 +43,7 @@ class SwedbankPayWebViewController : UIViewController {
     }
     
     var navigationLogger: ((URL) -> Void)?
-    
-    var openRedirectsInBrowser = false
-    
+        
     var isAtRoot: Bool {
         return lastRootPage != nil
     }
@@ -171,19 +171,29 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
     
     private func decidePolicyFor(url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         attemptOpenUniversalLink(url) { opened in
-            let policy: WKNavigationActionPolicy
             if opened {
-                policy = .cancel
+                decisionHandler(.cancel)
             } else {
-                // TODO: check against whitelist
-                let webViewCanOpen = !self.openRedirectsInBrowser && WKWebView.canOpen(url: url)
-                if !webViewCanOpen {
-                    self.attemptOpenCustomSchemeLink(url: url)
-                }
-                policy = webViewCanOpen ? .allow : .cancel
+                self.decidePolicyForNormalLink(url: url, decisionHandler: decisionHandler)
             }
-            decisionHandler(policy)
         }
+    }
+    
+    private func decidePolicyForNormalLink(url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if WKWebView.canOpen(url: url), let delegate = delegate {
+            delegate.allowWebViewNavigation(to: url) { allowed in
+                self.finishDecidePolicyForNormalLink(url: url, shouldUseWebView: allowed, decisionHandler: decisionHandler)
+            }
+        } else {
+            finishDecidePolicyForNormalLink(url: url, shouldUseWebView: false, decisionHandler: decisionHandler)
+        }
+    }
+    
+    private func finishDecidePolicyForNormalLink(url: URL, shouldUseWebView: Bool, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if !shouldUseWebView {
+            attemptOpenCustomSchemeLink(url: url)
+        }
+        decisionHandler(shouldUseWebView ? .allow : .cancel)
     }
     
     private func ensurePath(url: URL) -> URL {
