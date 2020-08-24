@@ -22,6 +22,21 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     func paymentComplete()
     func paymentCanceled()
     func paymentFailed(failureReason: SwedbankPaySDKController.FailureReason)
+    
+    /// Called when the user taps on the Terms of Service Link
+    /// in the Payment Menu.
+    ///
+    /// If your delegate does not override this method, the SDK will
+    /// present a view controller that loads the linked page.
+    ///
+    /// - parameter url: the URL of the Terms of Service page
+    /// - returns: `true` to consume the tap and disable the default behaviour, `false` to allow the SDK to show the ToS web page
+    func overrideTermsOfServiceTapped(url: URL) -> Bool
+}
+public extension SwedbankPaySDKDelegate {
+    func overrideTermsOfServiceTapped(url: URL) -> Bool {
+        return false
+    }
 }
 
 /// Swedbank Pay SDK ViewController, initialize this to start the payment process
@@ -265,29 +280,37 @@ public final class SwedbankPaySDKController: UIViewController {
     private func showTos(url: URL) {
         debugPrint("SwedbankPaySDK: Open Terms of Service URL \(url)")
         
-        let tos = SwedbankPaySDKToSViewController.init(tosUrl: url)
-        self.present(tos, animated: true, completion: nil)
+        if delegate?.overrideTermsOfServiceTapped(url: url) != true {
+            let tos = SwedbankPaySDKToSViewController.init(tosUrl: url)
+            self.present(tos, animated: true, completion: nil)
+        }
     }
 }
 
 // MARK: Payment process URLs
 private extension SwedbankPaySDKController {
+    private func ensurePath(url: URL) -> URL {
+        return url.path.isEmpty ? URL(string: "/", relativeTo: url)!.absoluteURL : url.absoluteURL
+    }
+    
     func handlePaymentProcessUrl(url: URL) -> Bool {
         guard let urls = viewModel.paymentOrder?.urls else {
             return false
         }
         
+        // WKWebView silently turns https://foo.bar to https://foo.bar/
+        // So append a path to the payment urls if needed
         switch url.absoluteURL {
-        case urls.completeUrl.absoluteURL:
+        case ensurePath(url: urls.completeUrl):
             paymentComplete()
             return true
-        case urls.cancelUrl?.absoluteURL:
+        case urls.cancelUrl.map(ensurePath(url:)):
             paymentCanceled()
             return true
-        case urls.paymentUrl?.absoluteURL:
+        case urls.paymentUrl.map(ensurePath(url:)):
             reloadPaymentMenu(delay: true)
             return true
-        case urls.termsOfServiceUrl?.absoluteURL:
+        case urls.termsOfServiceUrl.map(ensurePath(url:)):
             showTos(url: url)
             return true
         default:
