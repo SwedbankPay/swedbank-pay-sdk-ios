@@ -21,7 +21,7 @@ struct OperationsList: Decodable {
     }
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        if let operations = try container.decodeIfPresent([Operation].self, forKey: .operations)  {
+        if let operations = try container.decodeIfPresent([Operation].self, forKey: .operations) {
             self.operations = operations
         }
     }
