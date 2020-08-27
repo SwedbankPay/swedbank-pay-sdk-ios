@@ -14,7 +14,12 @@
 // limitations under the License.
 
 import Alamofire
-import ObjectMapper
+
+private extension SwedbankPaySDK.Configuration {
+    var afHeaders: HTTPHeaders? {
+        return headers.map(HTTPHeaders.init)
+    }
+}
 
 final class SwedbankPaySDKViewModel: NSObject {
     
@@ -25,7 +30,7 @@ final class SwedbankPaySDKViewModel: NSObject {
     private(set) var paymentOrder: SwedbankPaySDK.PaymentOrder?
     private(set) var consumerProfileRef: String?
         
-    var sessionManager: SessionManager = Alamofire.SessionManager(configuration: overrideUrlSessionConfigurationForTests ?? URLSessionConfiguration.default)
+    var sessionManager: Session = Alamofire.Session(configuration: overrideUrlSessionConfigurationForTests ?? URLSessionConfiguration.default)
     
     var viewPaymentOrderLink: String?
     
@@ -49,18 +54,18 @@ final class SwedbankPaySDKViewModel: NSObject {
         
         /// If `configuration.pinCertificates` is not empty, pin certificates found in Bundle
         if let pinPublicKeys = self.configuration?.pinPublicKeys, !pinPublicKeys.isEmpty {
-            var serverTrustPolicies: [String : ServerTrustPolicy] = [:]
+            var pinEvaluators: [String : PublicKeysTrustEvaluator] = [:]
             for certificate in pinPublicKeys {
-                serverTrustPolicies[certificate.pattern] = ServerTrustPolicy.pinPublicKeys(
-                    publicKeys: certificate.publicKeys,
-                    validateCertificateChain: true,
+                pinEvaluators[certificate.pattern] = PublicKeysTrustEvaluator(
+                    keys: certificate.publicKeys,
+                    performDefaultValidation: true,
                     validateHost: true
                 )
             }
-            sessionManager = Alamofire.SessionManager(
+            sessionManager = Alamofire.Session(
                 configuration: URLSessionConfiguration.default,
-                serverTrustPolicyManager: ServerTrustPolicyManager(
-                    policies: serverTrustPolicies
+                serverTrustManager: ServerTrustManager(
+                    evaluators: pinEvaluators
                 )
             )
         }
@@ -110,8 +115,8 @@ final class SwedbankPaySDKViewModel: NSObject {
     /// - parameter errorCallback: called on failure
     /// - returns: Dictionary containing the endpoints in successCallback, `SwedbankPaySDK.Problem` in errorCallback
     private func getEndPoints(_ backendUrl: URL, successCallback: Closure<Dictionary<String, String>?>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
-        sessionManager.request(backendUrl, method: .get, parameters: nil, encoding: JSONEncoding.default, headers: configuration?.headers).responseJSON(completionHandler: { response in
-            if let responseValue = response.result.value {
+        sessionManager.request(backendUrl, method: .get, parameters: nil, encoding: JSONEncoding.default, headers: configuration?.afHeaders).responseJSON(completionHandler: { response in
+            if let responseValue = response.value {
                 // Alamofire request succeeded (backend might have responded with error)
                 if let statusCode = response.response?.statusCode {
                     if (200...299).contains(statusCode), let res = responseValue as? Dictionary<String, String> {
@@ -176,13 +181,13 @@ final class SwedbankPaySDKViewModel: NSObject {
             
             let json = try! JSONEncoder().encode(["paymentorder": paymentOrder])
             
-            var request = try! URLRequest(url: endPointUrl, method: .post, headers: self?.configuration?.headers)
+            var request = try! URLRequest(url: endPointUrl, method: .post, headers: self?.configuration?.afHeaders)
             if request.value(forHTTPHeaderField: "Content-Type") == nil {
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             }
             request.httpBody = json
             
-            self?.sessionManager.request(request).responseJSON(completionHandler: { [weak self] response in
+            self?.sessionManager.request(request).responseDecodable(of: OperationsList.self, completionHandler: { [weak self] response in
                 self?.handleResponse(response, successCallback: { operationsList in
                     successCallback?(operationsList)
                 }, errorCallback: { problem in
@@ -240,7 +245,7 @@ final class SwedbankPaySDKViewModel: NSObject {
                 urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 urlRequest.httpBody = data
                 
-                self?.sessionManager.request(urlRequest).responseJSON(completionHandler: { [weak self] response in
+                self?.sessionManager.request(urlRequest).responseDecodable(of: OperationsList.self, completionHandler: { [weak self] response in
                     self?.handleResponse(response, successCallback: { operationsList in
                         successCallback?(operationsList)
                     }, errorCallback: { problem in
@@ -263,19 +268,17 @@ final class SwedbankPaySDKViewModel: NSObject {
     /// - parameter successCallback: called on success
     /// - parameter errorCallback: called on failure
     /// - returns: `OperationsList` on successCallback, `SwedbankPaySDK.Problem` on errorCallback
-    private func handleResponse(_ response: DataResponse<Any>, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
-        if let responseValue = response.result.value {
+    private func handleResponse(_ response: AFDataResponse<OperationsList>, successCallback: Closure<OperationsList>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
+        if let responseValue = response.value {
             // Alamofire request succeeded (backend might have responded with error)
             if let statusCode = response.response?.statusCode {
                 if (200...299).contains(statusCode) {
                     // Success
-                    
-                    if let result = Mapper<OperationsList>().map(JSONObject: responseValue) {
-                        successCallback?(result)
-                    }
-                } else if let response = response.result.value as? Dictionary<String, Any> {
+                    successCallback?(responseValue)
+                } else if let data = response.data,
+                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     // Error
-                    self.handleError(statusCode, response: response, callback: { problem in
+                    self.handleError(statusCode, response: json, callback: { problem in
                         errorCallback?(problem)
                     })
                 } else {
@@ -403,11 +406,12 @@ final class SwedbankPaySDKViewModel: NSObject {
         return problem
     }
     
-    private func getSubProblems(_ string: [Dictionary<String, Any>]?) -> [SwedbankPaySDK.SwedbankPaySubProblem]? {
-        var subProblems: [SwedbankPaySDK.SwedbankPaySubProblem]? = nil
-        if let string = string {
-            subProblems = Mapper<SwedbankPaySDK.SwedbankPaySubProblem>().mapArray(JSONObject: string)
+    private func getSubProblems(_ json: [Dictionary<String, Any>]?) -> [SwedbankPaySDK.SwedbankPaySubProblem]? {
+        return json?.map {
+            SwedbankPaySDK.SwedbankPaySubProblem.init(
+                name: $0["name"] as? String,
+                description: $0["description"] as? String
+            )
         }
-        return subProblems
     }
 }

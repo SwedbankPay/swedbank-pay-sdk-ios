@@ -5,4 +5,10 @@
 **.payex.com
 op.wlp-acs.com
 kultaraha.op.fi
+acs1.luottokunta.fi
 acs4.sparebank1.no
+
+# This is based on two PSPs, Revolut and Transferwise, which both use foo.acs.touchtechpayments.com
+# However! These will malfunction if psp-ecommerce.payex.com is opened in webview and foo.acs.touchtechpayments.com in Safari
+# To minimize the chance of users getting stuck, just allow all *.acs.touchtechpayments.com for now
+*.acs.touchtechpayments.com
