@@ -118,7 +118,12 @@ final class SwedbankPaySDKViewModel: NSObject {
     /// - returns: Dictionary containing the endpoints in successCallback, `SwedbankPaySDK.Problem` in errorCallback
     private func getEndPoints(_ backendUrl: URL, successCallback: Closure<Dictionary<String, String>?>? = nil, errorCallback: Closure<SwedbankPaySDK.Problem>? = nil) {
         sessionManager
-            .request(backendUrl, method: .get, parameters: nil, encoding: JSONEncoding.default, headers: configuration?.afHeaders)
+            .request(
+                backendUrl,
+                method: .get,
+                parameters: nil,
+                encoding: JSONEncoding.default,
+                headers: configuration?.afHeaders)
             .responseJSON(completionHandler: { response in
                 if let responseValue = response.value {
                     // Alamofire request succeeded (backend might have responded with error)
@@ -185,7 +190,7 @@ final class SwedbankPaySDKViewModel: NSObject {
             
             let json = try! JSONEncoder().encode(["paymentorder": paymentOrder])
             
-            var request = URLRequest(url: endPointUrl)// try! URLRequest(url: endPointUrl, method: .post, headers: self?.configuration?.afHeaders)
+            var request = URLRequest(url: endPointUrl)
             request.method = .post
             if let headers = self?.configuration?.afHeaders {
                 request.headers = headers
@@ -413,7 +418,9 @@ final class SwedbankPaySDKViewModel: NSObject {
     }
     
     private func getServerSwedbankPayProblem(_ problemType: SwedbankPaySDK.ServerProblem.SwedbankPayProblem, response: Dictionary<String, Any>) -> SwedbankPaySDK.Problem {
-        let subProblems: [SwedbankPaySDK.SwedbankPaySubProblem]? = getSubProblems(response["problems"] as? [[String: Any]])
+        let subProblems: [SwedbankPaySDK.SwedbankPaySubProblem]? = getSubProblems(
+            response["problems"] as? [[String: Any]]
+        )
         let problem = SwedbankPaySDK.Problem.Server (
             .SwedbankPay(
                 type: problemType,
