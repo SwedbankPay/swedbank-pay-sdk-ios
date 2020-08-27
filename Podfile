@@ -6,15 +6,13 @@ target 'SwedbankPaySDK' do
   use_frameworks!
 
   # Pods for SwedbankPaySDK
-  pod 'Alamofire', '~> 4.9.0'
-  pod 'AlamofireObjectMapper', '~> 5.0'
+  pod 'Alamofire', '~> 5.2'
 
   target 'SwedbankPaySDKTests' do
     inherit! :search_paths
     # Pods for testing
     
-    pod 'Alamofire', '~> 4.9.0'
-    pod 'AlamofireObjectMapper', '~> 5.0'
+    pod 'Alamofire', '~> 5.2'
   end
 
 end

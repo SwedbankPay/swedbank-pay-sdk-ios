@@ -26,7 +26,7 @@ public extension SwedbankPaySDK {
         /// Initializer for `SwedbankPaySDK.PinPublicKeys`, by default uses public keys of all certificates found in app bundle
         /// - parameter pattern: the hostname pattern to pin
         /// - parameter publicKeys: by default, searches for all certificates in app bundle and uses them
-        public init(pattern: String, publicKeys: [SecKey] = ServerTrustPolicy.publicKeys()) {
+        public init(pattern: String, publicKeys: [SecKey] = Bundle.main.af.publicKeys) {
             if publicKeys.isEmpty {
                 print("No publicKeys defined for certificate pinning; did you forget to add a certificate?")
             }

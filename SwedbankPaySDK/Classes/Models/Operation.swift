@@ -13,41 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ObjectMapper
-
-struct Operation: Mappable, Decodable {
-    var contentType: String = ""
+struct Operation: Decodable {
     var href: String?
-    var method: Method = .GET
-    var rel: String = ""
+    var rel: String?
     
-    init?(map: Map) {
-    }
-    
-    mutating func mapping(map: Map) {
-        contentType <- map["contentType"]
-        href <- map["href"]
-        method <- (map["method"], EnumTransform<Method>())
-        rel <- map["rel"]
-    }
-    
-    enum State: String, Decodable {
-        case Undefined
-        case Ready
-        case Pending
-        case Failed
-        case Aborted
-    }
-
-    enum Method: String, Decodable {
-        case GET
-        case POST
-        case PATCH
-        case PUT
-        case UPDATE
-        case DELETE
-    }
-
     enum TypeString: String {
         case viewConsumerIdentification = "view-consumer-identification"
         case viewPaymentOrder = "view-paymentorder"

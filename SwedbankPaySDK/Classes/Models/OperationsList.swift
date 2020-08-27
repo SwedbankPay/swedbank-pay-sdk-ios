@@ -13,21 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ObjectMapper
-
-struct OperationsList: Mappable, Decodable {
+struct OperationsList: Decodable {
     var operations: [Operation] = []
-    var state: Operation.State = .Undefined
-    var url: String = ""
-    var message: String? = ""
     
-    init?(map: Map) {
+    private enum CodingKeys: String, CodingKey {
+        case operations
     }
-    
-    mutating func mapping(map: Map) {
-        operations <- map["operations"]
-        state <- (map["state"], EnumTransform<Operation.State>())
-        url <- map["url"]
-        message <- map["message"]
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let operations = try container.decodeIfPresent([Operation].self, forKey: .operations) {
+            self.operations = operations
+        }
     }
 }

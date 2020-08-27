@@ -13,23 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ObjectMapper
-
 public extension SwedbankPaySDK {
     
     /// Object detailing the reason for a `SwedbankPayProblem`.
     ///
     /// See [https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/technical-reference/#HProblems].
-    struct SwedbankPaySubProblem: Mappable {
+    struct SwedbankPaySubProblem {
         public var name: String?
         public var description: String?
-        
-        public init?(map: Map) {
-        }
-        
-        public mutating func mapping(map: Map) {
-             name <- map["name"]
-             description <- map["description"]
-        }
     }
 }

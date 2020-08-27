@@ -94,7 +94,14 @@ public final class SwedbankPaySDKController: UIViewController {
     private let userContentController = WKUserContentController()
     private lazy var rootWebViewController = createRootWebViewController()
     
-    private lazy var initialLoadingIndicator = UIActivityIndicatorView(style: .gray)
+    private var loadingIndicatorStyle: UIActivityIndicatorView.Style {
+        if #available(iOS 13.0, *) {
+            return .medium
+        } else {
+            return .gray
+        }
+    }
+    private lazy var initialLoadingIndicator = UIActivityIndicatorView(style: loadingIndicatorStyle)
     
     private lazy var viewModel = SwedbankPaySDKViewModel()
     
@@ -234,7 +241,7 @@ public final class SwedbankPaySDKController: UIViewController {
     /// - parameter list: List of operations available; need to find correct type of operation from it
     private func createConsumerURL(_ list: OperationsList) {
         let operationType = Operation.TypeString.viewConsumerIdentification.rawValue
-        if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
+        if let jsURL: String = list.operations.first(where: {$0.rel == operationType})?.href {
             loadPage(template: SwedbankPayWebContent.checkInTemplate, scriptUrl: jsURL) { [weak self] (event, argument) in
                 self?.on(consumerEvent: event, argument: argument)
             }
@@ -247,7 +254,7 @@ public final class SwedbankPaySDKController: UIViewController {
     /// - parameter list: List of operations available; need to find correct type of operation from it
     private func createPaymentOrderURL(_ list: OperationsList) {
         let operationType = Operation.TypeString.viewPaymentOrder.rawValue
-        if let jsURL: String = list.operations.first(where: {$0.contentType == "application/javascript" && $0.rel == operationType})?.href {
+        if let jsURL: String = list.operations.first(where: {$0.rel == operationType})?.href {
             viewModel.viewPaymentOrderLink = jsURL
             loadPage(template: SwedbankPayWebContent.paymentTemplate, scriptUrl: jsURL) { [weak self] (event, argument) in
                 self?.on(paymentEvent: event, argument: argument)
