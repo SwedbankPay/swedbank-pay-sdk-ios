@@ -181,19 +181,44 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
     
     private func decidePolicyForNormalLink(url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if WKWebView.canOpen(url: url), let delegate = delegate {
+            // A regular http(s) url. Check if it matches the list of
+            // tested working pages.
             delegate.allowWebViewNavigation(to: url) { allowed in
-                self.finishDecidePolicyForNormalLink(url: url, shouldUseWebView: allowed, decisionHandler: decisionHandler)
+                if !allowed {
+                    // Not tested or incompatible with web view;
+                    // must continue process is Safari.
+                    self.continueNavigationInBrowser(url: url)
+                }
+                decisionHandler(allowed ? .allow : .cancel)
             }
         } else {
-            finishDecidePolicyForNormalLink(url: url, shouldUseWebView: false, decisionHandler: decisionHandler)
+            // A custom-scheme url. Must let another app take care of it.
+            attemptOpenInExternalApp(url: url)
+            decisionHandler(.cancel)
         }
     }
     
-    private func finishDecidePolicyForNormalLink(url: URL, shouldUseWebView: Bool, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        if !shouldUseWebView {
-            attemptOpenCustomSchemeLink(url: url)
-        }
-        decisionHandler(shouldUseWebView ? .allow : .cancel)
+    private func continueNavigationInBrowser(url: URL) {
+        // Naively, one would think that opening the original navigation
+        // target here would work. However, testing has shown that not
+        // to be the case. Without expending time to work out the exact
+        // problem, it can be assumed that the Swedbank Pay page that
+        // redirects to the payment instrument issuer page sets up
+        // the browser environment in some way that some issuer pages
+        // depend on. Therefore the approach is that when we encounter
+        // a navigation to a page outside the goodlist, we reopen the
+        // _current_ page in the browser. This works for the Swedbank Pay
+        // "PrepareAcsChallenge" page, and it can be assumed that it will
+        // continue to work for that page. Whether it works if any previously
+        // tested flow is changed to navigate to previously unknown pages
+        // is anyone's guess, but even in those cases it is the best we can
+        // do, since attempting to restart the whole flow by opening the
+        // "originating" Swedbank Pay page will, in general not work
+        // (this has been tested). In any case, it is important to
+        // keep testing the SDK against different issuers and keep
+        // the goodlist up-to-date.
+        let target = isAtRoot ? url : (webView.url ?? url)
+        attemptOpenInExternalApp(url: target)
     }
     
     private func ensurePath(url: URL) -> URL {
@@ -217,7 +242,7 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
         }
     }
     
-    private func attemptOpenCustomSchemeLink(url: URL) {
+    private func attemptOpenInExternalApp(url: URL) {
         if #available(iOS 10, *) {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         } else {
