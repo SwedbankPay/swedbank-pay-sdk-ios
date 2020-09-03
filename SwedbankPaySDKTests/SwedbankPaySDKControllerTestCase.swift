@@ -4,7 +4,7 @@ import WebKit
 
 class SwedbankPaySDKControllerTestCase : XCTestCase {
     
-    private let webviewLoadingTimeout = 5 as TimeInterval
+    private let webviewLoadingTimeout = 10 as TimeInterval
     
     private var window: UIWindow?
     
