@@ -42,7 +42,7 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
     }
     
     override func setUp() {
-        SwedbankPaySDKControllerTestCase.prewarmWebKit()
+        //SwedbankPaySDKControllerTestCase.prewarmWebKit()
         SwedbankPaySDKViewModel.overrideUrlSessionConfigurationForTests = MockURLProtocol.urlSessionConfiguration
     }
     
