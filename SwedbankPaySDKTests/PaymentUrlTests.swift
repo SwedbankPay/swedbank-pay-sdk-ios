@@ -40,14 +40,17 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
         MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubPaymentorders()
         
+        print("startViewController")
         startViewController()
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)
         
+        print("about:blank")
         webView.evaluateJavaScript("window.location = 'about:blank'", completionHandler: nil)
         waitForWebViewLoaded()
         wait(for: [expectEmptyWebView()], timeout: timeout)
         
+        print("invokePaymentUrl")
         invokePaymentUrl()
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)
@@ -69,7 +72,7 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
         }
     }
     
-    func testAOpenOriginalPaymentUrl() {
+    func testOpenOriginalPaymentUrl() {
         testOpen(url: originalPaymentUrl)
     }
     
@@ -81,7 +84,7 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
         testOpen(url: augmentedPaymentUrl)
     }
     
-    func testDontinueUserActivityAugmentedPaymentUrl() {
+    func testContinueUserActivityAugmentedPaymentUrl() {
         testContinueUserActivity(url: augmentedPaymentUrl)
     }
     
