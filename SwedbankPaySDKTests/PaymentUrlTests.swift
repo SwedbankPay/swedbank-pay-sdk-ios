@@ -69,7 +69,7 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
         }
     }
     
-    func testOpenOriginalPaymentUrl() {
+    func testAOpenOriginalPaymentUrl() {
         testOpen(url: originalPaymentUrl)
     }
     
@@ -81,7 +81,7 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
         testOpen(url: augmentedPaymentUrl)
     }
     
-    func testContinueUserActivityAugmentedPaymentUrl() {
+    func testDontinueUserActivityAugmentedPaymentUrl() {
         testContinueUserActivity(url: augmentedPaymentUrl)
     }
     
