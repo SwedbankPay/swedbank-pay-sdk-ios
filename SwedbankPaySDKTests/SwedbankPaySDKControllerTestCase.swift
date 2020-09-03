@@ -3,15 +3,6 @@ import WebKit
 @testable import SwedbankPaySDK
 
 class SwedbankPaySDKControllerTestCase : XCTestCase {
-    private static var webKitPrewarmed = false
-    private static func prewarmWebKit() {
-        if !webKitPrewarmed {
-            let window = UIWindow()
-            window.addSubview(WKWebView(frame: window.bounds))
-            window.isHidden = false
-            webKitPrewarmed = true
-        }
-    }
     
     private let webviewLoadingTimeout = 5 as TimeInterval
     
@@ -42,7 +33,6 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
     }
     
     override func setUp() {
-        //SwedbankPaySDKControllerTestCase.prewarmWebKit()
         SwedbankPaySDKViewModel.overrideUrlSessionConfigurationForTests = MockURLProtocol.urlSessionConfiguration
     }
     
