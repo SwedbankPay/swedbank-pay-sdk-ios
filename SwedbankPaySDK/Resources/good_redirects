@@ -1,6 +1,9 @@
-# This file contains url patterns of 3DS pages that are tested to work with WKWebView.
-# One pattern per line. At this time support domain names only.
-# * or ** allowed at start of domain name; * matches a single subdomain, ** matches nested subdomains
+# This file contains url patterns of 3DS pages that are tested
+# to work with WKWebView.
+# One pattern per line.
+# At this time support domain names only.
+# * or ** allowed at start of domain name;
+#  * matches a single subdomain, ** matches nested subdomains
 # Lines starting with # are comments
 
 **.payex.com
