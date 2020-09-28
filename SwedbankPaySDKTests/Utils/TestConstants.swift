@@ -1,5 +1,6 @@
 import Foundation
-import SwedbankPaySDK
+import Alamofire
+@testable import SwedbankPaySDK
 
 enum TestConstants {
     static let callbackScheme = "testcallback"
@@ -35,8 +36,15 @@ enum TestConstants {
         ]
     ]
     
-    static let configuration = SwedbankPaySDK.Configuration(backendUrl: TestConstants.backendUrl, callbackScheme: callbackScheme, headers: [:])
-
+    static let configuration = SwedbankPaySDK.MerchantBackendConfiguration(
+        session: Session(configuration: MockURLProtocol.urlSessionConfiguration),
+        backendUrl: backendUrl,
+        callbackScheme: callbackScheme,
+        headers: nil,
+        domainWhitelist: nil,
+        additionalAllowedWebViewRedirects: nil
+    )
+    
     static let consumerCountryCode = "SE"
     static let consumerData = SwedbankPaySDK.Consumer(shippingAddressRestrictedToCountryCodes: [consumerCountryCode])
     

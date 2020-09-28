@@ -22,7 +22,7 @@ protocol SwedbankPayWebViewControllerDelegate : class {
     func overrideNavigation(request: URLRequest) -> Bool
     func webViewControllerDidNavigateOutOfRoot(_ webViewController: SwedbankPayWebViewController)
     
-    func allowWebViewNavigation(to url: URL, completion: @escaping (Bool) -> Void)
+    func allowWebViewNavigation(navigationAction: WKNavigationAction, completion: @escaping (Bool) -> Void)
 }
 
 class SwedbankPayWebViewController : UIViewController {
@@ -159,7 +159,7 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
         } else if let url = request.url {
             if navigationAction.targetFrame?.isMainFrame == true {
                 navigationLogger?(url)
-                decidePolicyFor(url: url, decisionHandler: decisionHandler)
+                decidePolicyFor(navigationAction: navigationAction, url: url, decisionHandler: decisionHandler)
             } else {
                 let canOpen = WKWebView.canOpen(url: url)
                 decisionHandler(canOpen ? .allow : .cancel)
@@ -169,21 +169,21 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
         }
     }
     
-    private func decidePolicyFor(url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    private func decidePolicyFor(navigationAction: WKNavigationAction, url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         attemptOpenUniversalLink(url) { opened in
             if opened {
                 decisionHandler(.cancel)
             } else {
-                self.decidePolicyForNormalLink(url: url, decisionHandler: decisionHandler)
+                self.decidePolicyForNormalLink(navigationAction: navigationAction, url: url, decisionHandler: decisionHandler)
             }
         }
     }
     
-    private func decidePolicyForNormalLink(url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    private func decidePolicyForNormalLink(navigationAction: WKNavigationAction, url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if WKWebView.canOpen(url: url), let delegate = delegate {
             // A regular http(s) url. Check if it matches the list of
             // tested working pages.
-            delegate.allowWebViewNavigation(to: url) { allowed in
+            delegate.allowWebViewNavigation(navigationAction: navigationAction) { allowed in
                 if !allowed {
                     // Not tested or incompatible with web view;
                     // must continue process is Safari.

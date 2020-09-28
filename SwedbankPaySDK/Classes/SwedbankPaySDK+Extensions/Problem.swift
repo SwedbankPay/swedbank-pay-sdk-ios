@@ -29,7 +29,7 @@ public extension SwedbankPaySDK {
     ///
     /// Client and Server errors are further divided to specific types. See individual documentation for details.
     enum Problem {
-        case Client(ClientProblem)
-        case Server(ServerProblem)
+        case client(ClientProblem)
+        case server(ServerProblem)
     }
 }

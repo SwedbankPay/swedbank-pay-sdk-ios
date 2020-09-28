@@ -31,17 +31,12 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
         return webViewController.view as! WKWebView
     }
     
-    override func setUp() {
-        SwedbankPaySDKViewModel.overrideUrlSessionConfigurationForTests = MockURLProtocol.urlSessionConfiguration
-    }
-    
     override func tearDown() {
         _delegate = nil
         window?.rootViewController = nil
         window?.removeFromSuperview()
         window = nil
         
-        SwedbankPaySDKViewModel.overrideUrlSessionConfigurationForTests = nil
         MockURLProtocol.reset()
     }
     
@@ -98,14 +93,14 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
     
     class TestDelegate : SwedbankPaySDKDelegate {
         var onComplete: (() -> Void)?
-        var onFailed: ((SwedbankPaySDKController.FailureReason) -> Void)?
+        var onFailed: ((Error) -> Void)?
         
         func paymentComplete() {
             onComplete?()
         }
         func paymentCanceled() {}
-        func paymentFailed(failureReason: SwedbankPaySDKController.FailureReason) {
-            onFailed?(failureReason)
+        func paymentFailed(error: Error) {
+            onFailed?(error)
         }
     }
 }

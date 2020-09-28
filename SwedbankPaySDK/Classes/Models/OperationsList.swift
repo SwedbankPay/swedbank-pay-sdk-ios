@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
+
 struct OperationsList: Decodable {
     var operations: [Operation] = []
     
@@ -24,5 +26,13 @@ struct OperationsList: Decodable {
         if let operations = try container.decodeIfPresent([Operation].self, forKey: .operations) {
             self.operations = operations
         }
+    }
+    
+    func requireOperation(rel: String) throws -> URL {
+        let operation = operations.first { $0.rel == rel }
+        guard let href = (operation?.href).flatMap(URL.init(string:)) else {
+            throw SwedbankPaySDK.MerchantBackendError.missingRequiredOperation(rel)
+        }
+        return href
     }
 }

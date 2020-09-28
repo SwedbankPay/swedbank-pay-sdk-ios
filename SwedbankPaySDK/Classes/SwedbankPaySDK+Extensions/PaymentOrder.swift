@@ -283,13 +283,13 @@ public extension SwedbankPaySDK {
 }
 
 public extension SwedbankPaySDK.PaymentOrderUrls {
-    private static func buildCompleteUrl(configuration: SwedbankPaySDK.Configuration) -> URL {
+    private static func buildCompleteUrl(configuration: SwedbankPaySDK.MerchantBackendConfiguration) -> URL {
         return URL(string: "complete", relativeTo: configuration.backendUrl)!
     }
-    private static func buildCancelUrl(configuration: SwedbankPaySDK.Configuration) -> URL {
+    private static func buildCancelUrl(configuration: SwedbankPaySDK.MerchantBackendConfiguration) -> URL {
         return URL(string: "cancel", relativeTo: configuration.backendUrl)!
     }
-    private static func buildPaymentUrl(configuration: SwedbankPaySDK.Configuration, language: SwedbankPaySDK.Language, id: String) -> URL {
+    private static func buildPaymentUrl(configuration: SwedbankPaySDK.MerchantBackendConfiguration, language: SwedbankPaySDK.Language, id: String) -> URL {
         var components = URLComponents()
         components.path = "sdk-callback/ios-universal-link"
         var queryItems: [URLQueryItem] = [
@@ -309,8 +309,15 @@ public extension SwedbankPaySDK.PaymentOrderUrls {
         return displayName ?? bundle.object(forInfoDictionaryKey: "CFBundleName") as? String
     }
     
+    /// Convenience initializer that generates a set of urls
+    /// for a payment using `MerchantBackendConfiguration`
+    ///  - parameter configuration: the MerchantBackendConfiguration where this payment is to be used
+    ///  - parameter language: the language of the payment
+    ///  - parameter callbackUrl: the callbackUrl to set for the payment
+    ///  - parameter termsOfServiceUrl: the Terms of Service url of the payment
+    ///  - parameter identifier: an unique identifier that is used to identify this payment **inside this application**
     init(
-        configuration: SwedbankPaySDK.Configuration,
+        configuration: SwedbankPaySDK.MerchantBackendConfiguration,
         language: SwedbankPaySDK.Language,
         callbackUrl: URL? = nil,
         termsOfServiceUrl: URL? = nil,
@@ -325,8 +332,16 @@ public extension SwedbankPaySDK.PaymentOrderUrls {
         )
     }
     
+    /// Convenience initializer that generates a set of urls
+    /// for a payment using `MerchantBackendConfiguration`
+    ///  - parameter configuration: the MerchantBackendConfiguration where this payment is to be used
+    ///  - parameter language: the language of the payment
+    ///  - parameter hostUrl: the url to set in the hostUrls of the payment. This will also become the `webViewBaseURL` of the `ViewPaymentOrderInfo` created for this payment
+    ///  - parameter callbackUrl: the callbackUrl to set for the payment
+    ///  - parameter termsOfServiceUrl: the Terms of Service url of the payment
+    ///  - parameter identifier: an unique identifier that is used to identify this payment **inside this application**
     init(
-        configuration: SwedbankPaySDK.Configuration,
+        configuration: SwedbankPaySDK.MerchantBackendConfiguration,
         language: SwedbankPaySDK.Language,
         hostUrl: URL,
         callbackUrl: URL? = nil,

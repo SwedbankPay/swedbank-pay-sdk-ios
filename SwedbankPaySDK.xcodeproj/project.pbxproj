@@ -14,6 +14,8 @@
 		A52E0AC724BCA0D400770286 /* good_redirects in Resources */ = {isa = PBXBuildFile; fileRef = A52E0AC624BCA0D400770286 /* good_redirects */; };
 		A52E0ACB24BCAA6D00770286 /* GoodWebViewRedirects.swift in Sources */ = {isa = PBXBuildFile; fileRef = A52E0ACA24BCAA6D00770286 /* GoodWebViewRedirects.swift */; };
 		A52E0ACD24BCAB6900770286 /* Resources.swift in Sources */ = {isa = PBXBuildFile; fileRef = A52E0ACC24BCAB6900770286 /* Resources.swift */; };
+		A542B34A2523728900AD8F09 /* Preconditions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A542B3492523728800AD8F09 /* Preconditions.swift */; };
+		A542B35325249BA900AD8F09 /* Assertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A542B35225249BA900AD8F09 /* Assertions.swift */; };
 		A5535E7224754AD000BFD586 /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5535E7124754AD000BFD586 /* TestConstants.swift */; };
 		A5535E7424754AFC00BFD586 /* MockURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5535E7324754AFC00BFD586 /* MockURLProtocol.swift */; };
 		A5535E7624754B2100BFD586 /* MockURLResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5535E7524754B2100BFD586 /* MockURLResult.swift */; };
@@ -22,24 +24,35 @@
 		A5535E832478078A00BFD586 /* MockURLProtocolExpectation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5535E822478078A00BFD586 /* MockURLProtocolExpectation.swift */; };
 		A5535E862478089000BFD586 /* run_tests.yml in Resources */ = {isa = PBXBuildFile; fileRef = A5535E852478089000BFD586 /* run_tests.yml */; };
 		A560BE432420C7CE00C1D023 /* TerminalFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = A560BE422420C7CE00C1D023 /* TerminalFailure.swift */; };
+		A5620B60251C938C00DDB87E /* RootLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5620B5F251C938C00DDB87E /* RootLink.swift */; };
+		A5620B6A251C9ABC00DDB87E /* ConsumersLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5620B69251C9ABC00DDB87E /* ConsumersLink.swift */; };
+		A5620B6E251C9AC900DDB87E /* PaymentOrdersLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5620B6D251C9AC900DDB87E /* PaymentOrdersLink.swift */; };
 		A57170DA25011F8500AC28BE /* FileLines.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57170D925011F8500AC28BE /* FileLines.swift */; };
 		A57170DD25064EF400AC28BE /* FileLinesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57170DC25064EF400AC28BE /* FileLinesTests.swift */; };
 		A57170DF2506531B00AC28BE /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57170DE2506531B00AC28BE /* FileUtils.swift */; };
 		A57170E125066D3A00AC28BE /* GoodWebViewRedirectsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57170E025066D3A00AC28BE /* GoodWebViewRedirectsTests.swift */; };
+		A577E720251B330600943A8B /* TopLevelResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = A577E71F251B330600943A8B /* TopLevelResources.swift */; };
+		A577E72A251B364400943A8B /* MerchantBackendApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = A577E729251B364400943A8B /* MerchantBackendApi.swift */; };
+		A577E72E251B547B00943A8B /* RequestDecorator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A577E72D251B547B00943A8B /* RequestDecorator.swift */; };
 		A596D669247BECD8009605DB /* ViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A596D668247BECD8009605DB /* ViewControllerTests.swift */; };
 		A596D66B247BF85B009605DB /* TestURLStubs.swift in Sources */ = {isa = PBXBuildFile; fileRef = A596D66A247BF85B009605DB /* TestURLStubs.swift */; };
 		A596D66D247EA39B009605DB /* SwedbankPaySDKControllerTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A596D66C247EA39B009605DB /* SwedbankPaySDKControllerTestCase.swift */; };
 		A596D66F247FD164009605DB /* MissingStubError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A596D66E247FD164009605DB /* MissingStubError.swift */; };
 		A596D671247FF7FD009605DB /* PaymentUrlTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A596D670247FF7FD009605DB /* PaymentUrlTests.swift */; };
 		A596D6732480FCA7009605DB /* ViewControllerConsumerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A596D6722480FCA7009605DB /* ViewControllerConsumerTests.swift */; };
+		A5993622251A385800EDFAB3 /* MerchantBackendConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5993621251A385800EDFAB3 /* MerchantBackendConfiguration.swift */; };
+		A5993627251A397100EDFAB3 /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5993626251A397100EDFAB3 /* Link.swift */; };
 		A5AA1D6F2397B63D008A62CC /* CallbackHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5AA1D6E2397B63D008A62CC /* CallbackHandling.swift */; };
+		A5BC97D8251CD9120080F2E7 /* MerchantBackendError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5BC97D7251CD9120080F2E7 /* MerchantBackendError.swift */; };
+		A5BC97DC251CE26D0080F2E7 /* Problems.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5BC97DB251CE26D0080F2E7 /* Problems.swift */; };
 		A5C3D01E23A23BC900B45085 /* SwedbankPayWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5C3D01D23A23BC900B45085 /* SwedbankPayWebViewController.swift */; };
+		A5DC2CA6251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5DC2CA5251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift */; };
+		A5DC2CAA251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5DC2CA9251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift */; };
 		A5F3416923FD9293005D65BA /* PaymentOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5F3416823FD9293005D65BA /* PaymentOrder.swift */; };
 		C50CF68B237AA204003F79DF /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68A237AA204003F79DF /* Operation.swift */; };
 		C50CF68D237AA3B0003F79DF /* TypeAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68C237AA3B0003F79DF /* TypeAliases.swift */; };
 		C50CF68F237AA43E003F79DF /* SDKProblemString.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68E237AA43E003F79DF /* SDKProblemString.swift */; };
 		C50CF693237AA7DE003F79DF /* ClientProblemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF692237AA7DE003F79DF /* ClientProblemType.swift */; };
-		C50CF695237AA7F7003F79DF /* ServerProblemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF694237AA7F7003F79DF /* ServerProblemType.swift */; };
 		C50CF697237AA8ED003F79DF /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF696237AA8ED003F79DF /* Configuration.swift */; };
 		C50CF699237AAC73003F79DF /* WhitelistedDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF698237AAC73003F79DF /* WhitelistedDomain.swift */; };
 		C50CF69B237AAC99003F79DF /* PinPublicKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF69A237AAC99003F79DF /* PinPublicKeys.swift */; };
@@ -79,6 +92,8 @@
 		A52E0AC624BCA0D400770286 /* good_redirects */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = good_redirects; sourceTree = "<group>"; };
 		A52E0ACA24BCAA6D00770286 /* GoodWebViewRedirects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoodWebViewRedirects.swift; sourceTree = "<group>"; };
 		A52E0ACC24BCAB6900770286 /* Resources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resources.swift; sourceTree = "<group>"; };
+		A542B3492523728800AD8F09 /* Preconditions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Preconditions.swift; sourceTree = "<group>"; };
+		A542B35225249BA900AD8F09 /* Assertions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assertions.swift; sourceTree = "<group>"; };
 		A5535E7124754AD000BFD586 /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
 		A5535E7324754AFC00BFD586 /* MockURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLProtocol.swift; sourceTree = "<group>"; };
 		A5535E7524754B2100BFD586 /* MockURLResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLResult.swift; sourceTree = "<group>"; };
@@ -87,19 +102,31 @@
 		A5535E822478078A00BFD586 /* MockURLProtocolExpectation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLProtocolExpectation.swift; sourceTree = "<group>"; };
 		A5535E852478089000BFD586 /* run_tests.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; path = run_tests.yml; sourceTree = "<group>"; };
 		A560BE422420C7CE00C1D023 /* TerminalFailure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalFailure.swift; sourceTree = "<group>"; };
+		A5620B5F251C938C00DDB87E /* RootLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootLink.swift; sourceTree = "<group>"; };
+		A5620B69251C9ABC00DDB87E /* ConsumersLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsumersLink.swift; sourceTree = "<group>"; };
+		A5620B6D251C9AC900DDB87E /* PaymentOrdersLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentOrdersLink.swift; sourceTree = "<group>"; };
 		A57170D925011F8500AC28BE /* FileLines.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileLines.swift; sourceTree = "<group>"; };
 		A57170DC25064EF400AC28BE /* FileLinesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileLinesTests.swift; sourceTree = "<group>"; };
 		A57170DE2506531B00AC28BE /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
 		A57170E025066D3A00AC28BE /* GoodWebViewRedirectsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoodWebViewRedirectsTests.swift; sourceTree = "<group>"; };
 		A57669FE2472BCBF002651A6 /* pod_push_release.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = pod_push_release.yml; sourceTree = "<group>"; };
+		A577E71F251B330600943A8B /* TopLevelResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopLevelResources.swift; sourceTree = "<group>"; };
+		A577E729251B364400943A8B /* MerchantBackendApi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantBackendApi.swift; sourceTree = "<group>"; };
+		A577E72D251B547B00943A8B /* RequestDecorator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestDecorator.swift; sourceTree = "<group>"; };
 		A596D668247BECD8009605DB /* ViewControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerTests.swift; sourceTree = "<group>"; };
 		A596D66A247BF85B009605DB /* TestURLStubs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestURLStubs.swift; sourceTree = "<group>"; };
 		A596D66C247EA39B009605DB /* SwedbankPaySDKControllerTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKControllerTestCase.swift; sourceTree = "<group>"; };
 		A596D66E247FD164009605DB /* MissingStubError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissingStubError.swift; sourceTree = "<group>"; };
 		A596D670247FF7FD009605DB /* PaymentUrlTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentUrlTests.swift; sourceTree = "<group>"; };
 		A596D6722480FCA7009605DB /* ViewControllerConsumerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerConsumerTests.swift; sourceTree = "<group>"; };
+		A5993621251A385800EDFAB3 /* MerchantBackendConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantBackendConfiguration.swift; sourceTree = "<group>"; };
+		A5993626251A397100EDFAB3 /* Link.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		A5AA1D6E2397B63D008A62CC /* CallbackHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallbackHandling.swift; sourceTree = "<group>"; };
+		A5BC97D7251CD9120080F2E7 /* MerchantBackendError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantBackendError.swift; sourceTree = "<group>"; };
+		A5BC97DB251CE26D0080F2E7 /* Problems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Problems.swift; sourceTree = "<group>"; };
 		A5C3D01D23A23BC900B45085 /* SwedbankPayWebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPayWebViewController.swift; sourceTree = "<group>"; };
+		A5DC2CA5251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewConsumerIdentificationInfo.swift; sourceTree = "<group>"; };
+		A5DC2CA9251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewPaymentOrderInfo.swift; sourceTree = "<group>"; };
 		A5F3416823FD9293005D65BA /* PaymentOrder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentOrder.swift; sourceTree = "<group>"; };
 		A88F6FC2C0FDDDD83A2DDFEF /* Pods_SwedbankPaySDKTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SwedbankPaySDKTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB85979580F4719F54964406 /* Pods-SwedbankPaySDKTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDKTests.debug.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDKTests/Pods-SwedbankPaySDKTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -108,7 +135,6 @@
 		C50CF68C237AA3B0003F79DF /* TypeAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeAliases.swift; sourceTree = "<group>"; };
 		C50CF68E237AA43E003F79DF /* SDKProblemString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKProblemString.swift; sourceTree = "<group>"; };
 		C50CF692237AA7DE003F79DF /* ClientProblemType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientProblemType.swift; sourceTree = "<group>"; };
-		C50CF694237AA7F7003F79DF /* ServerProblemType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProblemType.swift; sourceTree = "<group>"; };
 		C50CF696237AA8ED003F79DF /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		C50CF698237AAC73003F79DF /* WhitelistedDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitelistedDomain.swift; sourceTree = "<group>"; };
 		C50CF69A237AAC99003F79DF /* PinPublicKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinPublicKeys.swift; sourceTree = "<group>"; };
@@ -192,6 +218,7 @@
 				A5535E7524754B2100BFD586 /* MockURLResult.swift */,
 				A596D66A247BF85B009605DB /* TestURLStubs.swift */,
 				A57170DE2506531B00AC28BE /* FileUtils.swift */,
+				A542B35225249BA900AD8F09 /* Assertions.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -205,9 +232,25 @@
 			path = .github/workflows;
 			sourceTree = "<group>";
 		};
+		A5993625251A394F00EDFAB3 /* Merchant Backend */ = {
+			isa = PBXGroup;
+			children = (
+				A5993626251A397100EDFAB3 /* Link.swift */,
+				A5620B5F251C938C00DDB87E /* RootLink.swift */,
+				A5BC97DB251CE26D0080F2E7 /* Problems.swift */,
+				A5620B69251C9ABC00DDB87E /* ConsumersLink.swift */,
+				A5620B6D251C9AC900DDB87E /* PaymentOrdersLink.swift */,
+				A577E71F251B330600943A8B /* TopLevelResources.swift */,
+				A577E729251B364400943A8B /* MerchantBackendApi.swift */,
+				A577E72D251B547B00943A8B /* RequestDecorator.swift */,
+			);
+			path = "Merchant Backend";
+			sourceTree = "<group>";
+		};
 		C50CF6A3237AAE21003F79DF /* SwedbankPaySDK+Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				A5993621251A385800EDFAB3 /* MerchantBackendConfiguration.swift */,
 				A5F3416823FD9293005D65BA /* PaymentOrder.swift */,
 				C50CF6A6237AAF85003F79DF /* ClientProblem.swift */,
 				C50CF696237AA8ED003F79DF /* Configuration.swift */,
@@ -221,6 +264,9 @@
 				A560BE422420C7CE00C1D023 /* TerminalFailure.swift */,
 				A52E0AC024BC9E0100770286 /* WebViewRedirects.swift */,
 				A52E0ACC24BCAB6900770286 /* Resources.swift */,
+				A5DC2CA5251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift */,
+				A5DC2CA9251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift */,
+				A5BC97D7251CD9120080F2E7 /* MerchantBackendError.swift */,
 			);
 			path = "SwedbankPaySDK+Extensions";
 			sourceTree = "<group>";
@@ -234,7 +280,6 @@
 				C50CF68A237AA204003F79DF /* Operation.swift */,
 				C50CF6B8237AB269003F79DF /* OperationsList.swift */,
 				C50CF68E237AA43E003F79DF /* SDKProblemString.swift */,
-				C50CF694237AA7F7003F79DF /* ServerProblemType.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -242,6 +287,7 @@
 		C50CF6D2237AC76A003F79DF /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				A542B3492523728800AD8F09 /* Preconditions.swift */,
 				C50CF68C237AA3B0003F79DF /* TypeAliases.swift */,
 				A57170D925011F8500AC28BE /* FileLines.swift */,
 			);
@@ -301,6 +347,7 @@
 		C585AF25237066EE006C2E16 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				A5993625251A394F00EDFAB3 /* Merchant Backend */,
 				C50CF6BA237AB922003F79DF /* Models */,
 				C50CF6A3237AAE21003F79DF /* SwedbankPaySDK+Extensions */,
 				C50CF6D2237AC76A003F79DF /* Utils */,
@@ -494,12 +541,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A577E720251B330600943A8B /* TopLevelResources.swift in Sources */,
 				C50CF6A5237AAF47003F79DF /* SwedbankPaySubProblem.swift in Sources */,
 				A52E0AC124BC9E0100770286 /* WebViewRedirects.swift in Sources */,
 				A504895123C8A2FD00201DEC /* SwedbankPayWebContent.swift in Sources */,
 				C50CF69D237AACC3003F79DF /* Consumer.swift in Sources */,
 				A57170DA25011F8500AC28BE /* FileLines.swift in Sources */,
 				C585AF2E237066EE006C2E16 /* EndPointName.swift in Sources */,
+				A542B34A2523728900AD8F09 /* Preconditions.swift in Sources */,
+				A5620B6E251C9AC900DDB87E /* PaymentOrdersLink.swift in Sources */,
+				A5620B60251C938C00DDB87E /* RootLink.swift in Sources */,
+				A5993622251A385800EDFAB3 /* MerchantBackendConfiguration.swift in Sources */,
 				C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */,
 				C50CF68D237AA3B0003F79DF /* TypeAliases.swift in Sources */,
 				A5AA1D6F2397B63D008A62CC /* CallbackHandling.swift in Sources */,
@@ -508,20 +560,27 @@
 				C50CF6A1237AAD15003F79DF /* Problem.swift in Sources */,
 				C50CF68F237AA43E003F79DF /* SDKProblemString.swift in Sources */,
 				A52E0ACB24BCAA6D00770286 /* GoodWebViewRedirects.swift in Sources */,
+				A5DC2CAA251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift in Sources */,
 				C50CF693237AA7DE003F79DF /* ClientProblemType.swift in Sources */,
+				A5DC2CA6251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift in Sources */,
+				A5BC97DC251CE26D0080F2E7 /* Problems.swift in Sources */,
+				A5620B6A251C9ABC00DDB87E /* ConsumersLink.swift in Sources */,
 				C585AF2C237066EE006C2E16 /* SwedbankPaySDK.swift in Sources */,
+				A5993627251A397100EDFAB3 /* Link.swift in Sources */,
+				A577E72A251B364400943A8B /* MerchantBackendApi.swift in Sources */,
 				C50CF697237AA8ED003F79DF /* Configuration.swift in Sources */,
 				C50CF699237AAC73003F79DF /* WhitelistedDomain.swift in Sources */,
 				C50CF69B237AAC99003F79DF /* PinPublicKeys.swift in Sources */,
 				A5C3D01E23A23BC900B45085 /* SwedbankPayWebViewController.swift in Sources */,
 				C50CF6B9237AB269003F79DF /* OperationsList.swift in Sources */,
-				C50CF695237AA7F7003F79DF /* ServerProblemType.swift in Sources */,
 				A560BE432420C7CE00C1D023 /* TerminalFailure.swift in Sources */,
+				A577E72E251B547B00943A8B /* RequestDecorator.swift in Sources */,
 				A5F3416923FD9293005D65BA /* PaymentOrder.swift in Sources */,
 				C585AF2D237066EE006C2E16 /* SwedbankPaySDKViewModel.swift in Sources */,
 				A52E0ACD24BCAB6900770286 /* Resources.swift in Sources */,
 				C585AF2B237066EE006C2E16 /* SwedbankPaySDKToSViewController.swift in Sources */,
 				C50CF68B237AA204003F79DF /* Operation.swift in Sources */,
+				A5BC97D8251CD9120080F2E7 /* MerchantBackendError.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -535,6 +594,7 @@
 				A5535E7824755AE300BFD586 /* ViewModelTests.swift in Sources */,
 				A57170E125066D3A00AC28BE /* GoodWebViewRedirectsTests.swift in Sources */,
 				A5535E7624754B2100BFD586 /* MockURLResult.swift in Sources */,
+				A542B35325249BA900AD8F09 /* Assertions.swift in Sources */,
 				A596D66F247FD164009605DB /* MissingStubError.swift in Sources */,
 				A596D66B247BF85B009605DB /* TestURLStubs.swift in Sources */,
 				A5535E7224754AD000BFD586 /* TestConstants.swift in Sources */,

@@ -36,10 +36,11 @@ class MockURLProtocol: URLProtocol {
         stub(url: url) { _ in MockURLResult(error: error) }
     }
     
-    static func stubJson(url: URL, json: Any) {
+    static func stubJson(url: URL, json: Any, contentType: String = "application/json") {
         stub(url: url, handler: { _ -> MockURLResult in
             let data = try! JSONSerialization.data(withJSONObject: json)
-            let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
+            let headers = ["Content-Type": contentType]
+            let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: headers)!
             return MockURLResult(response: response, data: data)
         })
     }

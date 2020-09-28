@@ -8,40 +8,59 @@ class ViewModelTests : XCTestCase {
     private var viewModel: SwedbankPaySDKViewModel!
     
     override func setUp() {
-        SwedbankPaySDKViewModel.overrideUrlSessionConfigurationForTests = MockURLProtocol.urlSessionConfiguration
-        
         viewModel = SwedbankPaySDKViewModel()
-        viewModel.setConfiguration(TestConstants.configuration)
+        viewModel.configuration = TestConstants.configuration
     }
     
     override func tearDown() {
-        SwedbankPaySDKViewModel.overrideUrlSessionConfigurationForTests = nil
         MockURLProtocol.reset()
     }
         
+    private func expectCallback<T>(
+        whereAgrumentSatisfies assertions: @escaping (T) -> Void = { _ in }
+    ) -> (T) -> Void {
+        let invoked = expectation(description: "Callback invoked")
+        return { argument in
+            invoked.fulfill()
+            assertions(argument)
+        }
+    }
+    
+    private func expectSuccess<T>(
+        whereValueSatisfies assertions: @escaping (T) -> Void = { _ in }
+    ) -> (Result<T, Error>) -> Void {
+        expectCallback {
+            $0.assertSuccess(whereValueSatisfies: assertions)
+        }
+    }
+    private func expectFailure<T>() -> (Result<T, Error>) -> Void {
+        expectCallback {
+            $0.assertFailure()
+        }
+    }
+    
     func testItShouldMakeGetRequestToBackendUrl() {
+        viewModel.consumerData = TestConstants.consumerData
+        
         expectRequest(to: TestConstants.backendUrl, expectedRequest: .get)
-        viewModel.identifyConsumer(TestConstants.backendUrl)
+        viewModel.identifyConsumer { _ in }
         waitForExpectations(timeout: timeout, handler: nil)
         MockURLProtocol.assertNoUnusedStubs()
     }
     
     func testItShouldRejectInvalidResponseToBackendUrl() {
+        viewModel.consumerData = TestConstants.consumerData
+        
         MockURLProtocol.stubJson(url: TestConstants.backendUrl, json: [:])
-        let success = expectation(description: "identifyConsumer succeeded")
-        success.isInverted = true
-        let failure = expectation(description: "identifyConsumer failed")
-        viewModel.identifyConsumer(TestConstants.backendUrl, successCallback: { _ in
-            success.fulfill()
-        }, errorCallback: { _ in
-            failure.fulfill()
-        })
+        
+        viewModel.identifyConsumer(completion: expectFailure())
+        
         waitForExpectations(timeout: timeout, handler: nil)
         MockURLProtocol.assertNoUnusedStubs()
     }
     
     func testItShouldMakePostRequestToConsumersUrl() {
-        viewModel.setConsumerData(TestConstants.consumerData)
+        viewModel.consumerData = TestConstants.consumerData
         
         MockURLProtocol.stubBackendUrl()
         
@@ -52,28 +71,20 @@ class ViewModelTests : XCTestCase {
             let countryCodeString = try XCTUnwrap(countryCode as? String)
             XCTAssertEqual(countryCodeString, TestConstants.consumerCountryCode)
         }))
-        viewModel.identifyConsumer(TestConstants.backendUrl)
+        viewModel.identifyConsumer { _ in }
+        
         waitForExpectations(timeout: timeout, handler: nil)
         MockURLProtocol.assertNoUnusedStubs()
     }
     
     func testItShouldAcceptValidResponseToConsumersRequest() {
-        viewModel.setConsumerData(TestConstants.consumerData)
-        
+        viewModel.consumerData = TestConstants.consumerData
+
         MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubConsumers()
         
-        let success = expectation(description: "identifyConsumer succeeded")
-        let failure = expectation(description: "identifyConsumer failed")
-        failure.isInverted = true
-        viewModel.identifyConsumer(TestConstants.backendUrl, successCallback: { operations in
-            let viewOp = operations.operations.first { $0.rel == Operation.TypeString.viewConsumerIdentification.rawValue }
-            XCTAssertNotNil(viewOp)
-            XCTAssertEqual(viewOp?.href, TestConstants.viewConsumerSessionLink)
-            success.fulfill()
-        }, errorCallback: { problem in
-            failure.expectationDescription = "identifyConsumer failed: \(problem)"
-            failure.fulfill()
+        viewModel.identifyConsumer(completion: expectSuccess {
+            XCTAssertEqual($0.viewConsumerIdentification.absoluteString, TestConstants.viewConsumerSessionLink)
         })
         
         waitForExpectations(timeout: timeout, handler: nil)
@@ -81,26 +92,18 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldRejectInvalidResponseToConsumersRequest() {
-        viewModel.setConsumerData(TestConstants.consumerData)
+        viewModel.consumerData = TestConstants.consumerData
         
         MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubError(url: TestConstants.absoluteConsumersUrl)
-        
-        let success = expectation(description: "identifyConsumer succeeded")
-        success.isInverted = true
-        let failure = expectation(description: "identifyConsumer failed")
-        viewModel.identifyConsumer(TestConstants.backendUrl, successCallback: { _ in
-            success.fulfill()
-        }, errorCallback: { _ in
-            failure.fulfill()
-        })
+        viewModel.identifyConsumer(completion: expectFailure())
         waitForExpectations(timeout: timeout, handler: nil)
         MockURLProtocol.assertNoUnusedStubs()
     }
     
     func testItShouldMakePostRequestToPaymentOrdersUrl() {
-        viewModel.setPaymentOrder(TestConstants.paymentOrder)
-        viewModel.setConsumerProfileRef(TestConstants.consumerProfileRef)
+        viewModel.paymentOrder = TestConstants.paymentOrder
+        viewModel.consumerProfileRef = TestConstants.consumerProfileRef
         
         MockURLProtocol.stubBackendUrl()
         expectRequest(to: TestConstants.absolutePaymentordersUrl, expectedRequest: .postJson({
@@ -113,29 +116,20 @@ class ViewModelTests : XCTestCase {
             XCTAssertEqual(profileString, TestConstants.consumerProfileRef)
         }))
         
-        viewModel.createPaymentOrder(TestConstants.backendUrl)
+        viewModel.createPaymentOrder { _ in }
         
         waitForExpectations(timeout: timeout, handler: nil)
         MockURLProtocol.assertNoUnusedStubs()
     }
     
     func testItShouldAcceptValidResponseToPaymentOrdersRequest() {
-        viewModel.setPaymentOrder(TestConstants.paymentOrder)
+        viewModel.paymentOrder = TestConstants.paymentOrder
         
         MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubPaymentorders()
         
-        let success = expectation(description: "createPaymentOrder succeeded")
-        let failure = expectation(description: "createPaymentOrder failed")
-        failure.isInverted = true
-        viewModel.createPaymentOrder(TestConstants.backendUrl, successCallback: { operations in
-            let viewOp = operations.operations.first { $0.rel == Operation.TypeString.viewPaymentOrder.rawValue }
-            XCTAssertNotNil(viewOp)
-            XCTAssertEqual(viewOp?.href, TestConstants.viewPaymentorderLink)
-            success.fulfill()
-        }, errorCallback: { problem in
-            failure.expectationDescription = "createPaymentOrder failed: \(problem)"
-            failure.fulfill()
+        viewModel.createPaymentOrder(completion: expectSuccess {
+            XCTAssertEqual($0.viewPaymentorder.absoluteString, TestConstants.viewPaymentorderLink)
         })
         
         waitForExpectations(timeout: timeout, handler: nil)
@@ -143,18 +137,11 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldRejectInvalidResponseToPaymentOrdersRequest() {
-        viewModel.setPaymentOrder(TestConstants.paymentOrder)
+        viewModel.paymentOrder = TestConstants.paymentOrder
 
         MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubError(url: TestConstants.absolutePaymentordersUrl)
-        let success = expectation(description: "createPaymentOrder succeeded")
-        success.isInverted = true
-        let failure = expectation(description: "createPaymentOrder failed")
-        viewModel.createPaymentOrder(TestConstants.backendUrl, successCallback: { _ in
-            success.fulfill()
-        }, errorCallback: { _ in
-            failure.fulfill()
-        })
+        viewModel.createPaymentOrder(completion: expectFailure())
         waitForExpectations(timeout: timeout, handler: nil)
         MockURLProtocol.assertNoUnusedStubs()
     }
