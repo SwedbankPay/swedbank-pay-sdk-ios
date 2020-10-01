@@ -33,15 +33,18 @@ public extension SwedbankPaySDK {
         
         let additionalAllowedWebViewRedirects: [WebViewRedirect]?
         
-        /// Initializer for `SwedbankPaySDK.Configuration`
+        /// Initializer for `SwedbankPaySDK.MerchantBackendConfiguration`
         /// - parameter backendUrl: backend URL
-        /// - paramerer callbackScheme: A custom scheme for callback urls. This scheme must be registered to your app.
+        /// - parameter callbackScheme: A custom scheme for callback urls. This scheme must be registered to your app.
         ///                             If nil, the Info.plist will be searched for a URL type
         ///                             with a com.swedbank.SwedbankPaySDK.callback property having
         ///                             a Boolean type and a YES value.
         /// - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
-        /// - parameter domainWhitelist: Optional array of domains allowed to be connected to; defaults to `backendURL` if nil
-        /// - parameter certificatePins: Optional array of domains for certification pinning, matched against any certificate found anywhere in the app bundle
+        /// - parameter domainWhitelist: Optional array of domains allowed to be connected to;
+        ///  defaults to `backendURL` if nil
+        /// - parameter pinPublicKeys: Optional array of domains for certification pinning,
+        ///  matched against any certificate found anywhere in the app bundle
+        /// - parameter additionalAllowedWebViewRedirects: additional url patterns that will be opened in the web view
         public init(
             backendUrl: URL,
             callbackScheme: String? = nil,

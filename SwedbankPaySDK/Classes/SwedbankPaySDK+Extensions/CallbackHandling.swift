@@ -20,7 +20,8 @@ public extension SwedbankPaySDK {
     /// implementation to forward paymentUrls to the SDK
     ///
     /// - parameter url: the URL to forward
-    /// - returns: `true` if the url was successfully processed by the SDK, `false` otherwise (e.g. if the url was not an active payment url)
+    /// - returns: `true` if the url was successfully processed by the SDK,
+    ///  `false` otherwise (e.g. if the url was not an active payment url)
     static func open(url: URL) -> Bool {
         return handleCallbackUrl(url)
     }
@@ -30,7 +31,8 @@ public extension SwedbankPaySDK {
     /// implementation to forward paymentUrls to the SDK
     ///
     /// - parameter userActivity: the NSUserActivity to forward to the SDK
-    /// - returns: `true` if `userActivity` was successfully processed by the SDK, `false` otherwise (e.g. if it was not a navigation to an active payment url)
+    /// - returns: `true` if `userActivity` was successfully processed by the SDK,
+    ///  `false` otherwise (e.g. if it was not a navigation to an active payment url)
     static func `continue`(userActivity: NSUserActivity) -> Bool {
         if userActivity.activityType == NSUserActivityTypeBrowsingWeb,
             let url = userActivity.webpageURL {

@@ -187,7 +187,11 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
         }
     }
     
-    private func decidePolicyForNormalLink(navigationAction: WKNavigationAction, url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    private func decidePolicyForNormalLink(
+        navigationAction: WKNavigationAction,
+        url: URL,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
         if WKWebView.canOpen(url: url), let delegate = delegate {
             // A regular http(s) url. Check if it matches the list of
             // tested working pages.
