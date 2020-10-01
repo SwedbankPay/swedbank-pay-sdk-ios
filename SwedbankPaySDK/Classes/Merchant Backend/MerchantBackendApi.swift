@@ -102,7 +102,7 @@ struct MerchantBackendApi {
             var request = urlRequest
             DispatchQueue.main.async {
                 self.requestDecorator.decorateAny(request: &request)
-                decoratorCall(self.requestDecorator, &request)
+                self.decoratorCall(self.requestDecorator, &request)
                 completion(.success(request))
             }
         }
