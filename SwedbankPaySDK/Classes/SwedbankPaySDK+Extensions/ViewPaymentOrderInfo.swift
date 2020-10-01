@@ -1,0 +1,118 @@
+//
+// Copyright 2020 Swedbank AB
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import Foundation
+
+public extension SwedbankPaySDK {
+    /// Data required to show the payment menu.
+    ///
+    /// If you provide a custom SwedbankPayConfiguration
+    /// you must get the relevant data from your services
+    /// and supply a ViewPaymentOrderInfo
+    /// in your SwedbankPayConfiguration.postPaymentorders
+    /// completion call.
+    struct ViewPaymentOrderInfo {
+        /// The url to use as the WKWebView page url
+        /// when showing the payment menu.
+        ///
+        /// This should match your payment order's `hostUrls`.
+        var webViewBaseURL: URL?
+        
+        /// The `view-paymentorder` link from Swedbank Pay.
+        var viewPaymentorder: URL
+        
+        /// The `completeUrl` of the payment order
+        ///
+        /// This url will not be opened in normal operation,
+        /// so it need not point to an actual web page,
+        /// but it must be a valid url and it must be distinct
+        /// form the other urls.
+        var completeUrl: URL
+
+        /// The `cancelUrl` of the payment order
+        ///
+        /// This url will not be opened in normal operation,
+        /// so it need not point to an actual web page,
+        /// but it must be a valid url and it must be distinct
+        /// form the other urls.
+        var cancelUrl: URL?
+
+        /// The `paymentUrl` of the payment order
+        ///
+        /// The `paymentUrl` you set for your payment order must be a
+        /// Universal Link to your app. When your app receives it in the
+        /// `UIApplicationDelegate.application(_:continue:restorationHandler:)`
+        /// method, you must forward it to the SDK by calling
+        /// `SwedbankPaySDK.continue(userActivity:)`. If it is helpful for your
+        /// systems, you may add extra query parameters to the `paymentUrl`;
+        /// the SDK will ignore these when checking for equality to an ongoing
+        /// payment's `paymentUrl` (the Merchant Backend example does this
+        /// to work around a scenario where Universal Links are not routed
+        /// the way we would wish on iOS 13.3 and below).
+        ///
+        /// Additionally, if your `paymentUrl` is opened in the browser, it must
+        /// ultimately open a url that is otherwise equal to the `paymentUrl`, but
+        /// it has the `callbackScheme` of your `SwedbankPaySDKConfiguration`.
+        /// It may also have additional query parameters, similar to the above.
+        /// When you receive this url in your
+        /// `UIApplicationDelegate(_:open:options:)` method, you must
+        /// forward it to the SDK by calling `SwedbankPaySDK.open(url:)`
+        ///
+        /// Example
+        /// =======
+        ///
+        /// When using the `MerchantBackendConfiguration` and the
+        /// related convenience constructors of `SwedbankPaySDK.PaymentOrderUrls`,
+        /// the actual `paymentUrl`, i.e. this value, will look like this:
+        ///  - https://example.com/sdk-callback/ios-universal-link?scheme=fallback&language=en-US&id=1234
+        ///
+        /// Your `UIApplicationDelegate.application(_:continue:restorationHandler:)`
+        /// can be called either with that url; or if the page was opened in the browser, the
+        /// call will have an extra parameter (this is added by the backend to prevent an infinite loop):
+        ///  - https://example.com/sdk-callback/ios-universal-link?scheme=fallback&language=en-US&id=1234&fallback=true
+        ///
+        /// If neither of the above urls is routed to your app (perhaps because of a broken
+        /// Universal Link configuration), then the page in the brower will instead open
+        /// a url equal to the second one, with the scheme replaced. You will then receive
+        /// an url in your `UIApplicationDelegate(_:open:options:)` method
+        /// that looks like this:
+        ///  - fallback://example.com/sdk-callback/ios-universal-link?scheme=fallback&language=en-US&id=1234&fallback=true
+        var paymentUrl: URL?
+
+        /// The `termsOfServiceUrl` of the payment order
+        ///
+        /// By default, this url will be opened when the user
+        /// taps on the Terms of Service link.
+        /// You can override that behaviour in your
+        /// `SwedbankPaySDKDelegate`.
+        var termsOfServiceUrl: URL?
+
+        public init(
+            webViewBaseURL: URL?,
+            viewPaymentorder: URL,
+            completeUrl: URL,
+            cancelUrl: URL?,
+            paymentUrl: URL?,
+            termsOfServiceUrl: URL?
+        ) {
+            self.webViewBaseURL = webViewBaseURL
+            self.viewPaymentorder = viewPaymentorder
+            self.completeUrl = completeUrl
+            self.cancelUrl = cancelUrl
+            self.paymentUrl = paymentUrl
+            self.termsOfServiceUrl = termsOfServiceUrl
+        }
+    }
+}

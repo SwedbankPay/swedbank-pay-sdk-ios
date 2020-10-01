@@ -1,5 +1,5 @@
 //
-// Copyright 2019 Swedbank AB
+// Copyright 2020 Swedbank AB
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,11 +13,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// `ServerProblemType` URLs
-enum ServerProblemType: String {
-    case InternalServerError = "about:blank" // 500
-    case BadGateway = "https://api.payex.com/psp/errordetail/mobilesdk/badgateway" // 502
-    case GatewayTimeOut = "https://api.payex.com/psp/errordetail/mobilesdk/gatewaytimeout" // 504
-    case SystemError = "https://api.payex.com/psp/errordetail/mobilesdk/systemerror"
-    case ConfigurationError = "https://api.payex.com/psp/errordetail/mobilesdk/configurationerror"
+/// Signifies a failed precondition.
+/// Use only for simplifying control flow;
+/// do not let this error propagate out of the SDK.
+enum PreconditionError: Error {
+    case instance
+}
+
+func requireSome<T>(_ optional: T?) throws -> T {
+    switch optional {
+    case .some(let wrapped): return wrapped
+    case .none: throw PreconditionError.instance
+    }
+}
+
+func require(_ condition: Bool) throws {
+    if !condition {
+        throw PreconditionError.instance
+    }
 }
