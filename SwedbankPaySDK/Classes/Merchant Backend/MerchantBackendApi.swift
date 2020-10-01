@@ -101,8 +101,8 @@ struct MerchantBackendApi {
         ) {
             var request = urlRequest
             DispatchQueue.main.async {
-                requestDecorator.decorateAny(request: &request)
-                decoratorCall(requestDecorator, &request)
+                self.requestDecorator.decorateAny(request: &request)
+                decoratorCall(self.requestDecorator, &request)
                 completion(.success(request))
             }
         }
@@ -115,8 +115,8 @@ struct MerchantBackendApi {
         request.responseData(queue: .global(qos: .userInitiated)) { response in
             let result: Result<T, SwedbankPaySDK.MerchantBackendError>
             do {
-                try checkError(response: response)
-                result = .success(try parse(response: response))
+                try self.checkError(response: response)
+                result = .success(try self.parse(response: response))
             } catch let error {
                 let merchantBackendError = error as? SwedbankPaySDK.MerchantBackendError
                     ?? .networkError(error)

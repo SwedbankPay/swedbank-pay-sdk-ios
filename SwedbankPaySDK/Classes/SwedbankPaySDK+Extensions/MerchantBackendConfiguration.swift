@@ -159,7 +159,7 @@ public extension SwedbankPaySDK {
             }
             withTopLevelResources(completion) { topLevelResources in
                 topLevelResources.consumers.post(
-                    api: api,
+                    api: self.api,
                     consumer: consumer,
                     userData: userData
                 ) {
@@ -168,7 +168,7 @@ public extension SwedbankPaySDK {
                             rel: Operation.TypeString.viewConsumerIdentification.rawValue
                         )
                         let info = ViewConsumerIdentificationInfo(
-                            webViewBaseURL: backendUrl,
+                            webViewBaseURL: self.backendUrl,
                             viewConsumerIdentification: viewConsumerIdentification
                         )
                         completion(.success(info))
@@ -193,7 +193,7 @@ public extension SwedbankPaySDK {
             }
             withTopLevelResources(completion) { topLevelResources in
                 topLevelResources.paymentorders.post(
-                    api: api,
+                    api: self.api,
                     paymentOrder: paymentOrder,
                     userData: userData
                 ) {
@@ -202,7 +202,7 @@ public extension SwedbankPaySDK {
                             rel: Operation.TypeString.viewPaymentOrder.rawValue
                         )
                         let info = ViewPaymentOrderInfo(
-                            webViewBaseURL: paymentOrder.urls.hostUrls.first ?? backendUrl,
+                            webViewBaseURL: paymentOrder.urls.hostUrls.first ?? self.backendUrl,
                             viewPaymentorder: viewPaymentorder,
                             completeUrl: paymentOrder.urls.completeUrl,
                             cancelUrl: paymentOrder.urls.cancelUrl,
