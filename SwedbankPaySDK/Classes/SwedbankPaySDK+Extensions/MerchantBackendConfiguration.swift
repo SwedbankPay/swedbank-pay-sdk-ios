@@ -42,12 +42,33 @@ public extension SwedbankPaySDK {
         /// - parameter headers: HTTP Request headers Dictionary in a form of 'apikey, access token' -pair
         /// - parameter domainWhitelist: Optional array of domains allowed to be connected to; defaults to `backendURL` if nil
         /// - parameter certificatePins: Optional array of domains for certification pinning, matched against any certificate found anywhere in the app bundle
-        public init(backendUrl: URL, callbackScheme: String? = nil, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]? = nil, pinPublicKeys: [PinPublicKeys]? = nil, additionalAllowedWebViewRedirects: [WebViewRedirect]? = nil) {
+        public init(
+            backendUrl: URL,
+            callbackScheme: String? = nil,
+            headers: [String: String]?,
+            domainWhitelist: [WhitelistedDomain]? = nil,
+            pinPublicKeys: [PinPublicKeys]? = nil,
+            additionalAllowedWebViewRedirects: [WebViewRedirect]? = nil
+        ) {
             let session = MerchantBackendConfiguration.makeSession(pinPublicKeys: pinPublicKeys)
-            self.init(session: session, backendUrl: backendUrl, callbackScheme: callbackScheme, headers: headers, domainWhitelist: domainWhitelist, additionalAllowedWebViewRedirects: additionalAllowedWebViewRedirects)
+            self.init(
+                session: session,
+                backendUrl: backendUrl,
+                callbackScheme: callbackScheme,
+                headers: headers,
+                domainWhitelist: domainWhitelist,
+                additionalAllowedWebViewRedirects: additionalAllowedWebViewRedirects
+            )
         }
         
-        internal init(session: Alamofire.Session, backendUrl: URL, callbackScheme: String?, headers: Dictionary<String, String>?, domainWhitelist: [WhitelistedDomain]?, additionalAllowedWebViewRedirects: [WebViewRedirect]?) {
+        internal init(
+            session: Alamofire.Session,
+            backendUrl: URL,
+            callbackScheme: String?,
+            headers: [String: String]?,
+            domainWhitelist: [WhitelistedDomain]?,
+            additionalAllowedWebViewRedirects: [WebViewRedirect]?
+        ) {
             api = MerchantBackendApi(
                 session: session,
                 domainWhitelist: MerchantBackendConfiguration.makeDomainWhitelist(
@@ -99,7 +120,7 @@ public extension SwedbankPaySDK {
         
         private static func getDefaultCallbackScheme() -> String {
             let urlTypes = Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [Any]
-            let urlTypeDicts = urlTypes?.lazy.compactMap { $0 as? [AnyHashable : Any] }
+            let urlTypeDicts = urlTypes?.lazy.compactMap { $0 as? [AnyHashable: Any] }
             guard let callbackUrlType = urlTypeDicts?.filter({
                 $0[callbackURLTypeKey] as? Bool == true
             }).first else {
@@ -128,7 +149,11 @@ public extension SwedbankPaySDK {
             }
         }
         
-        public func postConsumers(consumer: SwedbankPaySDK.Consumer?, userData: Any?, completion: @escaping (Result<SwedbankPaySDK.ViewConsumerIdentificationInfo, Error>) -> Void) {
+        public func postConsumers(
+            consumer: SwedbankPaySDK.Consumer?,
+            userData: Any?,
+            completion: @escaping (Result<SwedbankPaySDK.ViewConsumerIdentificationInfo, Error>) -> Void
+        ) {
             guard let consumer = consumer else {
                 fatalError("MerchantBackendConfiguration requires use of Consumer for checkin")
             }
@@ -154,7 +179,12 @@ public extension SwedbankPaySDK {
             }
         }
         
-        public func postPaymentorders(paymentOrder: SwedbankPaySDK.PaymentOrder?, userData: Any?, consumerProfileRef: String?, completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void) {
+        public func postPaymentorders(
+            paymentOrder: SwedbankPaySDK.PaymentOrder?,
+            userData: Any?,
+            consumerProfileRef: String?,
+            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
+        ) {
             guard var paymentOrder = paymentOrder else {
                 fatalError("MerchantBackendConfiguration requires use of PaymentOrder")
             }
@@ -187,7 +217,10 @@ public extension SwedbankPaySDK {
             }
         }
         
-        public func decidePolicyForPaymentMenuRedirect(navigationAction: WKNavigationAction, completion: @escaping (SwedbankPaySDK.PaymentMenuRedirectPolicy) -> Void) {
+        public func decidePolicyForPaymentMenuRedirect(
+            navigationAction: WKNavigationAction,
+            completion: @escaping (SwedbankPaySDK.PaymentMenuRedirectPolicy) -> Void
+        ) {
             guard let url = navigationAction.request.url else {
                 completion(.openInWebView)
                 return

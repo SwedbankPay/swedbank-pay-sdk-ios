@@ -21,7 +21,7 @@ struct MerchantBackendApi {
         SwedbankPaySDKRequestDecorator,
         inout URLRequest
     ) -> Void
-        
+    
     var session: Session
     var domainWhitelist: [SwedbankPaySDK.WhitelistedDomain]
     var requestDecorator: SwedbankPaySDKRequestDecorator?

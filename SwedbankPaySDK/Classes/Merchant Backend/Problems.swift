@@ -59,7 +59,6 @@ private extension JsonObject {
     var instance: String? { self["instance"] as? String }
 }
 
-
 private func parseProblemOrFail(
     response: AFDataResponse<Data>
 ) throws -> SwedbankPaySDK.Problem {
@@ -88,9 +87,9 @@ private struct ProblemSpace {
         parseKnownProblem: @escaping (String, Int, JsonObject) -> T?
     ) {
         parseProblemOfType = { type, status, json in
-            let t = parseKnownProblem(type, status, json)
+            let payload = parseKnownProblem(type, status, json)
                 ?? ProblemSpace.makeUnknownProblem(type, status, json, unknownProblemType)
-            return problemType(t)
+            return problemType(payload)
         }
     }
     

@@ -64,4 +64,3 @@ public extension SwedbankPaySDKRequestDecorator {
         userData: Any?
     ) {}
 }
-

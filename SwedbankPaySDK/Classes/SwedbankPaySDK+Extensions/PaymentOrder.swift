@@ -336,7 +336,8 @@ public extension SwedbankPaySDK.PaymentOrderUrls {
     /// for a payment using `MerchantBackendConfiguration`
     ///  - parameter configuration: the MerchantBackendConfiguration where this payment is to be used
     ///  - parameter language: the language of the payment
-    ///  - parameter hostUrl: the url to set in the hostUrls of the payment. This will also become the `webViewBaseURL` of the `ViewPaymentOrderInfo` created for this payment
+    ///  - parameter hostUrl: the url to set in the hostUrls of the payment.
+    ///   This will also become the `webViewBaseURL` of the `ViewPaymentOrderInfo` created for this payment
     ///  - parameter callbackUrl: the callbackUrl to set for the payment
     ///  - parameter termsOfServiceUrl: the Terms of Service url of the payment
     ///  - parameter identifier: an unique identifier that is used to identify this payment **inside this application**

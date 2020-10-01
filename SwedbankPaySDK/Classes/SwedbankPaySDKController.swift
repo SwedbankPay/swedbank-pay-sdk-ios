@@ -121,21 +121,42 @@ public final class SwedbankPaySDKController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    /// Initializes the Swedbank Pay SDK, and depending on the `consumerData`, starts the payment process with consumer identification or anonymous process
-    /// - parameter configuration: Configuration object that handles creating and manipulating Consumer Identification Sessions and Payment Orders as needed.
-    /// - parameter consumer: consumer identification information; *optional* - if not provided, consumer will be anonymous
+    /// Initializes the Swedbank Pay SDK, and depending on the `consumerData`,
+    /// starts the payment process with consumer identification or anonymous process
+    /// - parameter configuration: Configuration object that handles creating
+    /// and manipulating Consumer Identification Sessions and Payment Orders as needed.
+    /// - parameter consumer: consumer identification information;
+    /// *optional* - if not provided, consumer will be anonymous
     /// - parameter paymentOrder: the payment order to create
-    public convenience init(configuration: SwedbankPaySDKConfiguration, consumer: SwedbankPaySDK.Consumer? = nil, paymentOrder: SwedbankPaySDK.PaymentOrder) {
-        self.init(configuration: configuration, withCheckin: consumer != nil, consumer: consumer, paymentOrder: paymentOrder, userData: nil)
+    public convenience init(
+        configuration: SwedbankPaySDKConfiguration,
+        consumer: SwedbankPaySDK.Consumer? = nil,
+        paymentOrder: SwedbankPaySDK.PaymentOrder
+    ) {
+        self.init(
+            configuration: configuration,
+            withCheckin: consumer != nil,
+            consumer: consumer,
+            paymentOrder: paymentOrder,
+            userData: nil
+        )
     }
     
-    /// Initializes the Swedbank Pay SDK, and starts the payment process with consumer identification or anonymous process
-    /// - parameter configuration: Configuration object that handles creating and manipulating Consumer Identification Sessions and Payment Orders as needed.
+    /// Initializes the Swedbank Pay SDK, and starts the payment process
+    ///  with consumer identification or anonymous process
+    /// - parameter configuration: Configuration object that handles creating
+    ///  and manipulating Consumer Identification Sessions and Payment Orders as needed.
     /// - parameter withCheckin: if `true`, performs checkin berfore creating the payment order
     /// - parameter consumer: consumer object for the checkin
     /// - parameter paymentOrder: the payment order to create
     /// - userData: user data for your configuration. This value will be provided to your configuration callbacks.
-    public init(configuration: SwedbankPaySDKConfiguration, withCheckin: Bool, consumer: SwedbankPaySDK.Consumer?, paymentOrder: SwedbankPaySDK.PaymentOrder?, userData: Any?) {
+    public init(
+        configuration: SwedbankPaySDKConfiguration,
+        withCheckin: Bool,
+        consumer: SwedbankPaySDK.Consumer?,
+        paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        userData: Any?
+    ) {
         super.init(nibName: nil, bundle: nil)
         
         viewModel.configuration = configuration
@@ -296,7 +317,13 @@ public final class SwedbankPaySDKController: UIViewController {
         }
     }
     
-    private func loadPage<T>(baseURL: URL?, template: SwedbankPayWebContent.HTMLTemplate<T>, scriptUrl: URL, delay: Bool = false, eventHandler: @escaping (T, Any?) -> Void) {
+    private func loadPage<T>(
+        baseURL: URL?,
+        template: SwedbankPayWebContent.HTMLTemplate<T>,
+        scriptUrl: URL,
+        delay: Bool = false,
+        eventHandler: @escaping (T, Any?) -> Void
+    ) {
         
         let html = template.buildPage(scriptUrl: scriptUrl.absoluteString, delay: delay)
         debugPrint("creating script message handler for \(T.self)")

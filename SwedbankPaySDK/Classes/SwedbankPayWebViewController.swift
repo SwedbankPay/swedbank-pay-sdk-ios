@@ -169,12 +169,20 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
         }
     }
     
-    private func decidePolicyFor(navigationAction: WKNavigationAction, url: URL, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    private func decidePolicyFor(
+        navigationAction: WKNavigationAction,
+        url: URL,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
         attemptOpenUniversalLink(url) { opened in
             if opened {
                 decisionHandler(.cancel)
             } else {
-                self.decidePolicyForNormalLink(navigationAction: navigationAction, url: url, decisionHandler: decisionHandler)
+                self.decidePolicyForNormalLink(
+                    navigationAction: navigationAction,
+                    url: url,
+                    decisionHandler: decisionHandler
+                )
             }
         }
     }
