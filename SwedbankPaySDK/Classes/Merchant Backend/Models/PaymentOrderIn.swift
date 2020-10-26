@@ -1,5 +1,5 @@
 //
-// Copyright 2019 Swedbank AB
+// Copyright 2020 Swedbank AB
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,11 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// `ClientProblemType` URLs
-enum ClientProblemType: String {
-    case BadRequest = "https://api.payex.com/psp/errordetail/mobilesdk/badrequest" // 400
-    case Unauthorized = "https://api.payex.com/psp/errordetail/mobilesdk/unauthorized" // 401
-    case InputError = "https://api.payex.com/psp/errordetail/inputerror"
-    case Forbidden = "https://api.payex.com/psp/errordetail/forbidden"
-    case NotFound = "https://api.payex.com/psp/errordetail/notfound"
+struct PaymentOrderIn: Decodable {
+    var paymentorder: PaymentOrder?
+    var operations: [Operation]
+    var mobileSDK: MobileSDK?
+    
+    struct MobileSDK: Decodable {
+        var setInstrument: SetInstrumentLink?
+    }
+    
+    struct PaymentOrder: Decodable {
+        var instrument: SwedbankPaySDK.Instrument?
+    }
 }

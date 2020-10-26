@@ -15,17 +15,17 @@
 
 import Foundation
 
-struct ConsumersLink: Link {
-    let href: URL
-    
-    func post(
-        api: MerchantBackendApi,
-        consumer: SwedbankPaySDK.Consumer,
-        userData: Any?,
-        completion: @escaping (Result<OperationsList, SwedbankPaySDK.MerchantBackendError>) -> Void
-    ) {
-        post(api: api, body: consumer, completion: completion) { decorator, request in
-            decorator.decorateInitiateConsumerSession(request: &request, consumer: consumer, userData: userData)
+public extension SwedbankPaySDK {
+    /// Payment instrument for an Instrument mode payment order.
+    struct Instrument: RawRepresentable, Hashable, Codable {
+        public static let creditCard = Instrument(rawValue: "CreditCard")
+        public static let swish = Instrument(rawValue: "Swish")
+        public static let invoice = Instrument(rawValue: "Invoice-PayExFinancingSe")
+        
+        public var rawValue: String
+        
+        public init(rawValue: String) {
+            self.rawValue = rawValue
         }
     }
 }

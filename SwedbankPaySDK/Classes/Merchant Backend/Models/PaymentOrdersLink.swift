@@ -22,10 +22,10 @@ struct PaymentOrdersLink: Link {
         api: MerchantBackendApi,
         paymentOrder: SwedbankPaySDK.PaymentOrder,
         userData: Any?,
-        completion: @escaping (Result<OperationsList, SwedbankPaySDK.MerchantBackendError>) -> Void
+        completion: @escaping (Result<PaymentOrderIn, SwedbankPaySDK.MerchantBackendError>) -> Void
     ) {
         let body = Body(paymentorder: paymentOrder)
-        post(api: api, body: body, completion: completion) { decorator, request in
+        _ = request(api: api, method: .post, body: body, completion: completion) { decorator, request in
             decorator.decorateCreatePaymentOrder(request: &request, paymentOrder: paymentOrder, userData: userData)
         }
     }

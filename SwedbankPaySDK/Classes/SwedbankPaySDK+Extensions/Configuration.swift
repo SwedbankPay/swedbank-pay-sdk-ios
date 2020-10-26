@@ -16,7 +16,12 @@
 import Foundation
 import WebKit
 
-private let callbackURLTypeKey = "com.swedbank.SwedbankPaySDK.callback"
+/// A handle to a request started by a call to SwedbankPaySDKConfiguration.
+public protocol SwedbankPaySDKRequest {
+    /// Cancels the request. If should not call its completion block
+    /// after this method returns.
+    func cancel()
+}
 
 /// A SwedbankPaySDKConfiguration is responsible for
 /// creating and manipulating Consumer Identification Sessions
@@ -64,6 +69,30 @@ public protocol SwedbankPaySDKConfiguration {
         completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
     )
     
+    /// Called by SwedbankPaySDKController when it needs to update the
+    /// ongoing payment order.
+    ///
+    /// As the update could be cancelled, you must also return a request handle
+    /// that allows the request to cancelled.
+    ///
+    /// - parameter paymentOrder: the SwedbankPaySDK.PaymentOrder
+    ///  the SwedbankPaySDKController was created with
+    /// - parameter userData: the user data the SwedbankPaySDKController was created with
+    /// - parameter viewPaymentOrderInfo: the current ViewPaymentOrderInfo
+    ///  as returned from a call to this or postPaymentorders
+    /// - parameter updateInfo: the updateInfo value from the `updatePaymentOrder` call
+    /// As you are in control of both the configuration and the update call, you can
+    /// coordinate the actual type used here.
+    /// - parameter completion: callback you must invoke to supply the result
+    /// - returns: a cancellation handle to the request started by this call
+    func updatePaymentOrder(
+        paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        userData: Any?,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
+        updateInfo: Any,
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
+    ) -> SwedbankPaySDKRequest?
+    
     /// Called by SwedbankPaySDKController when the payment menu is about to navigate
     /// to a different page. Testing has shown that some pages are incompatible with
     /// WKWebView. The SDK contains a list of redirects tested to be working, but you
@@ -80,6 +109,19 @@ public protocol SwedbankPaySDKConfiguration {
         navigationAction: WKNavigationAction,
         completion: @escaping (SwedbankPaySDK.PaymentMenuRedirectPolicy) -> Void
     )
+}
+
+public extension SwedbankPaySDKConfiguration {
+    func updatePaymentOrder(
+        paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        userData: Any?,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
+        updateInfo: Any,
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
+    ) -> SwedbankPaySDKRequest? {
+        completion(.success(viewPaymentOrderInfo))
+        return nil
+    }
 }
 
 public extension SwedbankPaySDKConfiguration {

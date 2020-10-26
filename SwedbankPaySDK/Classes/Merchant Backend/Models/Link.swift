@@ -14,6 +14,7 @@
 // limitations under the License.
 
 import Foundation
+import Alamofire
 
 let linkBaseUrlUserInfoKey = CodingUserInfoKey(rawValue: "linkBaseUrl")!
 
@@ -54,7 +55,7 @@ extension Link {
         // supply a (degenerate) implementation of Encodable
         // for Never. There should be no harm in doing so,
         // but it is also not strictly necessary. String? is fine.
-        api.request(
+        _ = api.request(
             method: .get,
             url: href,
             body: nil as String?,
@@ -63,14 +64,15 @@ extension Link {
         )
     }
     
-    func post<B: Encodable, T: Decodable>(
+    func request<B: Encodable, T: Decodable>(
         api: MerchantBackendApi,
+        method: HTTPMethod,
         body: B,
         completion: @escaping (Result<T, SwedbankPaySDK.MerchantBackendError>) -> Void,
         decoratorCall: @escaping MerchantBackendApi.DecoratorCall
-    ) {
-        api.request(
-            method: .post,
+    ) -> SwedbankPaySDKRequest? {
+        return api.request(
+            method: method,
             url: href,
             body: body,
             decoratorCall: decoratorCall,

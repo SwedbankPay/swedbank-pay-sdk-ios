@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
+
 struct Operation: Decodable {
     var href: String?
     var rel: String?
@@ -20,5 +22,20 @@ struct Operation: Decodable {
     enum TypeString: String {
         case viewConsumerIdentification = "view-consumer-identification"
         case viewPaymentOrder = "view-paymentorder"
+    }
+}
+
+extension Array where Element == Operation {
+    func find(rel: String) -> URL? {
+        let operation = first { $0.rel == rel }
+        let href = (operation?.href).flatMap(URL.init(string:))
+        return href
+    }
+    
+    func require(rel: String) throws -> URL {
+        guard let href = find(rel: rel) else {
+            throw SwedbankPaySDK.MerchantBackendError.missingRequiredOperation(rel)
+        }
+        return href
     }
 }

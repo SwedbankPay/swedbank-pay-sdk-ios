@@ -28,10 +28,10 @@ public extension SwedbankPaySDK {
         /// when showing the payment menu.
         ///
         /// This should match your payment order's `hostUrls`.
-        var webViewBaseURL: URL?
+        public var webViewBaseURL: URL?
         
         /// The `view-paymentorder` link from Swedbank Pay.
-        var viewPaymentorder: URL
+        public var viewPaymentorder: URL
         
         /// The `completeUrl` of the payment order
         ///
@@ -39,7 +39,7 @@ public extension SwedbankPaySDK {
         /// so it need not point to an actual web page,
         /// but it must be a valid url and it must be distinct
         /// form the other urls.
-        var completeUrl: URL
+        public var completeUrl: URL
 
         /// The `cancelUrl` of the payment order
         ///
@@ -47,7 +47,7 @@ public extension SwedbankPaySDK {
         /// so it need not point to an actual web page,
         /// but it must be a valid url and it must be distinct
         /// form the other urls.
-        var cancelUrl: URL?
+        public var cancelUrl: URL?
 
         /// The `paymentUrl` of the payment order
         ///
@@ -89,7 +89,7 @@ public extension SwedbankPaySDK {
         /// an url in your `UIApplicationDelegate(_:open:options:)` method
         /// that looks like this:
         ///  - fallback://example.com/sdk-callback/ios-universal-link?scheme=fallback&language=en-US&id=1234&fallback=true
-        var paymentUrl: URL?
+        public var paymentUrl: URL?
 
         /// The `termsOfServiceUrl` of the payment order
         ///
@@ -97,7 +97,28 @@ public extension SwedbankPaySDK {
         /// taps on the Terms of Service link.
         /// You can override that behaviour in your
         /// `SwedbankPaySDKDelegate`.
-        var termsOfServiceUrl: URL?
+        public var termsOfServiceUrl: URL?
+        
+        /// If the payment order is in instrument mode, the current instrument
+        ///
+        /// The SDK does not use this property for anything, so you need not set
+        /// a value even if you are using instrument mode. But if you are implementing
+        /// instrument mode payments, it is probably helpful if you set
+        /// a value here. `MerchantBackendConfiguration` sets this property
+        /// and `validInstruments` if the payment order it creates is in instrument mode.
+        public var instrument: Instrument?
+        
+        /// If the payment order is in instrument mode, all the valid instruments for it
+        ///
+        /// The SDK does not use this property for anything, so you need not set
+        /// a value even if you are using instrument mode. But if you are implementing
+        /// instrument mode payments, it is probably helpful if you set
+        /// a value here. `MerchantBackendConfiguration` sets this property
+        /// and `instrument` if the payment order it creates is in instrument mode.
+        public var validInstruments: [Instrument]?
+        
+        /// Any data you need for the proper functioning of your `SwedbankPaySDKConfiguration`.
+        public var userInfo: Any?
 
         public init(
             webViewBaseURL: URL?,
@@ -105,7 +126,10 @@ public extension SwedbankPaySDK {
             completeUrl: URL,
             cancelUrl: URL?,
             paymentUrl: URL?,
-            termsOfServiceUrl: URL?
+            termsOfServiceUrl: URL?,
+            instrument: Instrument? = nil,
+            validInstruments: [Instrument]? = nil,
+            userInfo: Any? = nil
         ) {
             self.webViewBaseURL = webViewBaseURL
             self.viewPaymentorder = viewPaymentorder
@@ -113,6 +137,9 @@ public extension SwedbankPaySDK {
             self.cancelUrl = cancelUrl
             self.paymentUrl = paymentUrl
             self.termsOfServiceUrl = termsOfServiceUrl
+            self.instrument = instrument
+            self.validInstruments = validInstruments
+            self.userInfo = userInfo
         }
     }
 }

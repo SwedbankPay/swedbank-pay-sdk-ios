@@ -21,7 +21,13 @@ private let callbackURLTypeKey = "com.swedbank.SwedbankPaySDK.callback"
 public extension SwedbankPaySDK {
     /// A SwedbankPaySDKConfiguration for integrating with a backend
     /// implementing the Merchant Backend API.
+    ///
+    /// When using this configuration, you can use `updatePaymentOrder`
+    /// to set the instrument of an instrument mode payment by calling
+    /// it with the desired instrument,
+    /// e.g. `updatePaymentOrder(updateInfo: SwedbankPaySDK.Instrument.creditCard)`.
     struct MerchantBackendConfiguration: SwedbankPaySDKConfiguration {
+        
         internal let api: MerchantBackendApi
         internal let rootLink: RootLink
         
@@ -167,7 +173,7 @@ public extension SwedbankPaySDK {
                     userData: userData
                 ) {
                     do {
-                        let viewConsumerIdentification = try $0.get().requireOperation(
+                        let viewConsumerIdentification = try $0.get().operations.require(
                             rel: Operation.TypeString.viewConsumerIdentification.rawValue
                         )
                         let info = ViewConsumerIdentificationInfo(
@@ -201,16 +207,30 @@ public extension SwedbankPaySDK {
                     userData: userData
                 ) {
                     do {
-                        let viewPaymentorder = try $0.get().requireOperation(
+                        let paymentOrderIn = try $0.get()
+                        let viewPaymentorder = try paymentOrderIn.operations.require(
                             rel: Operation.TypeString.viewPaymentOrder.rawValue
                         )
+                        let setInstrument = paymentOrderIn.mobileSDK?.setInstrument
+                        let validInstruments = setInstrument != nil ? [
+                            SwedbankPaySDK.Instrument.creditCard,
+                            SwedbankPaySDK.Instrument.swish,
+                            SwedbankPaySDK.Instrument.invoice
+                        ] : nil
+                        let instrument = setInstrument != nil ?
+                            paymentOrderIn.paymentorder?.instrument ?? paymentOrder.instrument
+                            : nil
+                        
                         let info = ViewPaymentOrderInfo(
                             webViewBaseURL: paymentOrder.urls.hostUrls.first ?? self.backendUrl,
                             viewPaymentorder: viewPaymentorder,
                             completeUrl: paymentOrder.urls.completeUrl,
                             cancelUrl: paymentOrder.urls.cancelUrl,
                             paymentUrl: paymentOrder.urls.paymentUrl,
-                            termsOfServiceUrl: paymentOrder.urls.termsOfServiceUrl
+                            termsOfServiceUrl: paymentOrder.urls.termsOfServiceUrl,
+                            instrument: instrument,
+                            validInstruments: validInstruments,
+                            userInfo: setInstrument
                         )
                         completion(.success(info))
                     } catch let error {
@@ -218,6 +238,52 @@ public extension SwedbankPaySDK {
                     }
                 }
             }
+        }
+        
+        public func updatePaymentOrder(
+            paymentOrder: SwedbankPaySDK.PaymentOrder?,
+            userData: Any?,
+            viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
+            updateInfo: Any,
+            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>
+            ) -> Void
+        ) -> SwedbankPaySDKRequest? {
+            guard let instrument = updateInfo as? SwedbankPaySDK.Instrument else {
+                fatalError("Invalid updateInfo: \(updateInfo) (expected SwedbankPaySDK.Instrument)")
+            }
+            
+            guard let link = viewPaymentOrderInfo.userInfo as? SetInstrumentLink else {
+                completion(.failure(SwedbankPaySDK.MerchantBackendError.paymentNotInInstrumentMode))
+                return nil
+            }
+            
+            let request = link.patch(api: self.api, instrument: instrument, userData: userData) {
+                do {
+                    let paymentOrderIn = try $0.get()
+                    
+                    var newInfo = viewPaymentOrderInfo
+                    
+                    if let viewPaymentorder = paymentOrderIn.operations.find(
+                        rel: Operation.TypeString.viewPaymentOrder.rawValue
+                    ) {
+                        newInfo.viewPaymentorder = viewPaymentorder
+                    }
+                    
+                    newInfo.instrument = paymentOrderIn.paymentorder?.instrument ?? instrument
+                    
+                    let setInstrument = paymentOrderIn.mobileSDK?.setInstrument ?? link
+                    newInfo.userInfo = setInstrument
+                    
+                    completion(.success(newInfo))
+                } catch let error {
+                    if case MerchantBackendError.networkError(AFError.explicitlyCancelled) = error {
+                        // no callback after cancellation
+                    } else {
+                        completion(.failure(error))
+                    }
+                }
+            }
+            return request
         }
         
         public func decidePolicyForPaymentMenuRedirect(

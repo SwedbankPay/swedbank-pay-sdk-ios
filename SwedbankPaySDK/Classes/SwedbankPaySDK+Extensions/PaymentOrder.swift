@@ -30,7 +30,9 @@ public extension SwedbankPaySDK {
         public var description: String
         public var userAgent: String
         public var language: Language
+        public var instrument: Instrument?
         public var generateRecurrenceToken: Bool
+        public var generatePaymentToken: Bool
         public var restrictedToInstruments: [String]?
         public var urls: PaymentOrderUrls
         public var payeeInfo: PayeeInfo
@@ -47,7 +49,9 @@ public extension SwedbankPaySDK {
             description: String,
             userAgent: String = defaultUserAgent,
             language: Language = .English,
+            instrument: Instrument? = nil,
             generateRecurrenceToken: Bool = false,
+            generatePaymentToken: Bool = false,
             restrictedToInstruments: [String]? = nil,
             urls: PaymentOrderUrls,
             payeeInfo: PayeeInfo = .init(),
@@ -63,7 +67,9 @@ public extension SwedbankPaySDK {
             self.description = description
             self.userAgent = userAgent
             self.language = language
+            self.instrument = instrument
             self.generateRecurrenceToken = generateRecurrenceToken
+            self.generatePaymentToken = generatePaymentToken
             self.restrictedToInstruments = restrictedToInstruments
             self.urls = urls
             self.payeeInfo = payeeInfo
