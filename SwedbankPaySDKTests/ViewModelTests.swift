@@ -8,8 +8,12 @@ class ViewModelTests : XCTestCase {
     private var viewModel: SwedbankPaySDKViewModel!
     
     override func setUp() {
-        viewModel = SwedbankPaySDKViewModel()
-        viewModel.configuration = TestConstants.configuration
+        viewModel = SwedbankPaySDKViewModel(
+            configuration: TestConstants.configuration,
+            consumerData: TestConstants.consumerData,
+            paymentOrder: TestConstants.paymentOrder,
+            userData: nil
+        )
     }
     
     override func tearDown() {
@@ -40,8 +44,6 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldMakeGetRequestToBackendUrl() {
-        viewModel.consumerData = TestConstants.consumerData
-        
         expectRequest(to: TestConstants.backendUrl, expectedRequest: .get)
         viewModel.identifyConsumer { _ in }
         waitForExpectations(timeout: timeout, handler: nil)
@@ -49,8 +51,6 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldRejectInvalidResponseToBackendUrl() {
-        viewModel.consumerData = TestConstants.consumerData
-        
         MockURLProtocol.stubJson(url: TestConstants.backendUrl, json: [:])
         
         viewModel.identifyConsumer(completion: expectFailure())
@@ -60,8 +60,6 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldMakePostRequestToConsumersUrl() {
-        viewModel.consumerData = TestConstants.consumerData
-        
         MockURLProtocol.stubBackendUrl()
         
         expectRequest(to: TestConstants.absoluteConsumersUrl, expectedRequest: .postJson({
@@ -78,8 +76,6 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldAcceptValidResponseToConsumersRequest() {
-        viewModel.consumerData = TestConstants.consumerData
-
         MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubConsumers()
         
@@ -92,8 +88,6 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldRejectInvalidResponseToConsumersRequest() {
-        viewModel.consumerData = TestConstants.consumerData
-        
         MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubError(url: TestConstants.absoluteConsumersUrl)
         viewModel.identifyConsumer(completion: expectFailure())
@@ -102,7 +96,6 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldMakePostRequestToPaymentOrdersUrl() {
-        viewModel.paymentOrder = TestConstants.paymentOrder
         viewModel.consumerProfileRef = TestConstants.consumerProfileRef
         
         MockURLProtocol.stubBackendUrl()
@@ -123,8 +116,6 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldAcceptValidResponseToPaymentOrdersRequest() {
-        viewModel.paymentOrder = TestConstants.paymentOrder
-        
         MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubPaymentorders()
         
@@ -137,8 +128,6 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldRejectInvalidResponseToPaymentOrdersRequest() {
-        viewModel.paymentOrder = TestConstants.paymentOrder
-
         MockURLProtocol.stubBackendUrl()
         MockURLProtocol.stubError(url: TestConstants.absolutePaymentordersUrl)
         viewModel.createPaymentOrder(completion: expectFailure())

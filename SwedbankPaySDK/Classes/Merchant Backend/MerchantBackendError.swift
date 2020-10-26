@@ -28,5 +28,7 @@ public extension SwedbankPaySDK {
         case problem(Problem)
         /// Protocol error: a Merchant Backend response did not contain an operation that is required to continue
         case missingRequiredOperation(String)
+        /// Attempt to set the instrument of a payment that is not in instrument mode
+        case paymentNotInInstrumentMode
     }
 }

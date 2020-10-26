@@ -27,12 +27,4 @@ struct OperationsList: Decodable {
             self.operations = operations
         }
     }
-    
-    func requireOperation(rel: String) throws -> URL {
-        let operation = operations.first { $0.rel == rel }
-        guard let href = (operation?.href).flatMap(URL.init(string:)) else {
-            throw SwedbankPaySDK.MerchantBackendError.missingRequiredOperation(rel)
-        }
-        return href
-    }
 }

@@ -16,9 +16,25 @@
 import UIKit
 import WebKit
 
-
 /// Swedbank Pay SDK protocol, conform to this to get the result of the payment process
 public protocol SwedbankPaySDKDelegate: AnyObject {
+    /// Called whenever the payment order is shown in this
+    /// view controller's view.
+    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentOrderInfo)
+    /// Called when the payment order is no longer visible after being shown.
+    /// Usually this happens because the payment order needed to redirect
+    /// to a 3D-Secure page.
+    ///
+    /// This is usually interesting if you are using instrument mode
+    /// to provide custom instrument selection. You should disallow
+    /// changing the instrument at this state.
+    func paymentOrderDidHide()
+    /// Called if an attempt to update the payment order fails.
+    func updatePaymentOrderFailed(
+        updateInfo: Any,
+        error: Error
+    )
+    
     func paymentComplete()
     func paymentCanceled()
     
@@ -45,6 +61,13 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     func overrideTermsOfServiceTapped(url: URL) -> Bool
 }
 public extension SwedbankPaySDKDelegate {
+    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentOrderInfo) {}
+    func paymentOrderDidHide() {}
+    func updatePaymentOrderFailed(
+        updateInfo: Any,
+        error: Error
+    ) {}
+    
     func overrideTermsOfServiceTapped(url: URL) -> Bool {
         return false
     }
@@ -64,7 +87,31 @@ public final class SwedbankPaySDKController: UIViewController {
         case ScriptError(SwedbankPaySDK.TerminalFailure?)
     }
     
+    /// A delegate to receive callbacks as the state of SwedbankPaySDKController changes.
     public weak var delegate: SwedbankPaySDKDelegate?
+    
+    /// The current payment order in this SwedbankPaySDKController.
+    ///
+    /// This will be `nil` until the first call to
+    /// SwedbankPaySDKDelegate.paymentOrderDidShow. It will not become `nil`
+    /// after that, so it does *not* represent the state of whether
+    /// the payment order is currently showing or not.
+    /// Is value is always the most recent value returned from your
+    /// `SwedbankPaySDKConfiguration` (currently from either
+    /// `postPaymentorders` or `patchUpdatePaymentorderSetinstrument`.
+    public var currentPaymentOrder: SwedbankPaySDK.ViewPaymentOrderInfo? {
+        return viewModel.viewPaymentOrderInfo
+    }
+    
+    /// `true` if the payment order is currently shown, `false` otherwise
+    public var showingPaymentOrder: Bool {
+        return currentPaymentOrder != nil && rootWebViewController.isAtRoot
+    }
+    
+    /// `true` if the payment order is currently being updated, `false` otherwise
+    public var updatingPaymentOrder: Bool {
+        return viewModel.updating
+    }
     
     // These are useful for investigating issuers' compatibility with WKWebView
     //
@@ -102,7 +149,7 @@ public final class SwedbankPaySDKController: UIViewController {
             rootWebViewController.navigationLogger = newValue
         }
     }
-    
+        
     private let userContentController = WKUserContentController()
     private lazy var rootWebViewController = createRootWebViewController()
     
@@ -115,7 +162,7 @@ public final class SwedbankPaySDKController: UIViewController {
     }
     private lazy var initialLoadingIndicator = UIActivityIndicatorView(style: loadingIndicatorStyle)
     
-    private lazy var viewModel = SwedbankPaySDKViewModel()
+    private let viewModel: SwedbankPaySDKViewModel
     
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -157,13 +204,13 @@ public final class SwedbankPaySDKController: UIViewController {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?
     ) {
+        viewModel = SwedbankPaySDKViewModel(
+            configuration: configuration,
+            consumerData: consumer,
+            paymentOrder: paymentOrder,
+            userData: userData
+        )
         super.init(nibName: nil, bundle: nil)
-        
-        viewModel.configuration = configuration
-        viewModel.consumerData = consumer
-        viewModel.paymentOrder = paymentOrder
-        viewModel.userData = userData
-        viewModel.consumerProfileRef = nil
         
         /// Start the payment process
         if withCheckin {
@@ -178,6 +225,29 @@ public final class SwedbankPaySDKController: UIViewController {
     deinit {
         SwedbankPaySDK.removeCallbackUrlDelegate(self)
         set(scriptMessageHandler: nil)
+        viewModel.cancelUpdate()
+    }
+    
+    /// Performs an update on the current payment order.
+    ///
+    /// When you call this method, it will result in a callback to your
+    /// `SwedbankPaySDKConfiguration.updatePaymentOrder` method;
+    /// the meaning of `updateInfo` is determined by your implementation
+    /// of that method.
+    ///
+    /// After calling this method, you should disable user interaction
+    /// until the update finishes. Your delegate will receive either a
+    /// `paymentOrderDidShow` or `updatePaymentOrderFailed` when that happens.
+    /// If you call this method while an update is in progress,
+    /// the previous update will be canceled first.
+    ///
+    /// See `SwedbankPaySDK.MerchantBackendConfiguration` for an example.
+    public func updatePaymentOrder(updateInfo: Any) {
+        viewModel.updatePaymentOrder(
+            updateInfo: updateInfo
+        ) { [weak self] in
+            self?.handleUpdatePaymentOrderResult(updateInfo: updateInfo, result: $0)
+        }
     }
     
     private func createRootWebViewController() -> SwedbankPayWebViewController {
@@ -256,6 +326,21 @@ public final class SwedbankPaySDKController: UIViewController {
         }
     }
     
+    private func handleUpdatePaymentOrderResult(
+        updateInfo: Any,
+        result: Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>
+    ) {
+        switch result {
+        case .success(let info):
+            showPaymentOrder(info: info, delay: false)
+        case .failure(let error):
+            delegate?.updatePaymentOrderFailed(
+                updateInfo: updateInfo,
+                error: error
+            )
+        }
+    }
+    
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         SwedbankPaySDK.addCallbackUrlDelegate(self)
@@ -300,6 +385,7 @@ public final class SwedbankPaySDKController: UIViewController {
         ) { [weak self] (event, argument) in
             self?.on(paymentEvent: event, argument: argument)
         }
+        delegate?.paymentOrderDidShow(info: info)
     }
     
     private func reloadPaymentMenu(delay: Bool = false) {
@@ -452,8 +538,8 @@ extension SwedbankPaySDKController : CallbackUrlDelegate {
     private func callback(components: URLComponents, matchPaymentUrlComponents paymentUrlComponents: URLComponents) -> Bool {
         // Treat fallback scheme as equal to the original scheme
         var componentsToCompare = components
-        if let callbackScheme = viewModel.configuration?.callbackScheme,
-            componentsToCompare.scheme == callbackScheme {
+        let callbackScheme = viewModel.configuration.callbackScheme
+        if componentsToCompare.scheme == callbackScheme {
             componentsToCompare.scheme = paymentUrlComponents.scheme
         }
         
@@ -597,6 +683,7 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
         if webViewController === rootWebViewController {
             set(scriptMessageHandler: nil)
             initialLoadingIndicator.stopAnimating()
+            delegate?.paymentOrderDidHide()
         }
     }
     
@@ -622,14 +709,13 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
         } else {
             switch webRedirectBehavior {
             case .Default:
-                if let configuration = viewModel.configuration {
-                    configuration.decidePolicyForPaymentMenuRedirect(
-                        navigationAction: navigationAction
-                    ) {
-                        completion($0 == .openInWebView)
+                viewModel.configuration.decidePolicyForPaymentMenuRedirect(
+                    navigationAction: navigationAction
+                ) {
+                    let allow = $0 == .openInWebView
+                    DispatchQueue.main.async {
+                        completion(allow)
                     }
-                } else {
-                    GoodWebViewRedirects.instance.allows(url: url, completion: completion)
                 }
                 
             case .AlwaysUseWebView:

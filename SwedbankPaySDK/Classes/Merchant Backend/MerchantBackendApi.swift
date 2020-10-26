@@ -32,18 +32,20 @@ struct MerchantBackendApi {
         body: B?,
         decoratorCall: @escaping DecoratorCall,
         completion: @escaping (Result<T, SwedbankPaySDK.MerchantBackendError>) -> Void
-    ) {
+    ) -> SwedbankPaySDKRequest? {
         do {
             let request = try buildRequest(
                 method: method, url: url, body: body, decoratorCall: decoratorCall
             )
             perform(request: request, completion: completion)
+            return request
         } catch let error {
             let merchantBackendError = error as? SwedbankPaySDK.MerchantBackendError
                 ?? .networkError(error)
             DispatchQueue.main.async {
                 completion(.failure(merchantBackendError))
             }
+            return nil
         }
     }
     
