@@ -31,17 +31,6 @@ public protocol SwedbankPaySDKRequest {
 /// a configuration that integrates with a backend implementing
 /// the Merchant Backend API.
 public protocol SwedbankPaySDKConfiguration {
-    /// The URL scheme to be used as fallback to route paymentUrls to this app
-    ///
-    /// This scheme must be registered to the application.
-    /// If your paymentUrl ends up being opened in a browser,
-    /// it should have such content that ultimately it will navigate to a url
-    /// that is otherwise equal to the original paymentUrl, but its scheme
-    /// is this scheme, and it may optionally have additional query
-    /// parameters (these parameters will be ignored by the SDK, but can be
-    /// used to control the behaviour of your backend).
-    var callbackScheme: String { get }
-    
     /// Called by SwedbankPaySDKController when it needs to start a consumer identification
     /// session. Your implementation must ultimately make the call to Swedbank Pay API
     /// and call completion with a SwedbankPaySDK.ViewConsumerIdentificationInfo describing the result.
@@ -109,6 +98,60 @@ public protocol SwedbankPaySDKConfiguration {
         navigationAction: WKNavigationAction,
         completion: @escaping (SwedbankPaySDK.PaymentMenuRedirectPolicy) -> Void
     )
+    
+    /// Called by SwedbankPaySDKController when it needs to check if a given url
+    /// is equivalent to a `paymentUrl` of a payment order.
+    /// This method has a default implementation. In advanced scenarios you
+    /// may wish to provide your own implementation instead.
+    ///
+    /// The default implementation from allows for the scheme to change,
+    /// and for extra query parameters to be added to the paymentUrl.
+    /// I.e. if the paymentUrl is https://example.com/?a=1,
+    /// then all of the following match:
+    ///  - https://example.com/?a=1
+    ///  - https://example.com/?a=1&b=2
+    ///  - com.example.my.app://example.com/?a=1
+    ///  - com.example.my.app://example.com/?a=1&b=2
+    ///
+    /// The need for this method merits some discussion.
+    /// When a 3D-Secure flow starts an external application, such as
+    /// BankID, that application will in turn continue the flow by opening
+    /// some url. Usually that url will be a url of the card issuer, and therefore
+    /// not routed back to our app. Instead, it will be opened in Safari. Of course,
+    /// ultimately that page will navigate to the paymentUrl of the payment order
+    /// in progress. Assuming both your backend and your app are configured correctly,
+    /// the paymentUrl should be a Universal Link to your app, and you should
+    /// receive the url your
+    /// `UIApplicationDelegate.application(_:continue:restorationHandler:)`.
+    /// You will then forward the url to the SDK by calling
+    /// `SwedbankPaySDK.continue(userActivity:)`. The url there is then equal
+    /// to the payment order's paymentUrl (which you reported to the SDK in the
+    /// `ViewPaymentOrderInfo`), the SDK recognizes this, and the payment menu is reloaded.
+    ///
+    /// However, the mechanics of Universal Links make them unreliable. To work around
+    /// their limitations, we must allow for alternate urls to also match the paymentUrl.
+    /// To see why, consider the following flow of events:
+    ///  1. The card issuer page navigates to `paymentUrl`. This is our first opportunity;
+    ///     Here the url is equal to `paymentUrl`.
+    ///  2. Assume `paymentUrl` is opened in Safari. We must show some html content to the user.
+    ///     Show them a page with a "continue" button, which links back to the `paymentUrl`,
+    ///     but with an extra parameter (this is needed for the next step).
+    ///     This is our second opportunity; here the url is `paymentUrl` with an extra query
+    ///     parameter.
+    ///  3. Assume the `paymentUrl` with extra parameter is *also* opened in Safari.
+    ///     (N.B! This should not happen with if all parts of your system are configured
+    ///     correctly, but in principle it is possible that iOS has not yet successfully
+    ///     retrieved your apple-app-site-association file. Also this scenario is prone to
+    ///     occuring during development, so it is nice not to get stuck here.) We show the same
+    ///     html content, except the "continue" button now links to `paymentUrl` with the scheme
+    ///     changed to a scheme unique to your app.
+    ///  4. There is nowhere else for the custom-scheme link to go except your app, so
+    ///     here is our final possibility of getting the url. Now the url is `paymentUrl`
+    ///     but with a different scheme. (In our Merchant Backend example implementation,
+    ///     it is actually `paymentUrl` with both an extra query parameter and a different
+    ///     scheme, to simplify the implementation.) Note that in this case we get the url
+    ///     in our `UIApplicationDelegate.application(_:open:options:)` method instead.
+    func url(_ url: URL, matchesPaymentUrl paymentUrl: URL) -> Bool
 }
 
 public extension SwedbankPaySDKConfiguration {
@@ -156,5 +199,129 @@ public extension SwedbankPaySDK {
         case openInWebView
         /// open the redirect in the web browser app
         case openInBrowser
+    }
+}
+
+/// A refinement of SwedbankPaySDKConfiguration.
+/// SwedbankPaySDKConfigurationWithCallbackScheme uses knowledge of the
+/// custom scheme used for `paymentUrl` to only accept
+/// `paymentUrl` with the original scheme or the specified scheme.
+public protocol SwedbankPaySDKConfigurationWithCallbackScheme : SwedbankPaySDKConfiguration {
+    /// The URL scheme to be used as fallback to route paymentUrls to this app
+    ///
+    /// This scheme must be registered to the application.
+    /// If your paymentUrl ends up being opened in a browser,
+    /// it should have such content that ultimately it will navigate to a url
+    /// that is otherwise equal to the original paymentUrl, but its scheme
+    /// is this scheme, and it may optionally have additional query
+    /// parameters (these parameters will be ignored by the SDK, but can be
+    /// used to control the behaviour of your backend).
+    var callbackScheme: String { get }
+}
+
+public extension SwedbankPaySDKConfiguration {
+    func url(_ url: URL, matchesPaymentUrl paymentUrl: URL) -> Bool {
+        return prospectivePaymentUrl(
+            url: url,
+            matches: paymentUrl,
+            callbackScheme: nil
+        )
+    }
+}
+
+public extension SwedbankPaySDKConfigurationWithCallbackScheme {
+    func url(_ url: URL, matchesPaymentUrl paymentUrl: URL) -> Bool {
+        return prospectivePaymentUrl(
+            url: url,
+            matches: paymentUrl,
+            callbackScheme: callbackScheme
+        )
+    }
+}
+
+private extension SwedbankPaySDKConfiguration {
+    func prospectivePaymentUrl(
+        url: URL,
+        matches paymentUrl: URL,
+        callbackScheme: String?
+    ) -> Bool {
+        // Because of the interaction between how Universal Links work
+        // (first, they will only be followed if the navigation started
+        // from a user interaction; and second, they will only be followed
+        // if their domain is different to the current page), and how many
+        // 3DS pages are designed (i.e. they have a timeout that navigates
+        // to the payment url), we have to perform some gymnastics to get
+        // back to the app while maintaining a nice user experience.
+        //
+        // How this works is:
+        //  - paymentUrl is a Universal Link
+        //    - if stars align, this will get routed to our app. Usually not the case. (See below for note)
+        //  - in browser, paymentUrl redirects to a page different domain
+        //  - that page has a button
+        //  - pressing the button navigates back to paymentUrl but with an extra query parameter
+        //    - in most cases, this will be routed to our app
+        //  - in browser, paymentUrl with the extra parameter redirects to the same url but with a custom scheme
+        //
+        // We don't do the last one immediately, because doing that will show a
+        // popup that we have no control over. It is included as a final fallback mechanism.
+        //
+        // N.B! iOS version 13.4 has slightly changed how Universal Links
+        // work, and it seems that it is now more likely that already
+        // the first universal link will be routed to our app.
+        //
+        // All of the above means, that if paymentUrl is https://<foo>,
+        // then all of the following are equal in this sense:
+        //  - https://<foo>
+        //  - https://<foo>&fallback=true
+        //  - <customscheme>://<foo>&fallback=true
+        //  (the following won't be used by the example backend, but your custom one may)
+        //  - https://<foo>?fallback=true
+        //  - <customscheme>://foo
+        //  - <customscheme>://<foo>?fallback=true
+        //
+        // For simplicity, we require the URL to be parseable to URLComponents,
+        // i.e. that if conforms to RFC 3986. This should never be a problem in practice.
+        
+        guard
+            let paymentUrlComponents = URLComponents(
+                url: paymentUrl,
+                resolvingAgainstBaseURL: true
+            ),
+            var componentsToCompare = URLComponents(
+                url: url,
+                resolvingAgainstBaseURL: true
+            )
+            else {
+                return false
+        }
+        
+        // Treat fallback scheme as equal to the original scheme
+        if callbackScheme == nil || componentsToCompare.scheme == callbackScheme {
+            componentsToCompare.scheme = paymentUrlComponents.scheme
+        }
+        
+        // Check that all the original query items are in place
+        if !callback(queryItems: componentsToCompare.queryItems, match: paymentUrlComponents.queryItems) {
+            return false
+        }
+        
+        // Check that everything else is equal
+        var paymentUrlComponentsToCompare = paymentUrlComponents
+        componentsToCompare.queryItems = nil
+        paymentUrlComponentsToCompare.queryItems = nil
+        return componentsToCompare == paymentUrlComponentsToCompare
+    }
+    
+    private func callback(queryItems: [URLQueryItem]?, match requiredItems: [URLQueryItem]?) -> Bool {
+        // Backend is allowed to add query items to the url.
+        // It must not remove or modify any.
+        var items = queryItems ?? []
+        for requiredItem in requiredItems ?? [] {
+            guard let index = items.firstIndex(of: requiredItem) else {
+                return false
+            }
+            items.remove(at: index)
+        }
+        return true
     }
 }

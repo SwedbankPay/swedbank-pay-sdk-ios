@@ -16,7 +16,7 @@
 import Foundation
 
 public extension SwedbankPaySDK {
-    /// Call from your `UIApplicationDelegate(_:open:options:)`
+    /// Call from your `UIApplicationDelegate.application(_:open:options:)`
     /// implementation to forward paymentUrls to the SDK
     ///
     /// - parameter url: the URL to forward

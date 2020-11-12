@@ -487,85 +487,12 @@ extension SwedbankPaySDKController : CallbackUrlDelegate {
     }
     
     private func urlMatchesPaymentUrl(url: URL) -> Bool {
-        // Because of the interaction between how Universal Links work
-        // (first, they will only be followed if the navigation started
-        // from a user interaction; and second, they will only be followed
-        // if their domain is different to the current page), and how many
-        // 3DS pages are designed (i.e. they have a timeout that navigates
-        // to the payment url), we have to perform some gymnastics to get
-        // back to the app while maintaining a nice user experience.
-        //
-        // How this works is:
-        //  - paymentUrl is a Universal Link
-        //    - if stars align, this will get routed to our app. Usually not the case. (See below for note)
-        //  - in browser, paymentUrl redirects to a page different domain
-        //  - that page has a button
-        //  - pressing the button navigates back to paymentUrl but with an extra query parameter
-        //    - in most cases, this will be routed to our app
-        //  - in browser, paymentUrl with the extra parameter redirects to the same url but with a custom scheme
-        //
-        // We don't do the last one immediately, because doing that will show a
-        // popup that we have no control over. It is included as a final fallback mechanism.
-        //
-        // N.B! iOS version 13.4 has slightly changed how Universal Links
-        // work, and it seems that it is now more likely that already
-        // the first universal link will be routed to our app.
-        //
-        // All of the above means, that if paymentUrl is https://<foo>,
-        // then all of the following are equal in this sense:
-        //  - https://<foo>
-        //  - https://<foo>&fallback=true
-        //  - <customscheme>://<foo>&fallback=true
-        //  (the following won't be used by the example backend, but your custom one may)
-        //  - https://<foo>?fallback=true
-        //  - <customscheme>://foo
-        //  - <customscheme>://<foo>?fallback=true
-        //
-        // For simplicity, we require the URL to be parseable to URLComponents,
-        // i.e. that if conforms to RFC 3986. This should never be a problem in practice.
-        
-        guard
-            let paymentUrl = viewModel.viewPaymentOrderInfo?.paymentUrl,
-            let paymentUrlComponents = URLComponents(url: paymentUrl, resolvingAgainstBaseURL: true),
-            let urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true)
-            else {
-                return false
-        }
-        
-        return callback(components: urlComponents, matchPaymentUrlComponents: paymentUrlComponents)
-    }
-    
-    private func callback(components: URLComponents, matchPaymentUrlComponents paymentUrlComponents: URLComponents) -> Bool {
-        // Treat fallback scheme as equal to the original scheme
-        var componentsToCompare = components
-        let callbackScheme = viewModel.configuration.callbackScheme
-        if componentsToCompare.scheme == callbackScheme {
-            componentsToCompare.scheme = paymentUrlComponents.scheme
-        }
-        
-        // Check that all the original query items are in place
-        if !callback(queryItems: components.queryItems, match: paymentUrlComponents.queryItems) {
+        guard let paymentUrl = viewModel.viewPaymentOrderInfo?.paymentUrl else {
             return false
         }
-        
-        // Check that everything else is equal
-        var paymentUrlComponentsToCompare = paymentUrlComponents
-        componentsToCompare.queryItems = nil
-        paymentUrlComponentsToCompare.queryItems = nil
-        return componentsToCompare == paymentUrlComponentsToCompare
-    }
-    
-    private func callback(queryItems: [URLQueryItem]?, match requiredItems: [URLQueryItem]?) -> Bool {
-        // Backend is allowed to add query items to the url.
-        // It must not remove or modify any.
-        var items = queryItems ?? []
-        for requiredItem in requiredItems ?? [] {
-            guard let index = items.firstIndex(of: requiredItem) else {
-                return false
-            }
-            items.remove(at: index)
-        }
-        return true
+        // See SwedbankPaySDKConfiguration for discussion on why we need to do this.
+        return url == paymentUrl
+            || viewModel.configuration.url(url, matchesPaymentUrl: paymentUrl)
     }
 }
 
