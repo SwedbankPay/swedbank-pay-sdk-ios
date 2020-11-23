@@ -33,6 +33,7 @@ public extension SwedbankPaySDK {
         public var instrument: Instrument?
         public var generateRecurrenceToken: Bool
         public var generatePaymentToken: Bool
+        public var disableStoredPaymentDetails: Bool
         public var restrictedToInstruments: [String]?
         public var urls: PaymentOrderUrls
         public var payeeInfo: PayeeInfo
@@ -52,6 +53,7 @@ public extension SwedbankPaySDK {
             instrument: Instrument? = nil,
             generateRecurrenceToken: Bool = false,
             generatePaymentToken: Bool = false,
+            disableStoredPaymentDetails: Bool = false,
             restrictedToInstruments: [String]? = nil,
             urls: PaymentOrderUrls,
             payeeInfo: PayeeInfo = .init(),
@@ -70,6 +72,7 @@ public extension SwedbankPaySDK {
             self.instrument = instrument
             self.generateRecurrenceToken = generateRecurrenceToken
             self.generatePaymentToken = generatePaymentToken
+            self.disableStoredPaymentDetails = disableStoredPaymentDetails
             self.restrictedToInstruments = restrictedToInstruments
             self.urls = urls
             self.payeeInfo = payeeInfo
@@ -139,15 +142,18 @@ public extension SwedbankPaySDK {
         public var consumerProfileRef: String?
         public var email: String?
         public var msisdn: String?
+        public var payerReference: String?
          
         public init(
             consumerProfileRef: String? = nil,
             email: String? = nil,
-            msisdn: String? = nil
+            msisdn: String? = nil,
+            payerReference: String? = nil
         ) {
             self.consumerProfileRef = consumerProfileRef
             self.email = email
             self.msisdn = msisdn
+            self.payerReference = payerReference
         }
     }
 
