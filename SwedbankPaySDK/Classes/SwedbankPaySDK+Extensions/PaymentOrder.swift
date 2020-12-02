@@ -41,6 +41,7 @@ public extension SwedbankPaySDK {
         public var orderItems: [OrderItem]?
         public var riskIndicator: RiskIndicator?
         public var disablePaymentMenu: Bool
+        public var paymentToken: String?
         
         public init(
             operation: PaymentOrderOperation = .Purchase,
@@ -60,7 +61,8 @@ public extension SwedbankPaySDK {
             payer: PaymentOrderPayer? = nil,
             orderItems: [OrderItem]? = nil,
             riskIndicator: RiskIndicator? = nil,
-            disablePaymentMenu: Bool = false
+            disablePaymentMenu: Bool = false,
+            paymentToken: String? = nil
         ) {
             self.operation = operation
             self.currency = currency
@@ -80,6 +82,7 @@ public extension SwedbankPaySDK {
             self.orderItems = orderItems
             self.riskIndicator = riskIndicator
             self.disablePaymentMenu = disablePaymentMenu
+            self.paymentToken = paymentToken
         }
     }
     

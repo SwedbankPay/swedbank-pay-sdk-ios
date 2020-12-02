@@ -15,17 +15,6 @@
 
 import Foundation
 
-struct ConsumersLink: Link {
-    let href: URL
-    
-    func post(
-        api: MerchantBackendApi,
-        consumer: SwedbankPaySDK.Consumer,
-        userData: Any?,
-        completion: @escaping (Result<ConsumerSession, SwedbankPaySDK.MerchantBackendError>) -> Void
-    ) {
-        _ = request(api: api, method: .post, body: consumer, completion: completion) { decorator, request in
-            decorator.decorateInitiateConsumerSession(request: &request, consumer: consumer, userData: userData)
-        }
-    }
+struct ConsumerSession: Decodable {
+    var operations: [SwedbankPaySDK.Operation]
 }

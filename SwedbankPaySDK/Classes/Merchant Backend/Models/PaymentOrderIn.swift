@@ -14,15 +14,16 @@
 // limitations under the License.
 
 struct PaymentOrderIn: Decodable {
-    var paymentorder: PaymentOrder?
-    var operations: [Operation]
+    var paymentOrder: PaymentOrder?
+    var operations: [SwedbankPaySDK.Operation]
     var mobileSDK: MobileSDK?
-    
-    struct MobileSDK: Decodable {
-        var setInstrument: SetInstrumentLink?
-    }
     
     struct PaymentOrder: Decodable {
         var instrument: SwedbankPaySDK.Instrument?
+        var availableInstruments: [SwedbankPaySDK.Instrument]?
+    }
+    
+    struct MobileSDK: Decodable {
+        var setInstrument: SetInstrumentLink?
     }
 }
