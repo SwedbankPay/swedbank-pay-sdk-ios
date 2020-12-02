@@ -1,5 +1,5 @@
 //
-// Copyright 2019 Swedbank AB
+// Copyright 2020 Swedbank AB
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
 
 import Foundation
 
-struct OperationsList: Decodable {
-    var operations: [Operation] = []
-    
-    private enum CodingKeys: String, CodingKey {
-        case operations
-    }
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        if let operations = try container.decodeIfPresent([Operation].self, forKey: .operations) {
-            self.operations = operations
-        }
+public extension SwedbankPaySDK {
+    /// Response to MerchantBackend.getPayerOwnedPaymentTokens
+    struct PayerOwnedPaymentTokensResponse: Decodable {
+        /// The response payload.
+        public var payerOwnedPaymentTokens: PayerOwnedPaymentTokens
+        
+        /// Operations you can perform on the whole list of tokens.
+        /// Note that you generally cannot call these from your mobile app.
+        public var operations: [SwedbankPaySDK.Operation]?
     }
 }

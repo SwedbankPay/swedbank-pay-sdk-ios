@@ -15,27 +15,19 @@
 
 import Foundation
 
-struct Operation: Decodable {
-    var href: String?
-    var rel: String?
-    
-    enum TypeString: String {
-        case viewConsumerIdentification = "view-consumer-identification"
-        case viewPaymentOrder = "view-paymentorder"
-    }
-}
-
-extension Array where Element == Operation {
-    func find(rel: String) -> URL? {
-        let operation = first { $0.rel == rel }
-        let href = (operation?.href).flatMap(URL.init(string:))
-        return href
-    }
-    
-    func require(rel: String) throws -> URL {
-        guard let href = find(rel: rel) else {
-            throw SwedbankPaySDK.MerchantBackendError.missingRequiredOperation(rel)
-        }
-        return href
+public extension SwedbankPaySDK {
+    /// Swedbank Pay Operation. Operations are invoked by making an HTTP request.
+    ///
+    /// Please refer to the Swedbank Pay documentation
+    /// (https://developer.swedbankpay.com/checkout/other-features#operations).
+     struct Operation: Decodable {
+        /// The purpose of the operation. The exact meaning is dependent on the Operation context.
+        public var rel: String?
+        /// The request method
+        public var method: String?
+        /// The request URL
+        public var href: String?
+        /// The Content-Type of the response
+        public var contentType: String?
     }
 }

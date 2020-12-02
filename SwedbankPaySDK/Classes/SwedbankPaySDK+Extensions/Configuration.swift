@@ -93,7 +93,7 @@ public protocol SwedbankPaySDKConfiguration {
     /// redirects, call urlMatchesListOfGoodRedirects.
     ///
     /// - parameter navigationAction: the navigation that is about to happen
-    /// - completion: callback you must invoke to supply the result
+    /// - parameter completion: callback you must invoke to supply the result
     func decidePolicyForPaymentMenuRedirect(
         navigationAction: WKNavigationAction,
         completion: @escaping (SwedbankPaySDK.PaymentMenuRedirectPolicy) -> Void

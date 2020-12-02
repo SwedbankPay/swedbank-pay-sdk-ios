@@ -18,6 +18,26 @@ import Alamofire
 
 private let callbackURLTypeKey = "com.swedbank.SwedbankPaySDK.callback"
 
+private enum OperationRel {
+    static let viewConsumerIdentification = "view-consumer-identification"
+    static let viewPaymentOrder = "view-paymentorder"
+}
+
+private extension Array where Element == SwedbankPaySDK.Operation {
+    func find(rel: String) -> URL? {
+        let operation = first { $0.rel == rel }
+        let href = (operation?.href).flatMap(URL.init(string:))
+        return href
+    }
+    
+    func require(rel: String) throws -> URL {
+        guard let href = find(rel: rel) else {
+            throw SwedbankPaySDK.MerchantBackendError.missingRequiredOperation(rel)
+        }
+        return href
+    }
+}
+
 public extension SwedbankPaySDK {
     /// A SwedbankPaySDKConfiguration for integrating with a backend
     /// implementing the Merchant Backend API.
@@ -174,7 +194,7 @@ public extension SwedbankPaySDK {
                 ) {
                     do {
                         let viewConsumerIdentification = try $0.get().operations.require(
-                            rel: Operation.TypeString.viewConsumerIdentification.rawValue
+                            rel: OperationRel.viewConsumerIdentification
                         )
                         let info = ViewConsumerIdentificationInfo(
                             webViewBaseURL: self.backendUrl,
@@ -209,16 +229,14 @@ public extension SwedbankPaySDK {
                     do {
                         let paymentOrderIn = try $0.get()
                         let viewPaymentorder = try paymentOrderIn.operations.require(
-                            rel: Operation.TypeString.viewPaymentOrder.rawValue
+                            rel: OperationRel.viewPaymentOrder
                         )
                         let setInstrument = paymentOrderIn.mobileSDK?.setInstrument
-                        let validInstruments = setInstrument != nil ? [
-                            SwedbankPaySDK.Instrument.creditCard,
-                            SwedbankPaySDK.Instrument.swish,
-                            SwedbankPaySDK.Instrument.invoice
-                        ] : nil
-                        let instrument = setInstrument != nil ?
-                            paymentOrderIn.paymentorder?.instrument ?? paymentOrder.instrument
+                        let availableInstruments = setInstrument != nil
+                            ? paymentOrderIn.paymentOrder?.availableInstruments
+                            : nil
+                        let instrument = availableInstruments != nil
+                            ? paymentOrderIn.paymentOrder?.instrument
                             : nil
                         
                         let info = ViewPaymentOrderInfo(
@@ -229,7 +247,7 @@ public extension SwedbankPaySDK {
                             paymentUrl: paymentOrder.urls.paymentUrl,
                             termsOfServiceUrl: paymentOrder.urls.termsOfServiceUrl,
                             instrument: instrument,
-                            validInstruments: validInstruments,
+                            availableInstruments: availableInstruments,
                             userInfo: setInstrument
                         )
                         completion(.success(info))
@@ -264,15 +282,20 @@ public extension SwedbankPaySDK {
                     var newInfo = viewPaymentOrderInfo
                     
                     if let viewPaymentorder = paymentOrderIn.operations.find(
-                        rel: Operation.TypeString.viewPaymentOrder.rawValue
+                        rel: OperationRel.viewPaymentOrder
                     ) {
                         newInfo.viewPaymentorder = viewPaymentorder
                     }
                     
-                    newInfo.instrument = paymentOrderIn.paymentorder?.instrument ?? instrument
+                    if let availableInstruments = paymentOrderIn.paymentOrder?.availableInstruments {
+                        newInfo.availableInstruments = availableInstruments
+                    }
                     
-                    let setInstrument = paymentOrderIn.mobileSDK?.setInstrument ?? link
-                    newInfo.userInfo = setInstrument
+                    newInfo.instrument = paymentOrderIn.paymentOrder?.instrument ?? instrument
+                    
+                    if let setInstrument = paymentOrderIn.mobileSDK?.setInstrument {
+                        newInfo.userInfo = setInstrument
+                    }
                     
                     completion(.success(newInfo))
                 } catch let error {

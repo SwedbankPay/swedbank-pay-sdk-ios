@@ -115,7 +115,7 @@ public extension SwedbankPaySDK {
         /// instrument mode payments, it is probably helpful if you set
         /// a value here. `MerchantBackendConfiguration` sets this property
         /// and `instrument` if the payment order it creates is in instrument mode.
-        public var validInstruments: [Instrument]?
+        public var availableInstruments: [Instrument]?
         
         /// Any data you need for the proper functioning of your `SwedbankPaySDKConfiguration`.
         public var userInfo: Any?
@@ -128,7 +128,7 @@ public extension SwedbankPaySDK {
             paymentUrl: URL?,
             termsOfServiceUrl: URL?,
             instrument: Instrument? = nil,
-            validInstruments: [Instrument]? = nil,
+            availableInstruments: [Instrument]? = nil,
             userInfo: Any? = nil
         ) {
             self.webViewBaseURL = webViewBaseURL
@@ -138,7 +138,7 @@ public extension SwedbankPaySDK {
             self.paymentUrl = paymentUrl
             self.termsOfServiceUrl = termsOfServiceUrl
             self.instrument = instrument
-            self.validInstruments = validInstruments
+            self.availableInstruments = availableInstruments
             self.userInfo = userInfo
         }
     }
