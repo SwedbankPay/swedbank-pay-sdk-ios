@@ -17,11 +17,9 @@ idcheck.acs.touchtechpayments.com
 verifiedbyvisa.acs.touchtechpayments.com
 
 # OP (fi)
-op.wlp-acs.com
-kultaraha.op.fi
+*.wlp-acs.com
+*.op.fi
 acs1.luottokunta.fi
-op-bxl.wlp-acs.com
-valtuutus.op.fi
 
 # S-Pankki (fi)
 acs1.3ds.modirum.com
