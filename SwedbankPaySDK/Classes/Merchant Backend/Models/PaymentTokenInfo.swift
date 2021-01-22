@@ -29,5 +29,11 @@ public extension SwedbankPaySDK {
         ///
         /// Note that you generally cannot call these from your mobile app.
         public var operations: [Operation]?
+        
+        var mobileSDK: MobileSDK?
+        
+        struct MobileSDK: Decodable {
+            var delete: DeletePaymentTokenLink?
+        }
     }
 }
