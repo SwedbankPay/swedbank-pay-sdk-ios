@@ -12,13 +12,6 @@
 
 The Swedbank Pay iOS SDK facilitates embedding of [Swedbank Pay payments][dev-portal] to an iOS application.
 
-## About
-
-**UNSUPPORTED**: This SDK is at an early stage of development and is not
-supported as of yet by Swedbank Pay. It is provided as a convenience to speed
-up your development, so please feel free to play around. However, if you need
-support, please wait for a future, stable release.
-
 ## Installation
 
 1. Add `pod 'SwedbankPaySDK'` into your `Podfile`
