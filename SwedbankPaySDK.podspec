@@ -17,7 +17,7 @@ The Swedbank Pay iOS SDK enables simple embedding of Swedbank Pay Checkout to an
 
   s.homepage         = 'https://github.com/SwedbankPay/swedbank-pay-sdk-ios'
   s.license          = { :type => 'Apache 2.0', :file => 'LICENSE' }
-  s.author           = 'Swedbank AB'
+  s.author           = 'Swedbank Pay'
   s.source           = { :git => 'https://github.com/SwedbankPay/swedbank-pay-sdk-ios.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '10.0'
