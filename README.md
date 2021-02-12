@@ -10,7 +10,8 @@
 [![Dependabot Status][dependabot-badge]][dependabot]
 [![Contributor Covenant][coc-badge]][coc]
 
-The Swedbank Pay iOS SDK facilitates embedding of [Swedbank Pay payments][dev-portal] to an iOS application.
+The Swedbank Pay iOS SDK facilitates the implementation of the
+[Swedbank Pay API Platform][dev-portal] in an iOS application.
 
 ## Installation
 
@@ -36,8 +37,8 @@ The code within this repository is available as open source under the terms of
 the [Apache 2.0 License][license] and the [contributor's license
 agreement][cla].
 
-[dev-portal]: https://developer.swedbankpay.com/
-[dev-portal-sdk]: https://developer.swedbankpay.com/modules-sdks/mobile-sdk/
+[dev-portal]:           https://developer.swedbankpay.com/
+[dev-portal-sdk]:       https://developer.swedbankpay.com/modules-sdks/mobile-sdk/
 [cla-badge]:            https://cla-assistant.io/readme/badge/SwedbankPay/swedbank-pay-sdk-android
 [cla]:                  https://cla-assistant.io/SwedbankPay/swedbank-pay-sdk-android
 [coc-badge]:            https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
@@ -48,7 +49,7 @@ agreement][cla].
 [github]:               https://github.com/SwedbankPay/swedbank-pay-sdk-ios
 [license-badge]:        https://img.shields.io/github/license/SwedbankPay/swedbank-pay-sdk-android
 [license]:              https://opensource.org/licenses/Apache-2.0
-[opengraph-image]:      https://repository-images.githubusercontent.com/209730241/1bf8d880-53e9-11ea-846c-c2e2512334b6
+[opengraph-image]:      https://user-images.githubusercontent.com/12283/107773041-59165300-6d3d-11eb-806b-66c11f075945.png
 [pod-version-badge]:    https://img.shields.io/cocoapods/v/SwedbankPaySDK
 [pod-platforms-badge]:  https://img.shields.io/cocoapods/p/SwedbankPaySDK
 [pod]:                  https://cocoapods.org/pods/SwedbankPaySDK
