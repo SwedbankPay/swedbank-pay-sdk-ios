@@ -49,7 +49,7 @@ agreement][cla].
 [github]:               https://github.com/SwedbankPay/swedbank-pay-sdk-ios
 [license-badge]:        https://img.shields.io/github/license/SwedbankPay/swedbank-pay-sdk-android
 [license]:              https://opensource.org/licenses/Apache-2.0
-[opengraph-image]:      https://user-images.githubusercontent.com/12283/107773041-59165300-6d3d-11eb-806b-66c11f075945.png
+[opengraph-image]:      https://repository-images.githubusercontent.com/209730241/aa264700-6d3d-11eb-99e1-0b40a9bb19be
 [pod-version-badge]:    https://img.shields.io/cocoapods/v/SwedbankPaySDK
 [pod-platforms-badge]:  https://img.shields.io/cocoapods/p/SwedbankPaySDK
 [pod]:                  https://cocoapods.org/pods/SwedbankPaySDK
