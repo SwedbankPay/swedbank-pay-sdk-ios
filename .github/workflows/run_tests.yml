@@ -13,4 +13,4 @@ jobs:
       - name: pod install
         run: pod install
       - name: Run Tests
-        run: xcodebuild -workspace SwedbankPaySDK.xcworkspace -scheme SwedbankPaySDK test
+        run: xcodebuild -workspace SwedbankPaySDK.xcworkspace -scheme SwedbankPaySDK -destination 'platform=iOS Simulator,name=iPhone 12 Pro,OS=latest' test

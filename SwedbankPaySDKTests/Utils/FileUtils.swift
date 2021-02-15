@@ -4,11 +4,9 @@ import XCTest
 enum FileUtils {
     private static var emptyBuffer: Void = ()
     private static func openData(_ content: Data) throws -> UnsafeMutablePointer<FILE> {
-        try content.withUnsafeBytes {
-            let size = $0.count
-            XCTAssert(size > 0)
-            let file = try XCTUnwrap(fmemopen(nil, size, "rb+"))
-            XCTAssertEqual(fwrite($0.baseAddress, size, 1, file), 1)
+        try content.withUnsafeBytes { buffer in
+            let file = try XCTUnwrap(tmpfile())
+            XCTAssertEqual(fwrite(buffer.baseAddress, buffer.count, 1, file), 1)
             rewind(file)
             return file
         }
