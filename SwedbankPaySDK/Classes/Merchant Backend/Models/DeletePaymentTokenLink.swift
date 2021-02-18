@@ -16,7 +16,7 @@ import Foundation
 
 struct DeletePaymentTokenLink: Link {
     let href: URL
-    
+
     /// - returns: function that cancels this operation
     func patch(
         api: MerchantBackendApi,

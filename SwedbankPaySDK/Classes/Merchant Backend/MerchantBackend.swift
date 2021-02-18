@@ -77,7 +77,9 @@ public extension SwedbankPaySDK {
         ) -> SwedbankPaySDKRequest? {
             guard let link = paymentToken.mobileSDK?.delete else {
                 DispatchQueue.main.async {
-                    completion(.failure(SwedbankPaySDK.MerchantBackendError.missingRequiredOperation("delete-paymenttokens")))
+                    completion(.failure(
+                        SwedbankPaySDK.MerchantBackendError.missingRequiredOperation("delete-paymenttokens")
+                    ))
                 }
                 return nil
             }

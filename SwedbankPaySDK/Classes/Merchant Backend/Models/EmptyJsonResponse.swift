@@ -14,4 +14,4 @@
 
 import Foundation
 
-struct EmptyJsonResponse : Decodable {}
+struct EmptyJsonResponse: Decodable {}
