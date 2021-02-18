@@ -56,5 +56,41 @@ public extension SwedbankPaySDK {
                 }
             )
         }
+        
+        /// Deletes the specified payment token.
+        ///
+        /// Your backend must enable this functionality separately.
+        /// After you make this request, you should refresh your local list of tokens.
+        ///
+        /// - parameter configuration: the backend configuration
+        /// - parameter paymentToken: the token to delete
+        /// - parameter comment: the reason for the deletion
+        /// - parameter extraHeaders: any headers you wish to append to the request
+        /// - parameter completion: when the request completes, this is called with the result
+        /// - returns: a handle that you can use to cancel the request
+        public static func deletePayerOwnerPaymentToken(
+            configuration: MerchantBackendConfiguration,
+            paymentToken: PaymentTokenInfo,
+            comment: String,
+            extraHeaders: [String: String]? = nil,
+            completion: @escaping (Result<Void, Error>) -> Void
+        ) -> SwedbankPaySDKRequest? {
+            guard let link = paymentToken.mobileSDK?.delete else {
+                DispatchQueue.main.async {
+                    completion(.failure(
+                        SwedbankPaySDK.MerchantBackendError.missingRequiredOperation("delete-paymenttokens")
+                    ))
+                }
+                return nil
+            }
+            return link.patch(api: configuration.api, comment: comment, extraHeaders: extraHeaders) {
+                let result: Result<Void, Error>
+                switch $0 {
+                case .success: result = .success(())
+                case .failure(let error): result = .failure(error)
+                }
+                completion(result)
+            }
+        }
     }
 }
