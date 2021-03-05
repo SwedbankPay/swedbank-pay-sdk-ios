@@ -48,11 +48,23 @@ class SwedbankPayWebViewController : UIViewController {
         return lastRootPage != nil
     }
     
-    init(configuration: WKWebViewConfiguration, delegate: SwedbankPayWebViewControllerDelegate) {
+    init(
+        configuration: WKWebViewConfiguration,
+        delegate: SwedbankPayWebViewControllerDelegate,
+        isExtraWindow: Bool = false
+    ) {
         webView = WKWebView(frame: .zero, configuration: configuration)
         self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
-        webView.navigationDelegate = self
+        if !isExtraWindow {
+            // Extra windows simply show the linked web content,
+            // they do not participate in navigation overriding.
+            // This is fine since at the moment extra windows are only
+            // used to show "terms of service" pages that do not
+            // affect the payment process.
+            // Change this if some actual need arises in the future.
+            webView.navigationDelegate = self
+        }
         webView.uiDelegate = self
     }
     
@@ -278,7 +290,11 @@ extension SwedbankPayWebViewController : WKUIDelegate {
                 return nil
         }
         
-        let viewController = SwedbankPayWebViewController(configuration: configuration, delegate: delegate)
+        let viewController = SwedbankPayWebViewController(
+            configuration: configuration,
+            delegate: delegate,
+            isExtraWindow: true
+        )
         delegate.add(webViewController: viewController)
         let webView = viewController.webView
         webView.load(navigationAction.request)

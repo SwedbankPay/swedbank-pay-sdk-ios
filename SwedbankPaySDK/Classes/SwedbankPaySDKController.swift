@@ -352,12 +352,6 @@ public final class SwedbankPaySDKController: UIViewController {
         SwedbankPaySDK.removeCallbackUrlDelegate(self)
     }
     
-    private func reloadPaymentMenuIfAtRoot() {
-        if rootWebViewController.isAtRoot == true {
-            reloadPaymentMenu()
-        }
-    }
-    
     /// Dismisses the viewcontroller when close button has been pressed
     @objc func closeButtonPressed() -> Void {
         self.dismiss(animated: true, completion: nil)
@@ -390,7 +384,7 @@ public final class SwedbankPaySDKController: UIViewController {
     
     private func reloadPaymentMenu(delay: Bool = false) {
         if let info = viewModel.viewPaymentOrderInfo {
-            dismissExtraWebViews(reloadPaymentMenuIfAtRoot: false)
+            dismissExtraWebViews()
             showPaymentOrder(info: info, delay: delay)
         }
     }
@@ -419,16 +413,6 @@ public final class SwedbankPaySDKController: UIViewController {
         initialLoadingIndicator.startAnimating()
         rootWebViewController.load(htmlString: html, baseURL: baseURL)
     }
-    
-    /// Show terms and conditions URL using SwedbankPaySDKToSViewController
-    private func showTos(url: URL) {
-        debugPrint("SwedbankPaySDK: Open Terms of Service URL \(url)")
-        
-        if delegate?.overrideTermsOfServiceTapped(url: url) != true {
-            let tos = SwedbankPaySDKToSViewController.init(tosUrl: url)
-            self.present(tos, animated: true, completion: nil)
-        }
-    }
 }
 
 // MARK: Payment process URLs
@@ -455,8 +439,7 @@ private extension SwedbankPaySDKController {
             reloadPaymentMenu(delay: true)
             return true
         case info.termsOfServiceUrl.map(ensurePath(url:)):
-            showTos(url: url)
-            return true
+            return delegate?.overrideTermsOfServiceTapped(url: url) == true
         default:
             return false
         }
@@ -572,7 +555,7 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
     }
     
     @objc private func onWebViewDoneButtonPressed() {
-        dismissExtraWebViews(reloadPaymentMenuIfAtRoot: true)
+        dismissExtraWebViews()
     }
     
     func remove(webViewController: SwedbankPayWebViewController) {
@@ -583,14 +566,14 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
                 if navigationController.viewControllers.count > 1 {
                     navigationController.popViewController(animated: true)
                 } else {
-                    dismissExtraWebViews(reloadPaymentMenuIfAtRoot: true)
+                    dismissExtraWebViews()
                 }
             } else {
                 let viewControllers = navigationController.viewControllers.filter {
                     $0 !== webViewController
                 }
                 if viewControllers.isEmpty {
-                    dismissExtraWebViews(reloadPaymentMenuIfAtRoot: true)
+                    dismissExtraWebViews()
                 } else {
                     navigationController.viewControllers = viewControllers
                 }
@@ -614,11 +597,8 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
         }
     }
     
-    private func dismissExtraWebViews(reloadPaymentMenuIfAtRoot: Bool) {
+    private func dismissExtraWebViews() {
         dismiss(animated: true, completion: nil)
-        if reloadPaymentMenuIfAtRoot {
-            self.reloadPaymentMenuIfAtRoot()
-        }
     }
     
     func allowWebViewNavigation(
