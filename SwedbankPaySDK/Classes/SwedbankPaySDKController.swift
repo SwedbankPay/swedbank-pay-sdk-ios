@@ -85,6 +85,9 @@ public final class SwedbankPaySDKController: UIViewController {
         /// The script made an onError callback
         /// The associated value if the Terminal Failure reported by the callback
         case ScriptError(SwedbankPaySDK.TerminalFailure?)
+        /// The payment tried to redirect to a web page,
+        /// but the loading failed
+        case RedirectFailure(error: Error)
     }
     
     /// A delegate to receive callbacks as the state of SwedbankPaySDKController changes.
@@ -632,5 +635,9 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
                 completion(false)
             }
         }
+    }
+    
+    func webViewDidFailNavigation(error: Error) {
+        paymentFailed(error: WebContentError.RedirectFailure(error: error))
     }
 }

@@ -23,6 +23,8 @@ protocol SwedbankPayWebViewControllerDelegate : class {
     func webViewControllerDidNavigateOutOfRoot(_ webViewController: SwedbankPayWebViewController)
     
     func allowWebViewNavigation(navigationAction: WKNavigationAction, completion: @escaping (Bool) -> Void)
+    
+    func webViewDidFailNavigation(error: Error)
 }
 
 class SwedbankPayWebViewController : UIViewController {
@@ -279,6 +281,14 @@ extension SwedbankPayWebViewController : WKNavigationDelegate {
             lastRootPage = nil
             delegate?.webViewControllerDidNavigateOutOfRoot(self)
         }
+    }
+    
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        delegate?.webViewDidFailNavigation(error: error)
+    }
+    
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        delegate?.webViewDidFailNavigation(error: error)
     }
 }
 
