@@ -543,7 +543,7 @@ private extension SwedbankPaySDKController {
 }
 
 extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
-    func add(webViewController: SwedbankPayWebViewController) {
+    func add(webViewController: SwedbankPayWebViewControllerBase) {
         let presentedViewController = self.presentedViewController
         if let navigationController = presentedViewController as? UINavigationController {
             navigationController.pushViewController(webViewController, animated: true)
@@ -561,7 +561,7 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
         dismissExtraWebViews()
     }
     
-    func remove(webViewController: SwedbankPayWebViewController) {
+    func remove(webViewController: SwedbankPayWebViewControllerBase) {
         if webViewController === rootWebViewController {
             reloadPaymentMenu()
         } else if let navigationController = presentedViewController as? UINavigationController {
