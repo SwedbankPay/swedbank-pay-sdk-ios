@@ -42,6 +42,10 @@
 		A57170E125066D3A00AC28BE /* GoodWebViewRedirectsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57170E025066D3A00AC28BE /* GoodWebViewRedirectsTests.swift */; };
 		A577E72A251B364400943A8B /* MerchantBackendApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = A577E729251B364400943A8B /* MerchantBackendApi.swift */; };
 		A577E72E251B547B00943A8B /* RequestDecorator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A577E72D251B547B00943A8B /* RequestDecorator.swift */; };
+		A5808B05261C942A00FF7EC1 /* SwedbankPayWebViewControllerBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5808B04261C942A00FF7EC1 /* SwedbankPayWebViewControllerBase.swift */; };
+		A5808B09261C980000FF7EC1 /* SwedbankPayWebViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5808B08261C980000FF7EC1 /* SwedbankPayWebViewControllerDelegate.swift */; };
+		A5808B0D261CA7A200FF7EC1 /* SwedbankPayExtraWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5808B0C261CA7A200FF7EC1 /* SwedbankPayExtraWebViewController.swift */; };
+		A5808B11261CA8B500FF7EC1 /* WKWebViewCanOpen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5808B10261CA8B500FF7EC1 /* WKWebViewCanOpen.swift */; };
 		A596D669247BECD8009605DB /* ViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A596D668247BECD8009605DB /* ViewControllerTests.swift */; };
 		A596D66B247BF85B009605DB /* TestURLStubs.swift in Sources */ = {isa = PBXBuildFile; fileRef = A596D66A247BF85B009605DB /* TestURLStubs.swift */; };
 		A596D66D247EA39B009605DB /* SwedbankPaySDKControllerTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A596D66C247EA39B009605DB /* SwedbankPaySDKControllerTestCase.swift */; };
@@ -127,6 +131,10 @@
 		A57669FE2472BCBF002651A6 /* pod_push_release.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = pod_push_release.yml; sourceTree = "<group>"; };
 		A577E729251B364400943A8B /* MerchantBackendApi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantBackendApi.swift; sourceTree = "<group>"; };
 		A577E72D251B547B00943A8B /* RequestDecorator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestDecorator.swift; sourceTree = "<group>"; };
+		A5808B04261C942A00FF7EC1 /* SwedbankPayWebViewControllerBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPayWebViewControllerBase.swift; sourceTree = "<group>"; };
+		A5808B08261C980000FF7EC1 /* SwedbankPayWebViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPayWebViewControllerDelegate.swift; sourceTree = "<group>"; };
+		A5808B0C261CA7A200FF7EC1 /* SwedbankPayExtraWebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPayExtraWebViewController.swift; sourceTree = "<group>"; };
+		A5808B10261CA8B500FF7EC1 /* WKWebViewCanOpen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WKWebViewCanOpen.swift; sourceTree = "<group>"; };
 		A596D668247BECD8009605DB /* ViewControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerTests.swift; sourceTree = "<group>"; };
 		A596D66A247BF85B009605DB /* TestURLStubs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestURLStubs.swift; sourceTree = "<group>"; };
 		A596D66C247EA39B009605DB /* SwedbankPaySDKControllerTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKControllerTestCase.swift; sourceTree = "<group>"; };
@@ -265,6 +273,18 @@
 			path = .github/workflows;
 			sourceTree = "<group>";
 		};
+		A5808B03261C93FD00FF7EC1 /* WebView */ = {
+			isa = PBXGroup;
+			children = (
+				A5C3D01D23A23BC900B45085 /* SwedbankPayWebViewController.swift */,
+				A5808B0C261CA7A200FF7EC1 /* SwedbankPayExtraWebViewController.swift */,
+				A5808B04261C942A00FF7EC1 /* SwedbankPayWebViewControllerBase.swift */,
+				A5808B08261C980000FF7EC1 /* SwedbankPayWebViewControllerDelegate.swift */,
+				A5808B10261CA8B500FF7EC1 /* WKWebViewCanOpen.swift */,
+			);
+			path = WebView;
+			sourceTree = "<group>";
+		};
 		A5993625251A394F00EDFAB3 /* Merchant Backend */ = {
 			isa = PBXGroup;
 			children = (
@@ -381,7 +401,7 @@
 				C585AF27237066EE006C2E16 /* SwedbankPaySDK.swift */,
 				C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */,
 				C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */,
-				A5C3D01D23A23BC900B45085 /* SwedbankPayWebViewController.swift */,
+				A5808B03261C93FD00FF7EC1 /* WebView */,
 				A52E0ACA24BCAA6D00770286 /* GoodWebViewRedirects.swift */,
 			);
 			path = Classes;
@@ -567,6 +587,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A5808B11261CA8B500FF7EC1 /* WKWebViewCanOpen.swift in Sources */,
 				A502C38725430D90004FBFCB /* Operation.swift in Sources */,
 				C50CF6A5237AAF47003F79DF /* SwedbankPaySubProblem.swift in Sources */,
 				A59AEEAF2539D46700255A3A /* MerchantBackendRequest.swift in Sources */,
@@ -585,10 +606,12 @@
 				A502C38325430D90004FBFCB /* PaymentOrderIn.swift in Sources */,
 				C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */,
 				C50CF68D237AA3B0003F79DF /* TypeAliases.swift in Sources */,
+				A5808B0D261CA7A200FF7EC1 /* SwedbankPayExtraWebViewController.swift in Sources */,
 				A5AA1D6F2397B63D008A62CC /* CallbackHandling.swift in Sources */,
 				C50CF6A7237AAF85003F79DF /* ClientProblem.swift in Sources */,
 				C50CF6A9237AAFBF003F79DF /* ServerProblem.swift in Sources */,
 				A52E0ACB24BCAA6D00770286 /* GoodWebViewRedirects.swift in Sources */,
+				A5808B09261C980000FF7EC1 /* SwedbankPayWebViewControllerDelegate.swift in Sources */,
 				A5DC2CAA251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift in Sources */,
 				A5DC2CA6251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift in Sources */,
 				A5BC97DC251CE26D0080F2E7 /* Problems.swift in Sources */,
@@ -603,6 +626,7 @@
 				A5C3D01E23A23BC900B45085 /* SwedbankPayWebViewController.swift in Sources */,
 				A502C38D25430D9A004FBFCB /* Problem.swift in Sources */,
 				A5BE1E2F2576986F00336A79 /* PayerOwnedPaymentTokensResponse.swift in Sources */,
+				A5808B05261C942A00FF7EC1 /* SwedbankPayWebViewControllerBase.swift in Sources */,
 				A502C37F25430D90004FBFCB /* PaymentOrdersLink.swift in Sources */,
 				A5BE1E3325769ACC00336A79 /* PayerOwnedPaymentTokens.swift in Sources */,
 				A5179F3C25DD4A07006EBE72 /* DeletePaymentTokenLink.swift in Sources */,
