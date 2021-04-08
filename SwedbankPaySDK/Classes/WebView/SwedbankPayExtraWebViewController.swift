@@ -41,7 +41,9 @@ extension SwedbankPayExtraWebViewController: WKNavigationDelegate {
         if delegate?.overrideNavigation(request: request) == true {
             decisionHandler(.cancel)
         } else if let url = request.url {
-            if navigationAction.targetFrame?.isMainFrame == true {
+            // If targetFrame is nil, this is a new window navigation;
+            // handle like a main frame navigation.
+            if navigationAction.targetFrame?.isMainFrame != false {
                 decidePolicyFor(url: url, decisionHandler: decisionHandler)
             } else {
                 let canOpen = WKWebView.canOpen(url: url)
