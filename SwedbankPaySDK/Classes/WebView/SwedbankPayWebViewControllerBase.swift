@@ -18,9 +18,9 @@ import WebKit
 
 class SwedbankPayWebViewControllerBase: UIViewController {
     weak var delegate: SwedbankPayWebViewControllerDelegate?
-    
+
     private var onJavascriptDialogDismissed: (() -> Void)?
-    
+
     // Overridable for testing, so we can mock UIApplication.open(_:options:completionHandler:)
     var attemptOpenUniversalLink: (URL, @escaping (Bool) -> Void) -> Void = { url, completionHandler in
         if #available(iOS 10, *) {

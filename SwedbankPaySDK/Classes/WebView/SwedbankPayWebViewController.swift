@@ -18,9 +18,9 @@ import WebKit
 
 final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
     private var lastRootPage: (navigation: WKNavigation?, baseURL: URL?)?
-    
+
     var navigationLogger: ((URL) -> Void)?
-    
+
     var isAtRoot: Bool {
         return lastRootPage != nil
     }

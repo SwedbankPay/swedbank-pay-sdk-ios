@@ -24,14 +24,18 @@ final class SwedbankPayExtraWebViewController: SwedbankPayWebViewControllerBase 
         super.init(configuration: configuration, delegate: delegate)
         webView.navigationDelegate = self
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
 
 extension SwedbankPayExtraWebViewController: WKNavigationDelegate {
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationAction: WKNavigationAction,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
         let request = navigationAction.request
         
         if delegate?.overrideNavigation(request: request) == true {
