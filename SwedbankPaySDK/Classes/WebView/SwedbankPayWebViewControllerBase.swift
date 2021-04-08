@@ -58,14 +58,7 @@ extension SwedbankPayWebViewControllerBase: WKUIDelegate {
         for navigationAction: WKNavigationAction,
         windowFeatures: WKWindowFeatures
     ) -> WKWebView? {
-        guard let delegate = delegate,
-            !delegate.overrideNavigation(request: navigationAction.request),
-            let url = navigationAction.request.url
-            else {
-                return nil
-        }
-        if !WKWebView.canOpen(url: url) {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        guard let delegate = delegate else {
             return nil
         }
         

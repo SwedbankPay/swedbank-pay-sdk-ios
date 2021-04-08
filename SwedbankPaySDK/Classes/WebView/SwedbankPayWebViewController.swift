@@ -57,7 +57,9 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
         } else if delegate?.overrideNavigation(request: request) == true {
             decisionHandler(.cancel)
         } else if let url = request.url {
-            if navigationAction.targetFrame?.isMainFrame == true {
+            // If targetFrame is nil, this is a new window navigation;
+            // handle like a main frame navigation.
+            if navigationAction.targetFrame?.isMainFrame != false {
                 navigationLogger?(url)
                 decidePolicyFor(navigationAction: navigationAction, url: url, decisionHandler: decisionHandler)
             } else {
@@ -93,15 +95,19 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
         if WKWebView.canOpen(url: url), let delegate = delegate {
-            // A regular http(s) url. Check if it matches the list of
-            // tested working pages.
-            delegate.allowWebViewNavigation(navigationAction: navigationAction) { allowed in
-                if !allowed {
-                    // Not tested or incompatible with web view;
-                    // must continue process is Safari.
-                    self.continueNavigationInBrowser(url: url)
+            if navigationAction.targetFrame == nil {
+                decisionHandler(.allow) // always allow new frame navigations
+            } else {
+                // A regular http(s) url. Check if it matches the list of
+                // tested working pages.
+                delegate.allowWebViewNavigation(navigationAction: navigationAction) { allowed in
+                    if !allowed {
+                        // Not tested or incompatible with web view;
+                        // must continue process is Safari.
+                        self.continueNavigationInBrowser(url: url)
+                    }
+                    decisionHandler(allowed ? .allow : .cancel)
                 }
-                decisionHandler(allowed ? .allow : .cancel)
             }
         } else {
             // A custom-scheme url. Must let another app take care of it.
