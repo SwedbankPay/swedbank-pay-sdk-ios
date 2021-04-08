@@ -10,6 +10,10 @@
 
 acs4.sparebank1.no
 
+# Multiple issuers
+*.3dsecure.no
+*.3ds.modirum.com
+
 # Transferwise
 idcheck.acs.touchtechpayments.com
 
@@ -22,5 +26,10 @@ verifiedbyvisa.acs.touchtechpayments.com
 acs1.luottokunta.fi
 
 # S-Pankki (fi)
-acs1.3ds.modirum.com
 online.s-pankki.fi
+
+# Nordea
+identify.nordea.com
+
+# Skandia
+verifiedbyvisa.skandia.se
