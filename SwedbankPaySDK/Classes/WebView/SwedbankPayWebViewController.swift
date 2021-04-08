@@ -16,11 +16,11 @@
 import UIKit
 import WebKit
 
-final class SwedbankPayWebViewController : SwedbankPayWebViewControllerBase {
+final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
     private var lastRootPage: (navigation: WKNavigation?, baseURL: URL?)?
     
     var navigationLogger: ((URL) -> Void)?
-        
+    
     var isAtRoot: Bool {
         return lastRootPage != nil
     }
@@ -44,8 +44,12 @@ final class SwedbankPayWebViewController : SwedbankPayWebViewControllerBase {
     }
 }
 
-extension SwedbankPayWebViewController : WKNavigationDelegate {
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+extension SwedbankPayWebViewController: WKNavigationDelegate {
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationAction: WKNavigationAction,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
         let request = navigationAction.request
         
         if isBaseUrlNavigation(navigationAction: navigationAction) {
