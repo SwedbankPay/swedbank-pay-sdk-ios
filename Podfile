@@ -14,5 +14,12 @@ target 'SwedbankPaySDK' do
     
     pod 'Alamofire', '~> 5.2'
   end
+  
+  target 'SwedbankPaySDKUITestHost' do
+    inherit! :search_paths
+    # Pods for UI testing
+    
+    pod 'Alamofire', '~> 5.2'
+  end
 
 end
