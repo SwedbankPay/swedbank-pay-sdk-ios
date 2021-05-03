@@ -27,7 +27,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         createPaymentDelegate()
         viewController.delegate = paymentDelegate
-        viewController.webRedirectBehavior = .AlwaysUseWebView // TODO: fix resources
         
         return viewController
     }

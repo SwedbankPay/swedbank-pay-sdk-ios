@@ -18,7 +18,8 @@ import UIKit
 
 class GoodWebViewRedirects {
     static let instance = GoodWebViewRedirects(openDataFile: {
-        let path = SwedbankPaySDK.resourceBundle?.path(forResource: "good_redirects", ofType: nil)
+        let path = Bundle(for: GoodWebViewRedirects.self)
+            .path(forResource: "good_redirects", ofType: nil)
         return path.flatMap { fopen($0, "r") }
     })
     
