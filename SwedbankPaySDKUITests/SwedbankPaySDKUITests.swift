@@ -11,7 +11,7 @@ import XCTest
 private let initialTimeout = 60.0
 private let defaultTimeout = 30.0
 private let scaTimeout = 120.0
-private let resultTimeout = 120.0
+private let resultTimeout = 300.0
 
 private let cardOptionTapMaxAttempts = 3
 private let cardOptionTapAttemptTimeout = 10.0
