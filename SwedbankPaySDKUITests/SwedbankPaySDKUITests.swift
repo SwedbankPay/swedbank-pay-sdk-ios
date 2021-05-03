@@ -123,23 +123,6 @@ class SwedbankPaySDKUITests: XCTestCase {
         waitAndAssertExists(expiryInput, "Expiry date input not found")
         input(to: expiryInput, text: expiryDate)
         
-        // Because of some mystical reason, in some cases
-        // XCUIElement.tap() fails to tap at the correct screen point
-        // if the element is too high on the screen (?!).
-        // To see this is action, run the test on an iPhone 12 Pro
-        // simulator and uncomment this line.
-        //
-        // For those going down the rabbit hole: it would appear that
-        // the screen coordinates are not reported correctly.
-        // Try calling
-        // element.coordinate(withNormalizedOffset: .zero).screenPoint
-        // and you will see wildly different results depending on the
-        // web view scroll position.
-        //
-        // This line makes the web view scroll to a position where
-        // tap() appears to work.
-        webView.swipeDown()
-        
         waitAndAssertExists(cvvInput, "CVV input not found")
         input(to: cvvInput, text: cvv)
         
@@ -177,11 +160,6 @@ class SwedbankPaySDKUITests: XCTestCase {
                 timeout: scaTimeout,
                 continueButton, "Continue button not found"
             )
-            // See comment at swipeDown() call in paymentTest.
-            // These are needed for the same reason.
-            webView.pinch(withScale: 2, velocity: 1)
-            webView.swipeRight()
-            webView.swipeDown()
             continueButton.tap()
         }
     }
