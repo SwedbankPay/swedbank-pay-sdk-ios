@@ -1,20 +1,12 @@
-//
-//  SwedbankPaySDKUITests.swift
-//  SwedbankPaySDKUITests
-//
-//  Created by Pertti Kroger on 23.4.2021.
-//  Copyright © 2021 Swedbank. All rights reserved.
-//
-
 import XCTest
 
-private let initialTimeout = 60.0
 private let defaultTimeout = 30.0
+private let initialTimeout = 60.0
+private let tapCardOptionTimeout = 10.0
 private let scaTimeout = 120.0
-private let resultTimeout = 300.0
+private let resultTimeout = 180.0
 
-private let cardOptionTapMaxAttempts = 3
-private let cardOptionTapAttemptTimeout = 10.0
+private let retryableActionMaxAttempts = 5
 
 private let noScaCardNumber = "4925000000000004"
 private let scaCardNumber = "4761739001010416"
@@ -79,6 +71,16 @@ class SwedbankPaySDKUITests: XCTestCase {
         keyboardDoneButton.tap()
     }
     
+    private func retryUntilTrue(f: () -> Bool) -> Bool {
+        for i in 0..<retryableActionMaxAttempts {
+            print("attempt \(i)")
+            if f() {
+                return true
+            }
+        }
+        return false
+    }
+    
     override func setUpWithError() throws {
         app = XCUIApplication()
         
@@ -98,23 +100,21 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     /// Sanity check: Check that a web view is displayed
     func testItShouldDisplayWebView() {
-        waitAndAssertExists(webView, "Web view not found")
+        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
     }
     
-    private func paymentTest(
+    private func beginPayment(
         cardNumber: String,
-        cvv: String,
-        paymentHandler: () -> Void
+        cvv: String
     ) throws {
         waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
-        waitAndAssertExists(cardOption, "Card option not found")
+        waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         
-        XCTAssert(
-            tapCardOptionAndWaitForCreditCardOption(),
-            "Credit card option not found"
-        )
-        
+        XCTAssert(retryUntilTrue {
+            cardOption.tap()
+            return creditCardOption.waitForExistence(timeout: tapCardOptionTimeout)
+        }, "Credit card option not found")
         creditCardOption.tap()
         
         waitAndAssertExists(panInput, "PAN input not found")
@@ -128,39 +128,30 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         waitAndAssertExists(payButton, "Pay button not found")
         payButton.tap()
-        
-        paymentHandler()
-        
+    }
+    
+    private func waitForPaymentComplete() throws {
         print("Waiting \(resultTimeout)s for payment to complete")
         let result = try messageList.poll(timeout: resultTimeout)
         XCTAssertEqual(result, .complete, "Payment was not successful: \(result)")
     }
-    
-    private func tapCardOptionAndWaitForCreditCardOption() -> Bool {
-        for _ in 0..<cardOptionTapMaxAttempts {
-            cardOption.tap()
-            if creditCardOption.waitForExistence(
-                timeout: cardOptionTapAttemptTimeout
-            ) {
-                return true
-            }
-        }
-        return false
-    }
-    
+        
     /// Check that a payment without SCA works
     func testItShouldSucceedAtPaymentWithoutSca() throws {
-        try paymentTest(cardNumber: noScaCardNumber, cvv: noScaCvv) {}
+        try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
+        try waitForPaymentComplete()
     }
     
     /// Check that a payment with SCA works
     func testItShouldSucceedAtPaymentWithSca() throws {
-        try paymentTest(cardNumber: scaCardNumber, cvv: scaCvv) {
-            waitAndAssertExists(
-                timeout: scaTimeout,
-                continueButton, "Continue button not found"
-            )
+        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
+        waitAndAssertExists(
+            timeout: scaTimeout,
+            continueButton, "Continue button not found"
+        )
+        XCTAssert(retryUntilTrue {
             continueButton.tap()
-        }
+            return (try? waitForPaymentComplete()) != nil
+        }, "completion timeout")
     }
 }
