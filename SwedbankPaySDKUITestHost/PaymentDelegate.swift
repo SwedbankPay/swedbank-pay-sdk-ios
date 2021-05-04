@@ -1,11 +1,3 @@
-//
-//  PaymentDelegate.swift
-//  SwedbankPaySDKUITestHost
-//
-//  Created by Pertti Kroger on 27.4.2021.
-//  Copyright © 2021 Swedbank. All rights reserved.
-//
-
 import Foundation
 import SwedbankPaySDK
 

@@ -74,6 +74,7 @@
 		A5BE1E3325769ACC00336A79 /* PayerOwnedPaymentTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5BE1E3225769ACC00336A79 /* PayerOwnedPaymentTokens.swift */; };
 		A5BE1E3725769B5900336A79 /* PaymentTokenInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5BE1E3625769B5900336A79 /* PaymentTokenInfo.swift */; };
 		A5BE1E3B25769C2C00336A79 /* MerchantBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5BE1E3A25769C2C00336A79 /* MerchantBackend.swift */; };
+		A5C061B426402A93004A7FEF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A5C061B326402A93004A7FEF /* LaunchScreen.storyboard */; };
 		A5C3D01E23A23BC900B45085 /* SwedbankPayWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5C3D01D23A23BC900B45085 /* SwedbankPayWebViewController.swift */; };
 		A5DC2CA6251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5DC2CA5251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift */; };
 		A5DC2CAA251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5DC2CA9251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift */; };
@@ -194,6 +195,7 @@
 		A5BE1E3225769ACC00336A79 /* PayerOwnedPaymentTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayerOwnedPaymentTokens.swift; sourceTree = "<group>"; };
 		A5BE1E3625769B5900336A79 /* PaymentTokenInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentTokenInfo.swift; sourceTree = "<group>"; };
 		A5BE1E3A25769C2C00336A79 /* MerchantBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantBackend.swift; sourceTree = "<group>"; };
+		A5C061B326402A93004A7FEF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A5C3D01D23A23BC900B45085 /* SwedbankPayWebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPayWebViewController.swift; sourceTree = "<group>"; };
 		A5DC2CA5251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewConsumerIdentificationInfo.swift; sourceTree = "<group>"; };
 		A5DC2CA9251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewPaymentOrderInfo.swift; sourceTree = "<group>"; };
@@ -317,6 +319,7 @@
 				A5494B0D26330207006EB38B /* AppDelegate.swift */,
 				A5494B482633036E006EB38B /* PaymentTestConfiguration.swift */,
 				A598BF3C263838880032E261 /* PaymentDelegate.swift */,
+				A5C061B326402A93004A7FEF /* LaunchScreen.storyboard */,
 				A5494B1B26330209006EB38B /* Info.plist */,
 			);
 			path = SwedbankPaySDKUITestHost;
@@ -649,6 +652,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A5C061B426402A93004A7FEF /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
