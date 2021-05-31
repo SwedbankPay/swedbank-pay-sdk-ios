@@ -93,6 +93,12 @@ public final class SwedbankPaySDKController: UIViewController {
     /// A delegate to receive callbacks as the state of SwedbankPaySDKController changes.
     public weak var delegate: SwedbankPaySDKDelegate?
     
+    /// Styling for the payment menu
+    ///
+    /// Styling the payment menu requires a separate agreement with Swedbank Pay.
+
+    public var paymentMenuStyle: [String: Any]?
+    
     /// The current payment order in this SwedbankPaySDKController.
     ///
     /// This will be `nil` until the first call to
@@ -408,7 +414,7 @@ public final class SwedbankPaySDKController: UIViewController {
         eventHandler: @escaping (T, Any?) -> Void
     ) {
         
-        let html = template.buildPage(scriptUrl: scriptUrl.absoluteString, delay: delay)
+        let html = template.buildPage(scriptUrl: scriptUrl.absoluteString, style: paymentMenuStyle, delay: delay)
         debugPrint("creating script message handler for \(T.self)")
         let scriptMessageHandler = template.createScriptMessageHandler(eventHandler: eventHandler)
         set(scriptMessageHandler: scriptMessageHandler)

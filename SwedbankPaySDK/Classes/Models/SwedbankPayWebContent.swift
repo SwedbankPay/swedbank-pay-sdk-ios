@@ -27,7 +27,11 @@ extension SwedbankPayWebContent {
     struct HTMLTemplate<T: RawRepresentable> where T.RawValue == String {
         private let components: [TemplateComponent]
         
-        func buildPage(scriptUrl: String, delay: Bool = false) -> String {
+        func buildPage(
+            scriptUrl: String,
+            style: [String: Any]?,
+            delay: Bool = false
+        ) -> String {
             let strings: [String] = components.map {
                 switch $0 {
                 case .literal(let literal):
@@ -36,6 +40,8 @@ extension SwedbankPayWebContent {
                     return delay.description
                 case .scriptUrl:
                     return scriptUrl
+                case .style:
+                    return SwedbankPayWebContent.makeStyleJs(from: style)
                 }
             }
             return strings.joined()
@@ -69,7 +75,7 @@ extension SwedbankPayWebContent {
                     script.setAttribute('src', url);
                     script.onload = function () {
                         \(ConsumerEvent.onScriptLoaded, "null");
-                        payex.hostedView.consumer({
+                        var parameters = {
                             container: "checkin",
                             onConsumerIdentified: function(consumerIdentifiedEvent) {
                                 \(ConsumerEvent.onConsumerIdentified, "consumerIdentifiedEvent.consumerProfileRef");
@@ -80,7 +86,12 @@ extension SwedbankPayWebContent {
                             onError: function(error) {
                                 \(ConsumerEvent.onError, "error");
                             }
-                        }).open();
+                        };
+                        var style = \(TemplateComponent.style);
+                        if (style) {
+                            parameters.style = style;
+                        }
+                        payex.hostedView.consumer(parameters).open();
                     };
                     script.onerror = function(event) {
                         \(ConsumerEvent.onScriptError, "url");
@@ -118,12 +129,17 @@ extension SwedbankPayWebContent {
                     script.setAttribute('src', url);
                     script.onload = function () {
                         \(PaymentEvent.onScriptLoaded, "null");
-                        payex.hostedView.paymentMenu({
+                        var parameters = {
                             container: "checkout",
                             onError: function(error) {
                                 \(PaymentEvent.onError, "error");
                             }
-                        }).open();
+                        };
+                        var style = \(TemplateComponent.style);
+                        if (style) {
+                            parameters.style = style;
+                        }
+                        payex.hostedView.paymentMenu(parameters).open();
                     };
                     script.onerror = function(event) {
                         \(PaymentEvent.onScriptError, "url");
@@ -153,6 +169,7 @@ private extension SwedbankPayWebContent {
         case literal(String)
         case delay
         case scriptUrl
+        case style
     }
 }
 
@@ -215,5 +232,13 @@ private extension SwedbankPayWebContent {
                 eventHandler(body.0, body.1)
             }
         }
+    }
+}
+
+private extension SwedbankPayWebContent {
+    static func makeStyleJs(from style: [String: Any]?) -> String {
+        let data = style.flatMap { try? JSONSerialization.data(withJSONObject: $0) }
+        let string = data.flatMap { String(data: $0, encoding: .utf8) }
+        return string ?? "null"
     }
 }
