@@ -18,14 +18,47 @@ import Foundation
 public extension SwedbankPaySDK {
     /// Payment instrument for an Instrument mode payment order.
     struct Instrument: RawRepresentable, Hashable, Codable {
+        /// Credit or Debit Card
         public static let creditCard = Instrument(rawValue: "CreditCard")
+        
+        /// Swish
         public static let swish = Instrument(rawValue: "Swish")
-        public static let invoice = Instrument(rawValue: "Invoice-PayExFinancingSe")
+        
+        /// Vipps
+        public static let vipps = Instrument(rawValue: "Vipps")
+        
+        /// Swedbank Pay Invoice (Sweden)
+        public static let invoiceSE = Instrument(
+            rawValue: "Invoice-PayExFinancingSe"
+        )
+        
+        /// Swedbank Pay Invoice (Norway)
+        public static let invoiceNO = Instrument(
+            rawValue: "Invoice-PayExFinancingNo"
+        )
+        
+        /// Swedbank Pay Monthly Invoice (Sweden)
+        public static let monthlyInvoiceSE = Instrument(
+            rawValue: "Invoice-PayExMonthlyInvoiceSe"
+        )
+        
+        /// Volvofinans CarPay
+        public static let carPay = Instrument(rawValue: "CarPay")
+        
+        /// Credit Account
+        public static let creditAccount = Instrument(rawValue: "CreditAccount")
         
         public var rawValue: String
         
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
+    }
+}
+
+public extension SwedbankPaySDK.Instrument {
+    @available(*, deprecated, message: "Use invoiceSE instead")
+    static var invoice: Self {
+        invoiceSE
     }
 }
