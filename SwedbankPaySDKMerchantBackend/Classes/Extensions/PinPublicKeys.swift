@@ -14,6 +14,7 @@
 // limitations under the License.
 
 import Foundation
+import SwedbankPaySDK
 import Alamofire
 
 public extension SwedbankPaySDK {

@@ -14,6 +14,7 @@
 // limitations under the License.
 
 import Foundation
+import SwedbankPaySDK
 
 public extension SwedbankPaySDK {
     /// Swedbank Pay Operation. Operations are invoked by making an HTTP request.

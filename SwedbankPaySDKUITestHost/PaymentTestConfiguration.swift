@@ -1,5 +1,6 @@
 import Foundation
 import SwedbankPaySDK
+import SwedbankPaySDKMerchantBackend
 
 let paymentTestConfiguration = SwedbankPaySDK.MerchantBackendConfiguration(
     backendUrl: URL(string: "https://payex-merchant-samples.ey.r.appspot.com/")!,

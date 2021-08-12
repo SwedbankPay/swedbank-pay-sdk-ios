@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import SwedbankPaySDK
 
 struct DeletePaymentTokenLink: Link {
     let href: URL

@@ -13,19 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Foundation
+import SwedbankPaySDK
 
-struct ConsumersLink: Link {
-    let href: URL
+struct PaymentOrderIn: Decodable {
+    var paymentOrder: PaymentOrder?
+    var operations: [SwedbankPaySDK.Operation]
+    var mobileSDK: MobileSDK?
     
-    func post(
-        api: MerchantBackendApi,
-        consumer: SwedbankPaySDK.Consumer,
-        userData: Any?,
-        completion: @escaping (Result<ConsumerSession, SwedbankPaySDK.MerchantBackendError>) -> Void
-    ) {
-        _ = request(api: api, method: .post, body: consumer, completion: completion) { decorator, request in
-            decorator.decorateInitiateConsumerSession(request: &request, consumer: consumer, userData: userData)
-        }
+    struct PaymentOrder: Decodable {
+        var instrument: SwedbankPaySDK.Instrument?
+        var availableInstruments: [SwedbankPaySDK.Instrument]?
+    }
+    
+    struct MobileSDK: Decodable {
+        var setInstrument: SetInstrumentLink?
     }
 }

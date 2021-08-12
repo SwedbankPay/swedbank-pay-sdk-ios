@@ -13,17 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-struct PaymentOrderIn: Decodable {
-    var paymentOrder: PaymentOrder?
-    var operations: [SwedbankPaySDK.Operation]
-    var mobileSDK: MobileSDK?
-    
-    struct PaymentOrder: Decodable {
-        var instrument: SwedbankPaySDK.Instrument?
-        var availableInstruments: [SwedbankPaySDK.Instrument]?
-    }
-    
-    struct MobileSDK: Decodable {
-        var setInstrument: SetInstrumentLink?
+import SwedbankPaySDK
+import Alamofire
+
+extension Request: SwedbankPaySDKRequest {
+    public func cancel() {
+        _ = self.cancel() as Request
     }
 }

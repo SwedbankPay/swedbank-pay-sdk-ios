@@ -14,16 +14,18 @@
 // limitations under the License.
 
 import Foundation
+import SwedbankPaySDK
 
-struct RootLink: Link {
-    let href: URL
-    
-    func get(
-        api: MerchantBackendApi,
-        completion: @escaping (Result<TopLevelResources, SwedbankPaySDK.MerchantBackendError>) -> Void
-    ) {
-        get(api: api, completion: completion) { decorator, request in
-            decorator.decorateGetTopLevelResources(request: &request)
-        }
+public extension SwedbankPaySDK {
+    /// Payload of PayerOwnedPaymentTokensResponse
+    struct PayerOwnedPaymentTokens: Decodable {
+        /// The id (url) of this resource.
+        ///
+        /// Note that you generally cannot dereference this from your mobile app.
+        public var id: String
+        /// The payerReference associated with these tokens
+        public var payerReference: String
+        /// The list of tokens and associated information
+        public var paymentTokens: [PaymentTokenInfo]?
     }
 }
