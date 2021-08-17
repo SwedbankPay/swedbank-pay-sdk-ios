@@ -8,26 +8,23 @@ jobs:
   build:
 
     runs-on: macos-latest
+    
+    env:
+      RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Install CocoaPods
-      run: gem install cocoapods
-    - name: Lint Core
-      run: pod lib lint SwedbankPaySDK.podspec
-      env:
-        RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
-    - name: Push Core
-      run: pod trunk push SwedbankPaySDK.podspec
-      env:
-        COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
-        RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
-    - name: Lint MB
-      run: pod lib lint SwedbankPaySDKMerchantBackend.podspec
-      env:
-        RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
-    - name: Push MB
-      run: pod trunk push SwedbankPaySDKMerchantBackend.podspec
-      env:
-        COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
-        RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
+      - uses: actions/checkout@v2
+      - name: Install CocoaPods
+        run: gem install cocoapods
+      - name: Lint Core
+        run: pod lib lint SwedbankPaySDK.podspec
+      - name: Lint MB
+        run: pod lib lint --include-podspecs=SwedbankPaySDK.podspec SwedbankPaySDKMerchantBackend.podspec
+      - name: Push Core
+        run: pod trunk push SwedbankPaySDK.podspec
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+      - name: Push MB
+        run: pod trunk push SwedbankPaySDKMerchantBackend.podspec
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
