@@ -14,15 +14,17 @@
 // limitations under the License.
 
 import Foundation
+import SwedbankPaySDK
 
-public extension SwedbankPaySDK {
-    /// Response to MerchantBackend.getPayerOwnedPaymentTokens
-    struct PayerOwnedPaymentTokensResponse: Decodable {
-        /// The response payload.
-        public var payerOwnedPaymentTokens: PayerOwnedPaymentTokens
-        
-        /// Operations you can perform on the whole list of tokens.
-        /// Note that you generally cannot call these from your mobile app.
-        public var operations: [SwedbankPaySDK.Operation]?
+struct RootLink: Link {
+    let href: URL
+    
+    func get(
+        api: MerchantBackendApi,
+        completion: @escaping (Result<TopLevelResources, SwedbankPaySDK.MerchantBackendError>) -> Void
+    ) {
+        get(api: api, completion: completion) { decorator, request in
+            decorator.decorateGetTopLevelResources(request: &request)
+        }
     }
 }

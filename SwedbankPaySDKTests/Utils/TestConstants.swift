@@ -1,6 +1,7 @@
 import Foundation
 import Alamofire
-@testable import SwedbankPaySDK
+import SwedbankPaySDK
+@testable import SwedbankPaySDKMerchantBackend
 
 enum TestConstants {
     static let callbackScheme = "testcallback"

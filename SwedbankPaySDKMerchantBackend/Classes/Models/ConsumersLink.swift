@@ -1,5 +1,5 @@
 //
-// Copyright 2019 Swedbank AB
+// Copyright 2020 Swedbank AB
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,21 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-public extension SwedbankPaySDK {
+import Foundation
+import SwedbankPaySDK
+
+struct ConsumersLink: Link {
+    let href: URL
     
-    /// Object detailing the reason for a `SwedbankPayProblem`.
-    ///
-    /// See [https://developer.payex.com/xwiki/wiki/developer/view/Main/ecommerce/technical-reference/#HProblems].
-    struct SwedbankPaySubProblem {
-        public var name: String?
-        public var description: String?
-        
-        public init(
-            name: String?,
-            description: String?
-        ) {
-            self.name = name
-            self.description = description
+    func post(
+        api: MerchantBackendApi,
+        consumer: SwedbankPaySDK.Consumer,
+        userData: Any?,
+        completion: @escaping (Result<ConsumerSession, SwedbankPaySDK.MerchantBackendError>) -> Void
+    ) {
+        _ = request(api: api, method: .post, body: consumer, completion: completion) { decorator, request in
+            decorator.decorateInitiateConsumerSession(request: &request, consumer: consumer, userData: userData)
         }
     }
 }

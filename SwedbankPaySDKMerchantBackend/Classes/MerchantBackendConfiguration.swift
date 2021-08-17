@@ -14,6 +14,7 @@
 // limitations under the License.
 import Foundation
 import WebKit
+import SwedbankPaySDK
 import Alamofire
 
 private let callbackURLTypeKey = "com.swedbank.SwedbankPaySDK.callback"

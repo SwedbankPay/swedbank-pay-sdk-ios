@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import SwedbankPaySDK
+
 public extension SwedbankPaySDK {
     
     /// Base class for any problems encountered in the payment.

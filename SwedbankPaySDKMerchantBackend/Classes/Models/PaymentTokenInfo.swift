@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import SwedbankPaySDK
 
 public extension SwedbankPaySDK {
     /// Information about a payment token

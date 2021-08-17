@@ -1,3 +1,4 @@
+//
 // Copyright 2020 Swedbank AB
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,32 +14,24 @@
 // limitations under the License.
 
 import Foundation
+import SwedbankPaySDK
 
-struct SetInstrumentLink: Link {
+struct PaymentOrdersLink: Link {
     let href: URL
     
-    /// - returns: function that cancels this operation
-    func patch(
+    func post(
         api: MerchantBackendApi,
-        instrument: SwedbankPaySDK.Instrument,
+        paymentOrder: SwedbankPaySDK.PaymentOrder,
         userData: Any?,
         completion: @escaping (Result<PaymentOrderIn, SwedbankPaySDK.MerchantBackendError>) -> Void
-    ) -> SwedbankPaySDKRequest? {
-        let body = Body(instrument: instrument)
-        return request(api: api, method: .patch, body: body, completion: completion) { decorator, request in
-            decorator.decoratePaymentOrderSetInstrument(request: &request, instrument: instrument, userData: userData)
+    ) {
+        let body = Body(paymentorder: paymentOrder)
+        _ = request(api: api, method: .post, body: body, completion: completion) { decorator, request in
+            decorator.decorateCreatePaymentOrder(request: &request, paymentOrder: paymentOrder, userData: userData)
         }
     }
     
     private struct Body: Encodable {
-        init(instrument: SwedbankPaySDK.Instrument) {
-            paymentorder = PaymentOrder(instrument: instrument)
-        }
-        
-        private let paymentorder: PaymentOrder
-        private struct PaymentOrder: Encodable {
-            let operation = "SetInstrument"
-            let instrument: SwedbankPaySDK.Instrument
-        }
+        let paymentorder: SwedbankPaySDK.PaymentOrder
     }
 }

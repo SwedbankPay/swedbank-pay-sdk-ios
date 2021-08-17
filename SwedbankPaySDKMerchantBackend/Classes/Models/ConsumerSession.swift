@@ -13,10 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Alamofire
+import Foundation
+import SwedbankPaySDK
 
-extension Request: SwedbankPaySDKRequest {
-    public func cancel() {
-        _ = self.cancel() as Request
-    }
+struct ConsumerSession: Decodable {
+    var operations: [SwedbankPaySDK.Operation]
 }

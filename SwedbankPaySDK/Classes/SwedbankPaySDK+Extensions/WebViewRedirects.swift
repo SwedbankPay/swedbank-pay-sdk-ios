@@ -22,7 +22,7 @@ public extension SwedbankPaySDK {
     }
 }
 
-internal extension SwedbankPaySDK.WebViewRedirect {
+public extension SwedbankPaySDK.WebViewRedirect {
     func allows(url: URL) -> Bool {
         switch self {
         case .Domain(let name):
