@@ -21,12 +21,10 @@ jobs:
       - name: Lint MB
         run: pod lib lint --include-podspecs=SwedbankPaySDK.podspec SwedbankPaySDKMerchantBackend.podspec
       - name: Push Core
-        run: pod trunk push SwedbankPaySDK.podspec
+        run: pod trunk push --synchronous SwedbankPaySDK.podspec
         env:
           COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
-      - name: Repo Update
-        run: pod repo update
       - name: Push MB
-        run: pod trunk push SwedbankPaySDKMerchantBackend.podspec
+        run: pod trunk push --synchronous SwedbankPaySDKMerchantBackend.podspec
         env:
           COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
