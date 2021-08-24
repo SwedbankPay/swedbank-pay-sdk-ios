@@ -11,9 +11,5 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Install CocoaPods
-        run: gem install cocoapods
-      - name: pod install
-        run: pod install
       - name: Run UI Tests
-        run: xcodebuild -workspace SwedbankPaySDK.xcworkspace -scheme SwedbankPaySDKUITestHost -destination 'platform=iOS Simulator,name=iPhone 12 Pro,OS=latest' test
+        run: xcodebuild -scheme SwedbankPaySDKUITestHost -destination 'platform=iOS Simulator,name=iPhone 12 Pro,OS=latest' test
