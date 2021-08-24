@@ -18,6 +18,7 @@ import PackageDescription
 
 let package = Package(
     name: "SwedbankPaySDK",
+    platforms: [.iOS(.v10)],
     products: [
         .library(name: "SwedbankPaySDK", targets: ["SwedbankPaySDK"]),
         .library(name: "SwedbankPaySDKMerchantBackend", targets: ["SwedbankPaySDKMerchantBackend"])
