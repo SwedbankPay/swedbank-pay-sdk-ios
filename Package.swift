@@ -27,7 +27,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "SwedbankPaySDK"
+            name: "SwedbankPaySDK",
             path: "SwedbankPaySDK/Classes",
             resources: [.copy("SwedbankPaySDK/Resources/*")]
         ),
@@ -35,8 +35,8 @@ let package = Package(
         .target(
             name: "SwedbankPaySDKMerchantBackend",
             dependencies: [
-                .target("SwedbankPaySDK"),
-                .product("Alamofire", "Alamofire")
+                .target(name: "SwedbankPaySDK"),
+                .product(name: "Alamofire", package: "Alamofire")
             ],
             path: "SwedbankPaySDKMerchantBackend/Classes"
         )
