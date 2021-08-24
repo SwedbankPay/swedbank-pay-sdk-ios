@@ -3,11 +3,10 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		31FF040C097EEC00A8B03618 /* Pods_NeedsAlamofire_SwedbankPaySDKUITestHost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BF1E17379FF23EC0438E275 /* Pods_NeedsAlamofire_SwedbankPaySDKUITestHost.framework */; };
 		A504895123C8A2FD00201DEC /* SwedbankPayWebContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A504895023C8A2FD00201DEC /* SwedbankPayWebContent.swift */; };
 		A515A6E426C4057C001E7F30 /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A502C37E25430D90004FBFCB /* Operation.swift */; };
 		A515A6E626C4057C001E7F30 /* MerchantBackendRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A59AEEAE2539D46700255A3A /* MerchantBackendRequest.swift */; };
@@ -54,6 +53,7 @@
 		A5535E812478072C00BFD586 /* StubbedURLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5535E802478072C00BFD586 /* StubbedURLError.swift */; };
 		A5535E832478078A00BFD586 /* MockURLProtocolExpectation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5535E822478078A00BFD586 /* MockURLProtocolExpectation.swift */; };
 		A560BE432420C7CE00C1D023 /* TerminalFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = A560BE422420C7CE00C1D023 /* TerminalFailure.swift */; };
+		A569C75926D5115400B2237C /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = A569C75826D5115400B2237C /* Alamofire */; };
 		A57170DA25011F8500AC28BE /* FileLines.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57170D925011F8500AC28BE /* FileLines.swift */; };
 		A57170DD25064EF400AC28BE /* FileLinesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57170DC25064EF400AC28BE /* FileLinesTests.swift */; };
 		A57170DF2506531B00AC28BE /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A57170DE2506531B00AC28BE /* FileUtils.swift */; };
@@ -84,7 +84,6 @@
 		A5DC2CA6251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5DC2CA5251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift */; };
 		A5DC2CAA251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5DC2CA9251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift */; };
 		A5F3416923FD9293005D65BA /* PaymentOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5F3416823FD9293005D65BA /* PaymentOrder.swift */; };
-		B654B82578DA2D9E5F984E78 /* Pods_NeedsAlamofire_SwedbankPaySDKTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13907B16DB7BB376529FA271 /* Pods_NeedsAlamofire_SwedbankPaySDKTests.framework */; };
 		C50CF68D237AA3B0003F79DF /* TypeAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF68C237AA3B0003F79DF /* TypeAliases.swift */; };
 		C50CF697237AA8ED003F79DF /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF696237AA8ED003F79DF /* Configuration.swift */; };
 		C50CF699237AAC73003F79DF /* WhitelistedDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF698237AAC73003F79DF /* WhitelistedDomain.swift */; };
@@ -98,7 +97,6 @@
 		C585AF2C237066EE006C2E16 /* SwedbankPaySDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = C585AF27237066EE006C2E16 /* SwedbankPaySDK.swift */; };
 		C585AF2D237066EE006C2E16 /* SwedbankPaySDKViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */; };
 		C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */; };
-		CA5320F1D10B3D96EC8BECC2 /* Pods_NeedsAlamofire_SwedbankPaySDKMerchantBackend.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B3B514FF4FBB5E41EA7112B /* Pods_NeedsAlamofire_SwedbankPaySDKMerchantBackend.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -147,19 +145,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		05CCE882FDC5C5826CDB021B /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKMerchantBackend.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKMerchantBackend.release.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKMerchantBackend/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKMerchantBackend.release.xcconfig"; sourceTree = "<group>"; };
-		111BB8C928CC879B20328A64 /* Pods_SwedbankPaySDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SwedbankPaySDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		13907B16DB7BB376529FA271 /* Pods_NeedsAlamofire_SwedbankPaySDKTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NeedsAlamofire_SwedbankPaySDKTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		34BCFAD43E506150C71ACC17 /* Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend.release.xcconfig"; path = "Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend/Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend.release.xcconfig"; sourceTree = "<group>"; };
-		3E09D0769AC3724E2CAC85BC /* Pods-NeedsAlamofire-SwedbankPaySDKTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NeedsAlamofire-SwedbankPaySDKTests.debug.xcconfig"; path = "Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKTests/Pods-NeedsAlamofire-SwedbankPaySDKTests.debug.xcconfig"; sourceTree = "<group>"; };
-		3F412FB8E4EA8136803B3DC2 /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKTests.release.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKTests/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKTests.release.xcconfig"; sourceTree = "<group>"; };
-		5BF1E17379FF23EC0438E275 /* Pods_NeedsAlamofire_SwedbankPaySDKUITestHost.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NeedsAlamofire_SwedbankPaySDKUITestHost.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		6B3B514FF4FBB5E41EA7112B /* Pods_NeedsAlamofire_SwedbankPaySDKMerchantBackend.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NeedsAlamofire_SwedbankPaySDKMerchantBackend.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		6C0A1CD98EC8A054534D9C2C /* Pods-NeedsAlamofire-SwedbankPaySDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NeedsAlamofire-SwedbankPaySDKTests.release.xcconfig"; path = "Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKTests/Pods-NeedsAlamofire-SwedbankPaySDKTests.release.xcconfig"; sourceTree = "<group>"; };
-		7AFED67AA1585C6F1F54FF90 /* Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend.debug.xcconfig"; path = "Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend/Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend.debug.xcconfig"; sourceTree = "<group>"; };
-		9118F2E0CC9F8ABAE0EB50CB /* Pods-SwedbankPaySDKUITestHost.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDKUITestHost.release.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDKUITestHost/Pods-SwedbankPaySDKUITestHost.release.xcconfig"; sourceTree = "<group>"; };
-		929BB1B4C745CC27F28B41DE /* Pods-SwedbankPaySDKUITestHost.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDKUITestHost.debug.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDKUITestHost/Pods-SwedbankPaySDKUITestHost.debug.xcconfig"; sourceTree = "<group>"; };
-		95F18A393EA0E5DC78D8416D /* Pods-NeedsAlamofire-SwedbankPaySDKUITestHost.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NeedsAlamofire-SwedbankPaySDKUITestHost.debug.xcconfig"; path = "Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost.debug.xcconfig"; sourceTree = "<group>"; };
 		A502C37625430D90004FBFCB /* PaymentOrdersLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentOrdersLink.swift; sourceTree = "<group>"; };
 		A502C37825430D90004FBFCB /* RootLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RootLink.swift; sourceTree = "<group>"; };
 		A502C37925430D90004FBFCB /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
@@ -175,7 +160,7 @@
 		A515A71E26C4057C001E7F30 /* SwedbankPaySDKMerchantBackend.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwedbankPaySDKMerchantBackend.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A515A72126C40632001E7F30 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A515A72A26C51E78001E7F30 /* PaymentOrderExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentOrderExtensions.swift; sourceTree = "<group>"; };
-		A515A73226C69D4A001E7F30 /* SwedbankPaySDKMerchantBackend.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = SwedbankPaySDKMerchantBackend.podspec; sourceTree = "<group>"; };
+		A515A73226C69D4A001E7F30 /* SwedbankPaySDKMerchantBackend.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = SwedbankPaySDKMerchantBackend.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		A5179F3B25DD4A07006EBE72 /* DeletePaymentTokenLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletePaymentTokenLink.swift; sourceTree = "<group>"; };
 		A51DD66C263C3C11005ADDBB /* run_ui_tests.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = run_ui_tests.yml; sourceTree = "<group>"; };
 		A52E0AC024BC9E0100770286 /* WebViewRedirects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewRedirects.swift; sourceTree = "<group>"; };
@@ -237,11 +222,6 @@
 		A5DC2CA9251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewPaymentOrderInfo.swift; sourceTree = "<group>"; };
 		A5F3416823FD9293005D65BA /* PaymentOrder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentOrder.swift; sourceTree = "<group>"; };
 		A5F7FE05258B9ECD008AA2F7 /* EmptyJsonResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyJsonResponse.swift; sourceTree = "<group>"; };
-		AB85979580F4719F54964406 /* Pods-SwedbankPaySDKTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDKTests.debug.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDKTests/Pods-SwedbankPaySDKTests.debug.xcconfig"; sourceTree = "<group>"; };
-		B91F2029A3536C2C20B660C3 /* Pods-SwedbankPaySDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDKTests.release.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDKTests/Pods-SwedbankPaySDKTests.release.xcconfig"; sourceTree = "<group>"; };
-		BF480C99E0F94660CCEF95EE /* Pods-NeedsAlamofire-SwedbankPaySDKUITestHost.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NeedsAlamofire-SwedbankPaySDKUITestHost.release.xcconfig"; path = "Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost.release.xcconfig"; sourceTree = "<group>"; };
-		C14E19D622698291BD8EE4D4 /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKUITestHost.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKUITestHost.debug.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKUITestHost/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKUITestHost.debug.xcconfig"; sourceTree = "<group>"; };
-		C4326BCA58FC48C79ED64D2B /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKMerchantBackend.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKMerchantBackend.debug.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKMerchantBackend/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKMerchantBackend.debug.xcconfig"; sourceTree = "<group>"; };
 		C50CF68C237AA3B0003F79DF /* TypeAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeAliases.swift; sourceTree = "<group>"; };
 		C50CF696237AA8ED003F79DF /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		C50CF698237AAC73003F79DF /* WhitelistedDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitelistedDomain.swift; sourceTree = "<group>"; };
@@ -260,8 +240,6 @@
 		C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKViewModel.swift; sourceTree = "<group>"; };
 		C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKController.swift; sourceTree = "<group>"; };
 		C585AF30237066FB006C2E16 /* SwedbankPaySDK.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SwedbankPaySDK.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
-		EC2D7C9B146330A268EF3544 /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKTests.debug.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKTests/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKTests.debug.xcconfig"; sourceTree = "<group>"; };
-		EF972CA98494BC3BCE5CB901 /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKUITestHost.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKUITestHost.release.xcconfig"; path = "Target Support Files/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKUITestHost/Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKUITestHost.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -270,7 +248,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A515A72D26C51EF5001E7F30 /* SwedbankPaySDK.framework in Frameworks */,
-				CA5320F1D10B3D96EC8BECC2 /* Pods_NeedsAlamofire_SwedbankPaySDKMerchantBackend.framework in Frameworks */,
+				A569C75926D5115400B2237C /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -280,7 +258,6 @@
 			files = (
 				A515A72E26C51F06001E7F30 /* SwedbankPaySDKMerchantBackend.framework in Frameworks */,
 				A5494B5E26330545006EB38B /* SwedbankPaySDK.framework in Frameworks */,
-				31FF040C097EEC00A8B03618 /* Pods_NeedsAlamofire_SwedbankPaySDKUITestHost.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,36 +281,12 @@
 			files = (
 				A515A72C26C51EEF001E7F30 /* SwedbankPaySDKMerchantBackend.framework in Frameworks */,
 				C552630323706467005E97DC /* SwedbankPaySDK.framework in Frameworks */,
-				B654B82578DA2D9E5F984E78 /* Pods_NeedsAlamofire_SwedbankPaySDKTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		2122311905BC86B6CA330A18 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				AB85979580F4719F54964406 /* Pods-SwedbankPaySDKTests.debug.xcconfig */,
-				B91F2029A3536C2C20B660C3 /* Pods-SwedbankPaySDKTests.release.xcconfig */,
-				929BB1B4C745CC27F28B41DE /* Pods-SwedbankPaySDKUITestHost.debug.xcconfig */,
-				9118F2E0CC9F8ABAE0EB50CB /* Pods-SwedbankPaySDKUITestHost.release.xcconfig */,
-				C4326BCA58FC48C79ED64D2B /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKMerchantBackend.debug.xcconfig */,
-				05CCE882FDC5C5826CDB021B /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKMerchantBackend.release.xcconfig */,
-				EC2D7C9B146330A268EF3544 /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKTests.debug.xcconfig */,
-				3F412FB8E4EA8136803B3DC2 /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKTests.release.xcconfig */,
-				C14E19D622698291BD8EE4D4 /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKUITestHost.debug.xcconfig */,
-				EF972CA98494BC3BCE5CB901 /* Pods-SwedbankPaySDK-NeedsAlamofire-SwedbankPaySDKUITestHost.release.xcconfig */,
-				7AFED67AA1585C6F1F54FF90 /* Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend.debug.xcconfig */,
-				34BCFAD43E506150C71ACC17 /* Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend.release.xcconfig */,
-				3E09D0769AC3724E2CAC85BC /* Pods-NeedsAlamofire-SwedbankPaySDKTests.debug.xcconfig */,
-				6C0A1CD98EC8A054534D9C2C /* Pods-NeedsAlamofire-SwedbankPaySDKTests.release.xcconfig */,
-				95F18A393EA0E5DC78D8416D /* Pods-NeedsAlamofire-SwedbankPaySDKUITestHost.debug.xcconfig */,
-				BF480C99E0F94660CCEF95EE /* Pods-NeedsAlamofire-SwedbankPaySDKUITestHost.release.xcconfig */,
-			);
-			path = Pods;
-			sourceTree = "<group>";
-		};
 		A502C37525430D90004FBFCB /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -381,17 +334,6 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
-		A527F26E402CD01034DDFF5A /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				111BB8C928CC879B20328A64 /* Pods_SwedbankPaySDK.framework */,
-				6B3B514FF4FBB5E41EA7112B /* Pods_NeedsAlamofire_SwedbankPaySDKMerchantBackend.framework */,
-				13907B16DB7BB376529FA271 /* Pods_NeedsAlamofire_SwedbankPaySDKTests.framework */,
-				5BF1E17379FF23EC0438E275 /* Pods_NeedsAlamofire_SwedbankPaySDKUITestHost.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		A52E0AC524BCA09100770286 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -436,6 +378,13 @@
 				A542B35225249BA900AD8F09 /* Assertions.swift */,
 			);
 			path = Utils;
+			sourceTree = "<group>";
+		};
+		A569C75726D5115400B2237C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		A57669FD2472BB37002651A6 /* .github/workflows */ = {
@@ -542,8 +491,7 @@
 				A5494B2726330227006EB38B /* SwedbankPaySDKUITests */,
 				A598BF462638441E0032E261 /* SwedbankPaySDKUITestMessages */,
 				C55262FA23706467005E97DC /* Products */,
-				2122311905BC86B6CA330A18 /* Pods */,
-				A527F26E402CD01034DDFF5A /* Frameworks */,
+				A569C75726D5115400B2237C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -624,7 +572,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A515A71B26C4057C001E7F30 /* Build configuration list for PBXNativeTarget "SwedbankPaySDKMerchantBackend" */;
 			buildPhases = (
-				B2633F8DD90C37B3E393DE5F /* [CP] Check Pods Manifest.lock */,
 				A515A6E126C4057C001E7F30 /* Headers */,
 				A515A6E226C4057C001E7F30 /* Sources */,
 				A515A71426C4057C001E7F30 /* Frameworks */,
@@ -636,6 +583,9 @@
 				A515A72426C4070E001E7F30 /* PBXTargetDependency */,
 			);
 			name = SwedbankPaySDKMerchantBackend;
+			packageProductDependencies = (
+				A569C75826D5115400B2237C /* Alamofire */,
+			);
 			productName = SwedbankPaySDK;
 			productReference = A515A71E26C4057C001E7F30 /* SwedbankPaySDKMerchantBackend.framework */;
 			productType = "com.apple.product-type.framework";
@@ -644,11 +594,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A5494B1E26330209006EB38B /* Build configuration list for PBXNativeTarget "SwedbankPaySDKUITestHost" */;
 			buildPhases = (
-				B272DA0F2680D6A55129DBFD /* [CP] Check Pods Manifest.lock */,
 				A5494B0726330207006EB38B /* Sources */,
 				A5494B0826330207006EB38B /* Frameworks */,
 				A5494B0926330207006EB38B /* Resources */,
-				B6747A2F436CDD087E8657B8 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -693,6 +641,8 @@
 			dependencies = (
 			);
 			name = SwedbankPaySDK;
+			packageProductDependencies = (
+			);
 			productName = SwedbankPaySDK;
 			productReference = C55262F923706467005E97DC /* SwedbankPaySDK.framework */;
 			productType = "com.apple.product-type.framework";
@@ -701,11 +651,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C552631023706467005E97DC /* Build configuration list for PBXNativeTarget "SwedbankPaySDKTests" */;
 			buildPhases = (
-				E1B379729464BF2937B57666 /* [CP] Check Pods Manifest.lock */,
 				C55262FE23706467005E97DC /* Sources */,
 				C55262FF23706467005E97DC /* Frameworks */,
 				C552630023706467005E97DC /* Resources */,
-				FA72F162D837B311F52204B1 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -752,6 +700,9 @@
 				Base,
 			);
 			mainGroup = C55262EF23706467005E97DC;
+			packageReferences = (
+				A569C75426D5113D00B2237C /* XCRemoteSwiftPackageReference "Alamofire" */,
+			);
 			productRefGroup = C55262FA23706467005E97DC /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -808,109 +759,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		B2633F8DD90C37B3E393DE5F /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B272DA0F2680D6A55129DBFD /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B6747A2F436CDD087E8657B8 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost/Pods-NeedsAlamofire-SwedbankPaySDKUITestHost-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		E1B379729464BF2937B57666 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-NeedsAlamofire-SwedbankPaySDKTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		FA72F162D837B311F52204B1 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKTests/Pods-NeedsAlamofire-SwedbankPaySDKTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKTests/Pods-NeedsAlamofire-SwedbankPaySDKTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NeedsAlamofire-SwedbankPaySDKTests/Pods-NeedsAlamofire-SwedbankPaySDKTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A515A6E226C4057C001E7F30 /* Sources */ = {
@@ -1064,7 +912,6 @@
 /* Begin XCBuildConfiguration section */
 		A515A71C26C4057C001E7F30 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7AFED67AA1585C6F1F54FF90 /* Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
@@ -1089,7 +936,6 @@
 		};
 		A515A71D26C4057C001E7F30 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 34BCFAD43E506150C71ACC17 /* Pods-NeedsAlamofire-SwedbankPaySDKMerchantBackend.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
@@ -1114,7 +960,6 @@
 		};
 		A5494B1C26330209006EB38B /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 95F18A393EA0E5DC78D8416D /* Pods-NeedsAlamofire-SwedbankPaySDKUITestHost.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1135,7 +980,6 @@
 		};
 		A5494B1D26330209006EB38B /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BF480C99E0F94660CCEF95EE /* Pods-NeedsAlamofire-SwedbankPaySDKUITestHost.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1366,7 +1210,6 @@
 		};
 		C552631123706467005E97DC /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3E09D0769AC3724E2CAC85BC /* Pods-NeedsAlamofire-SwedbankPaySDKTests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
@@ -1389,7 +1232,6 @@
 		};
 		C552631223706467005E97DC /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6C0A1CD98EC8A054534D9C2C /* Pods-NeedsAlamofire-SwedbankPaySDKTests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
@@ -1468,6 +1310,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A569C75426D5113D00B2237C /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.4.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A569C75826D5115400B2237C /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A569C75426D5113D00B2237C /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C55262F023706467005E97DC /* Project object */;
 }
