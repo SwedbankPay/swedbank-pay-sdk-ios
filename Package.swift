@@ -30,7 +30,7 @@ let package = Package(
         .target(
             name: "SwedbankPaySDK",
             path: "SwedbankPaySDK/Classes",
-            resources: [.copy("SwedbankPaySDK/Resources/*")]
+            resources: [.copy("SwedbankPaySDK/Resources/good_redirects")]
         ),
         
         .target(
