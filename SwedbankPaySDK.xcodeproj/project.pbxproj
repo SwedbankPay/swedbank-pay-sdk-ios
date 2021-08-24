@@ -198,6 +198,7 @@
 		A5535E822478078A00BFD586 /* MockURLProtocolExpectation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLProtocolExpectation.swift; sourceTree = "<group>"; };
 		A5535E852478089000BFD586 /* run_tests.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; path = run_tests.yml; sourceTree = "<group>"; };
 		A560BE422420C7CE00C1D023 /* TerminalFailure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalFailure.swift; sourceTree = "<group>"; };
+		A569C74D26D3E11B00B2237C /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		A57170D925011F8500AC28BE /* FileLines.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileLines.swift; sourceTree = "<group>"; };
 		A57170DC25064EF400AC28BE /* FileLinesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileLinesTests.swift; sourceTree = "<group>"; };
 		A57170DE2506531B00AC28BE /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
@@ -530,6 +531,7 @@
 			children = (
 				A57669FD2472BB37002651A6 /* .github/workflows */,
 				C585AF21237066DC006C2E16 /* LICENSE */,
+				A569C74D26D3E11B00B2237C /* Package.swift */,
 				C585AF22237066DC006C2E16 /* README.md */,
 				C585AF30237066FB006C2E16 /* SwedbankPaySDK.podspec */,
 				A515A73226C69D4A001E7F30 /* SwedbankPaySDKMerchantBackend.podspec */,
