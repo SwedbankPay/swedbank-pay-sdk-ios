@@ -41,5 +41,6 @@ let package = Package(
             ],
             path: "SwedbankPaySDKMerchantBackend/Classes"
         )
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )
