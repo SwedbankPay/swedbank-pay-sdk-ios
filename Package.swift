@@ -29,8 +29,8 @@ let package = Package(
     targets: [
         .target(
             name: "SwedbankPaySDK",
-            path: "SwedbankPaySDK/Classes",
-            resources: [.copy("SwedbankPaySDK/Resources/good_redirects")]
+            path: "SwedbankPaySDK",
+            resources: [.copy("Resources/good_redirects")]
         ),
         
         .target(
@@ -39,7 +39,7 @@ let package = Package(
                 .target(name: "SwedbankPaySDK"),
                 .product(name: "Alamofire", package: "Alamofire")
             ],
-            path: "SwedbankPaySDKMerchantBackend/Classes"
+            path: "SwedbankPaySDKMerchantBackend"
         )
     ],
     swiftLanguageVersions: [.v5]
