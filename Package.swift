@@ -1,3 +1,4 @@
+// swift-tools-version:5.3
 //
 // Copyright 2021 Swedbank AB
 //
