@@ -30,7 +30,8 @@ let package = Package(
         .target(
             name: "SwedbankPaySDK",
             path: "SwedbankPaySDK",
-            resources: [.copy("Resources/good_redirects")]
+            resources: [.copy("Resources/good_redirects")],
+            swiftSettings: [.define("SWIFT_PACKAGE_MANAGER")]
         ),
         
         .target(
