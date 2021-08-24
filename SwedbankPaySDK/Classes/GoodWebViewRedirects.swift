@@ -46,7 +46,7 @@ class GoodWebViewRedirects {
     
     private static func getResourceBundle() -> Bundle {
         #if SWIFT_PACKAGE_MANAGER
-        return Bundle.package
+        return Bundle.module
         #else
         return Bundle(for: GoodWebViewRedirects.self)
         #endif
