@@ -15,8 +15,40 @@ The Swedbank Pay iOS SDK facilitates the implementation of the
 
 ## Installation
 
-1. Add `pod 'SwedbankPaySDK'` into your `Podfile`
-2. Run `pod install`
+The SDK has two components, `SwedbankPaySDK` and
+`SwedbankPaySDKMerchantBackend`. The first one is the core SDK, and
+the second one contains utilities for interfacing with a server implementing
+the [Merchant Backend API][merchant-backend-example].
+
+If you are not using the Merchant Backend API for backend communication,
+you only need to use the `SwedbankPaySDK` component. Otherwise, you
+should add both components to your project.
+
+### Swift Package Manager
+
+The SDK is available through the Swift Package Manager. This is the simplest
+way of adding the SDK to an Xcode project.
+
+Follow the instructions [here][xcode-swiftpm] to add a SwiftPM dependency.
+Use
+`https://github.com/SwedbankPay/swedbank-pay-sdk-ios.git`
+as the repository URL. Select either only the `SwedbankPaySDK` library or both
+libraries depending on your use-case.
+
+### CocoaPods
+
+The SDK is also available through [CocoaPods][cocoapods]. There are separate
+pods for the two components, named  `SwedbankPaySDK` and
+`SwedbankPaySDKMerchantBackend` respectively.
+
+Add the relevant dependencies in your `Podfile`:
+
+```ruby
+pod 'SwedbankPaySDK', '~> 2.1'
+```
+```ruby
+pod 'SwedbankPaySDKMerchantBackend', '~> 2.1'
+```
 
 ## Usage
 
@@ -37,6 +69,9 @@ The code within this repository is available as open source under the terms of
 the [Apache 2.0 License][license] and the [contributor's license
 agreement][cla].
 
+[merchant-backend-example]: https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant
+[xcode-swiftpm]: https://developer.apple.com/documentation/swift_packages/adding_package_dependencies_to_your_app
+[cocoapods]: https://cocoapods.org/
 [dev-portal]:           https://developer.swedbankpay.com/
 [dev-portal-sdk]:       https://developer.swedbankpay.com/modules-sdks/mobile-sdk/
 [cla-badge]:            https://cla-assistant.io/readme/badge/SwedbankPay/swedbank-pay-sdk-android
