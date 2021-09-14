@@ -5,19 +5,39 @@ import WebKit
 class ViewControllerConsumerTests : SwedbankPaySDKControllerTestCase {
     private let timeout = 5 as TimeInterval
     
-    override func createController() -> SwedbankPaySDKController {
-        return SwedbankPaySDKController(configuration: TestConstants.configuration, consumer: TestConstants.consumerData, paymentOrder: TestConstants.paymentOrder)
+    private var testConfiguration: TestConfiguration?
+    
+    private func startViewController(
+        testConfiguration: TestConfiguration,
+        setupConsumers: Bool = true,
+        setupPaymentorders: Bool = false
+    ) {
+        self.testConfiguration = testConfiguration
+        testConfiguration.setup(consumers: setupConsumers, paymentorders: setupPaymentorders)
+        viewController = SwedbankPaySDKController(
+            configuration: testConfiguration.sdkConfiguration,
+            consumer: TestConstants.consumerData,
+            paymentOrder: TestConstants.paymentOrder
+        )
     }
     
+    override func tearDown() {
+        testConfiguration?.teardown()
+        super.tearDown()
+    }
+    
+    private func testItShouldStartWithoutCrashing(testConfiguration: TestConfiguration) {
+        startViewController(testConfiguration: testConfiguration, setupConsumers: false)
+    }
     func testItShouldStartWithoutCrashing() {
-        startViewController()
-        MockURLProtocol.assertNoUnusedStubs()
+        testItShouldStartWithoutCrashing(testConfiguration: .merchantBackend)
+    }
+    func testItShouldStartWithoutCrashingAsync() throws {
+        try testItShouldStartWithoutCrashing(testConfiguration: .getAsyncConfigOrSkipTest())
     }
     
-    func testItShouldShowViewConsumerIdentificationPage() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubConsumers()
-        startViewController()
+    private func testItShouldShowViewConsumerIdentificationPage(testConfiguration: TestConfiguration) {
+        startViewController(testConfiguration: testConfiguration)
         waitForWebViewLoaded()
         
         let expectation = self.expectation(description: "view-consumer-identification page loaded in web view")
@@ -28,15 +48,18 @@ class ViewControllerConsumerTests : SwedbankPaySDKControllerTestCase {
             }
         }
         waitForExpectations(timeout: timeout, handler: nil)
-        
-        MockURLProtocol.assertNoUnusedStubs()
+    }
+    func testItShouldShowViewConsumerIdentificationPage() {
+        testItShouldShowViewConsumerIdentificationPage(testConfiguration: .merchantBackend)
+    }
+    func testItShouldShowViewConsumerIdentificationPageAsync() throws {
+        try testItShouldShowViewConsumerIdentificationPage(testConfiguration: .getAsyncConfigOrSkipTest())
     }
     
+    // The .async configuration does not make URL requests,
+    // so this test only makes sense for the .merchantBackend configuration.
     func testItShouldMakePostRequestToPaymentOrdersUrlAfterIdentificationSuccess() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubConsumers()
-        
-        startViewController()
+        startViewController(testConfiguration: .merchantBackend)
         waitForWebViewLoaded()
         
         let onConsumerIdentifiedCalled = expectation(description: "consumerProfileRef set in viewModel")
@@ -54,16 +77,10 @@ class ViewControllerConsumerTests : SwedbankPaySDKControllerTestCase {
             XCTAssertEqual(profileString, TestConstants.consumerProfileRef)
         }))
         waitForExpectations(timeout: timeout, handler: nil)
-        
-        MockURLProtocol.assertNoUnusedStubs()
     }
     
-    func testItShouldShowViewPaymentorderPageAfterIdentificationSuccess() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubConsumers()
-        MockURLProtocol.stubPaymentorders()
-        
-        startViewController()
+    private func testItShouldShowViewPaymentorderPageAfterIdentificationSuccess(testConfiguration: TestConfiguration) {
+        startViewController(testConfiguration: testConfiguration, setupPaymentorders: true)
         waitForWebViewLoaded()
         
         webView.evaluateJavaScript("webkit.messageHandlers.\(SwedbankPayWebContent.scriptMessageHandlerName).postMessage({msg:'\(SwedbankPayWebContent.ConsumerEvent.onConsumerIdentified)',arg:'\(TestConstants.consumerProfileRef)'})", completionHandler: nil)
@@ -74,16 +91,19 @@ class ViewControllerConsumerTests : SwedbankPaySDKControllerTestCase {
         
         MockURLProtocol.assertNoUnusedStubs()
     }
+    func testItShouldShowViewPaymentorderPageAfterIdentificationSuccess() {
+        testItShouldShowViewPaymentorderPageAfterIdentificationSuccess(testConfiguration: .merchantBackend)
+    }
+    func testItShouldShowViewPaymentorderPageAfterIdentificationSuccessAsync() throws {
+        try testItShouldShowViewPaymentorderPageAfterIdentificationSuccess(testConfiguration: .getAsyncConfigOrSkipTest())
+    }
     
-    func testItShouldReportFailureAfterConsumerError() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubConsumers()
-        
+    private func testItShouldReportFailureAfterConsumerError(testConfiguration: TestConfiguration) {
         let paymentFailed = expectation(description: "Payment failed")
         delegate.onFailed = { _ in
             paymentFailed.fulfill()
         }
-        startViewController()
+        startViewController(testConfiguration: testConfiguration)
         waitForWebViewLoaded()
         
         webView.evaluateJavaScript("webkit.messageHandlers.\(SwedbankPayWebContent.scriptMessageHandlerName).postMessage({msg:'\(SwedbankPayWebContent.ConsumerEvent.onError)'})", completionHandler: nil)
@@ -91,5 +111,42 @@ class ViewControllerConsumerTests : SwedbankPaySDKControllerTestCase {
         
         MockURLProtocol.assertNoUnusedStubs()
     }
+    func testItShouldReportFailureAfterConsumerError() {
+        testItShouldReportFailureAfterConsumerError(testConfiguration: .merchantBackend)
+    }
+    func testItShouldReportFailureAfterConsumerErrorAsync() throws {
+        try testItShouldReportFailureAfterConsumerError(testConfiguration: .getAsyncConfigOrSkipTest())
+    }
+}
+
+private extension TestConfiguration {
+    func setup(consumers: Bool, paymentorders: Bool) {
+        switch self {
+        case .merchantBackend:
+            if consumers {
+                MockURLProtocol.stubBackendUrl()
+                MockURLProtocol.stubConsumers()
+            }
+            if paymentorders {
+                MockURLProtocol.stubPaymentorders()
+            }
+            
+#if swift(>=5.5)
+        case .async:
+            break
+#endif // swift(>=5.5)
+        }
+    }
     
+    func teardown() {
+        switch self {
+        case .merchantBackend:
+            MockURLProtocol.assertNoUnusedStubs()
+            
+#if swift(>=5.5)
+        case .async:
+            break
+#endif // swift(>=5.5)
+        }
+    }
 }

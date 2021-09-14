@@ -5,48 +5,68 @@ import WebKit
 class ViewControllerTests : SwedbankPaySDKControllerTestCase {
     private let timeout = 5 as TimeInterval
     
-    override func createController() -> SwedbankPaySDKController {
-        return SwedbankPaySDKController(configuration: TestConstants.configuration, paymentOrder: TestConstants.paymentOrder)
+    private var testConfiguration: TestConfiguration?
+    
+    private func startViewController(testConfiguration: TestConfiguration, setupPaymentorders: Bool = true) {
+        self.testConfiguration = testConfiguration
+        if setupPaymentorders {
+            testConfiguration.setupPaymentorders()
+        }
+        viewController = SwedbankPaySDKController(
+            configuration: testConfiguration.sdkConfiguration,
+            paymentOrder: TestConstants.paymentOrder
+        )
     }
     
+    override func tearDown() {
+        testConfiguration?.teardown()
+        super.tearDown()
+    }
+    
+    private func testItShouldStartWithoutCrashing(testConfiguration: TestConfiguration) {
+        startViewController(testConfiguration: testConfiguration, setupPaymentorders: false)
+    }
     func testItShouldStartWithoutCrashing() {
-        startViewController()
-        MockURLProtocol.assertNoUnusedStubs()
+        testItShouldStartWithoutCrashing(testConfiguration: .merchantBackend)
+    }
+    func testItShouldStartWithoutCrashingAsync() throws {
+        try testItShouldStartWithoutCrashing(testConfiguration: .getAsyncConfigOrSkipTest())
     }
     
-    func testItShouldShowViewPaymentorderPage() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubPaymentorders()
-        startViewController()
+    private func testItShouldShowViewPaymentorderPage(testConfiguration: TestConfiguration) {
+        startViewController(testConfiguration: testConfiguration)
         waitForWebViewLoaded()
         
         expectViewPaymentorderPageInWebView()
         waitForExpectations(timeout: timeout, handler: nil)
-        
-        MockURLProtocol.assertNoUnusedStubs()
+    }
+    func testItShouldShowViewPaymentorderPage() {
+        testItShouldShowViewPaymentorderPage(testConfiguration: .merchantBackend)
+    }
+    func testItShouldShowViewPaymentorderPageAsync() throws {
+        try testItShouldShowViewPaymentorderPage(testConfiguration: .getAsyncConfigOrSkipTest())
     }
     
-    func testItShouldReportSuccessAfterNavigationToCompleteUrl() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubPaymentorders()
+    private func testItShouldReportSuccessAfterNavigationToCompleteUrl(testConfiguration: TestConfiguration) {
         let paymentCompleted = expectation(description: "Payment completed")
         delegate.onComplete = {
             paymentCompleted.fulfill()
         }
-        startViewController()
+        startViewController(testConfiguration: testConfiguration)
         waitForWebViewLoaded()
         
         webView.evaluateJavaScript("window.location = '\(TestConstants.paymentOrder.urls.completeUrl.absoluteString)'", completionHandler: nil)
         waitForExpectations(timeout: timeout, handler: nil)
-        
-        MockURLProtocol.assertNoUnusedStubs()
+    }
+    func testItShouldReportSuccessAfterNavigationToCompleteUrl() {
+        testItShouldReportSuccessAfterNavigationToCompleteUrl(testConfiguration: .merchantBackend)
+    }
+    func testItShouldReportSuccessAfterNavigationToCompleteUrlAsync() throws {
+        try testItShouldReportSuccessAfterNavigationToCompleteUrl(testConfiguration: .getAsyncConfigOrSkipTest())
     }
     
-    func testItShouldReloadViewPaymentorderPageWhenItNavigatesToPaymentUrl() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubPaymentorders()
-        
-        startViewController()
+    private func testItShouldReloadViewPaymentorderPageWhenItNavigatesToPaymentUrl(testConfiguration: TestConfiguration) {
+        startViewController(testConfiguration: testConfiguration)
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)
         
@@ -57,24 +77,56 @@ class ViewControllerTests : SwedbankPaySDKControllerTestCase {
         webView.evaluateJavaScript("window.location = '\(TestConstants.paymentOrder.urls.paymentUrl!.absoluteString)'", completionHandler: nil)
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)
-        
-        MockURLProtocol.assertNoUnusedStubs()
+    }
+    func testItShouldReloadViewPaymentorderPageWhenItNavigatesToPaymentUrl() {
+        testItShouldReloadViewPaymentorderPageWhenItNavigatesToPaymentUrl(testConfiguration: .merchantBackend)
+    }
+    func testItShouldReloadViewPaymentorderPageWhenItNavigatesToPaymentUrlAsync() throws {
+        try testItShouldReloadViewPaymentorderPageWhenItNavigatesToPaymentUrl(testConfiguration: .getAsyncConfigOrSkipTest())
     }
     
-    func testItShouldReportFailureAfterOnError() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubPaymentorders()
-        
+    private func testItShouldReportFailureAfterOnError(testConfiguration: TestConfiguration) {
         let paymentFailed = expectation(description: "Payment failed")
         delegate.onFailed = { _ in
             paymentFailed.fulfill()
         }
-        startViewController()
+        startViewController(testConfiguration: testConfiguration)
         waitForWebViewLoaded()
         
         webView.evaluateJavaScript("webkit.messageHandlers.\(SwedbankPayWebContent.scriptMessageHandlerName).postMessage({msg:'\(SwedbankPayWebContent.PaymentEvent.onError)'})", completionHandler: nil)
         waitForExpectations(timeout: timeout, handler: nil)
-        
-        MockURLProtocol.assertNoUnusedStubs()
+    }
+    func testItShouldReportFailureAfterOnError() {
+        testItShouldReportFailureAfterOnError(testConfiguration: .merchantBackend)
+    }
+    func testItShouldReportFailureAfterOnErrorAsync() throws {
+        try testItShouldReportFailureAfterOnError(testConfiguration: .getAsyncConfigOrSkipTest())
+    }
+}
+
+private extension TestConfiguration {
+    func setupPaymentorders() {
+        switch self {
+        case .merchantBackend:
+            MockURLProtocol.stubBackendUrl()
+            MockURLProtocol.stubPaymentorders()
+            
+#if swift(>=5.5)
+        case .async:
+            break
+#endif // swift(>=5.5)
+        }
+    }
+    
+    func teardown() {
+        switch self {
+        case .merchantBackend:
+            MockURLProtocol.assertNoUnusedStubs()
+            
+#if swift(>=5.5)
+        case .async:
+            break
+#endif // swift(>=5.5)
+        }
     }
 }
