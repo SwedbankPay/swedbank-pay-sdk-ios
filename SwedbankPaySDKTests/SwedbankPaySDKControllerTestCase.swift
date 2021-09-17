@@ -8,7 +8,23 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
     private var window: UIWindow?
     
     var viewController: SwedbankPaySDKController! {
-        window?.rootViewController as? SwedbankPaySDKController
+        get {
+            window?.rootViewController as? SwedbankPaySDKController
+        }
+        set {
+            assert(window == nil, "viewController already set in this test")
+            let window = UIWindow()
+            self.window = window
+            newValue.delegate = _delegate
+            window.rootViewController = newValue
+            window.isHidden = false
+            
+            // Mock UIApplication.open(_:options:completionHandler:)
+            // to always fail on universal links, as UIApplication will not
+            // call the completionHandler in tests, which ultimately results
+            // in WKWebView throwing an exception.
+            webViewController.attemptOpenUniversalLink = { _, completionHandler in completionHandler(false) }
+        }
     }
     
     private var _delegate: TestDelegate?
@@ -38,26 +54,6 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
         window = nil
         
         MockURLProtocol.reset()
-    }
-    
-    func createController() -> SwedbankPaySDKController {
-        fatalError("Subclass must override createController")
-    }
-    
-    func startViewController() {
-        assert(window == nil, "View Controller already started in this test")
-        let window = UIWindow()
-        self.window = window
-        let viewController = createController()
-        viewController.delegate = _delegate
-        window.rootViewController = viewController
-        window.isHidden = false
-        
-        // Mock UIApplication.open(_:options:completionHandler:)
-        // to always fail on universal links, as UIApplication will not
-        // call the completionHandler in tests, which ultimately results
-        // in WKWebView throwing an exception.
-        webViewController.attemptOpenUniversalLink = { _, completionHandler in completionHandler(false) }
     }
     
     func waitForWebViewLoaded() {

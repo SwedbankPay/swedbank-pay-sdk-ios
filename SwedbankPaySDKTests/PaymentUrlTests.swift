@@ -30,17 +30,16 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
         makePaymentUrl(scheme: TestConstants.callbackScheme, extraQueryItems: [.init(name: "foo", value: "bar")])
     }
     
-    override func createController() -> SwedbankPaySDKController {
+    private func testPaymentUrl(testConfiguration: TestConfiguration, invokePaymentUrl: () -> Void) {
+        testConfiguration.setup()
+        
         var paymentOrder = TestConstants.paymentOrder
         paymentOrder.urls.paymentUrl = originalPaymentUrl
-        return SwedbankPaySDKController(configuration: TestConstants.configuration, paymentOrder: paymentOrder)
-    }
-    
-    private func testPaymentUrl(invokePaymentUrl: () -> Void) {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubPaymentorders()
         
-        startViewController()
+        viewController = SwedbankPaySDKController(
+            configuration: testConfiguration.sdkConfiguration,
+            paymentOrder: paymentOrder
+        )
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)
         
@@ -52,44 +51,88 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)
         
-        MockURLProtocol.assertNoUnusedStubs()
+        testConfiguration.teardown()
     }
     
-    private func testOpen(url: URL) {
-        testPaymentUrl {
+    private func testOpen(testConfiguration: TestConfiguration, url: URL) {
+        testPaymentUrl(testConfiguration: testConfiguration) {
             _ = SwedbankPaySDK.open(url: url)
         }
     }
     
-    private func testContinueUserActivity(url: URL) {
+    private func testContinueUserActivity(testConfiguration: TestConfiguration, url: URL) {
         let userActivity = NSUserActivity(activityType: NSUserActivityTypeBrowsingWeb)
         userActivity.webpageURL = url
-        testPaymentUrl {
+        testPaymentUrl(testConfiguration: testConfiguration) {
             _ = SwedbankPaySDK.continue(userActivity: userActivity)
         }
     }
     
     func testOpenOriginalPaymentUrl() {
-        testOpen(url: originalPaymentUrl)
+        testOpen(testConfiguration: .merchantBackend, url: originalPaymentUrl)
+    }
+    func testOpenOriginalPaymentUrlAsync() throws {
+        try testOpen(testConfiguration: .getAsyncConfigOrSkipTest(), url: originalPaymentUrl)
     }
     
     func testContinueUserActivityOriginalPaymentUrl() {
-        testContinueUserActivity(url: originalPaymentUrl)
+        testContinueUserActivity(testConfiguration: .merchantBackend, url: originalPaymentUrl)
+    }
+    func testContinueUserActivityOriginalPaymentUrlAsync() throws {
+        try testContinueUserActivity(testConfiguration: .getAsyncConfigOrSkipTest(), url: originalPaymentUrl)
     }
     
     func testOpenAugmentedPaymentUrl() {
-        testOpen(url: augmentedPaymentUrl)
+        testOpen(testConfiguration: .merchantBackend, url: augmentedPaymentUrl)
+    }
+    func testOpenAugmentedPaymentUrlAsync() throws {
+        try testOpen(testConfiguration: .getAsyncConfigOrSkipTest(), url: augmentedPaymentUrl)
     }
     
     func testContinueUserActivityAugmentedPaymentUrl() {
-        testContinueUserActivity(url: augmentedPaymentUrl)
+        testContinueUserActivity(testConfiguration: .merchantBackend, url: augmentedPaymentUrl)
+    }
+    func testContinueUserActivityAugmentedPaymentUrlAsync() throws {
+        try testContinueUserActivity(testConfiguration: .getAsyncConfigOrSkipTest(), url: augmentedPaymentUrl)
     }
     
     func testOpenCustomSchemePaymentUrl() {
-        testOpen(url: customSchemePaymentUrl)
+        testOpen(testConfiguration: .merchantBackend, url: customSchemePaymentUrl)
+    }
+    func testOpenCustomSchemePaymentUrlAsync() throws {
+        try testOpen(testConfiguration: .getAsyncConfigOrSkipTest(), url: customSchemePaymentUrl)
     }
     
     func testOpenAugmentedCustomSchemePaymentUrl() {
-        testOpen(url: augmentedCustomSchemePaymentUrl)
+        testOpen(testConfiguration: .merchantBackend, url: augmentedCustomSchemePaymentUrl)
+    }
+    func testOpenAugmentedCustomSchemePaymentUrlAsync() throws {
+        try testOpen(testConfiguration: .getAsyncConfigOrSkipTest(), url: augmentedCustomSchemePaymentUrl)
+    }
+}
+
+private extension TestConfiguration {
+    func setup() {
+        switch self {
+        case .merchantBackend:
+            MockURLProtocol.stubBackendUrl()
+            MockURLProtocol.stubPaymentorders()
+            
+#if swift(>=5.5)
+        case .async:
+            break
+#endif // swift(>=5.5)
+        }
+    }
+    func teardown() {
+        switch self {
+        case .merchantBackend:
+            MockURLProtocol.assertNoUnusedStubs()
+            
+#if swift(>=5.5)
+        case .async:
+            break
+#endif // swift(>=5.5)
+        }
     }
 }

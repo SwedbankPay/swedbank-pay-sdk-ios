@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6367D3EB26F340F700F89F62 /* TestConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6367D3EA26F340F700F89F62 /* TestConfiguration.swift */; };
+		63F5D69F26F0B23600C1F207 /* ConfigurationAsync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */; };
+		63F5D6A126F0C2A100C1F207 /* AsyncViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D6A026F0C2A100C1F207 /* AsyncViewModelTests.swift */; };
+		63F5D6A326F0C96F00C1F207 /* AsyncTestConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D6A226F0C96F00C1F207 /* AsyncTestConfiguration.swift */; };
 		A504895123C8A2FD00201DEC /* SwedbankPayWebContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A504895023C8A2FD00201DEC /* SwedbankPayWebContent.swift */; };
 		A515A6E426C4057C001E7F30 /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A502C37E25430D90004FBFCB /* Operation.swift */; };
 		A515A6E626C4057C001E7F30 /* MerchantBackendRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A59AEEAE2539D46700255A3A /* MerchantBackendRequest.swift */; };
@@ -145,6 +149,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6367D3EA26F340F700F89F62 /* TestConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConfiguration.swift; sourceTree = "<group>"; };
+		63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationAsync.swift; sourceTree = "<group>"; };
+		63F5D6A026F0C2A100C1F207 /* AsyncViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncViewModelTests.swift; sourceTree = "<group>"; };
+		63F5D6A226F0C96F00C1F207 /* AsyncTestConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncTestConfiguration.swift; sourceTree = "<group>"; };
 		A502C37625430D90004FBFCB /* PaymentOrdersLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentOrdersLink.swift; sourceTree = "<group>"; };
 		A502C37825430D90004FBFCB /* RootLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RootLink.swift; sourceTree = "<group>"; };
 		A502C37925430D90004FBFCB /* Link.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
@@ -368,6 +376,7 @@
 			isa = PBXGroup;
 			children = (
 				A5535E7124754AD000BFD586 /* TestConstants.swift */,
+				63F5D6A226F0C96F00C1F207 /* AsyncTestConfiguration.swift */,
 				A5535E7324754AFC00BFD586 /* MockURLProtocol.swift */,
 				A5535E822478078A00BFD586 /* MockURLProtocolExpectation.swift */,
 				A5535E802478072C00BFD586 /* StubbedURLError.swift */,
@@ -376,6 +385,7 @@
 				A596D66A247BF85B009605DB /* TestURLStubs.swift */,
 				A57170DE2506531B00AC28BE /* FileUtils.swift */,
 				A542B35225249BA900AD8F09 /* Assertions.swift */,
+				6367D3EA26F340F700F89F62 /* TestConfiguration.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -454,6 +464,7 @@
 				A52E0AC024BC9E0100770286 /* WebViewRedirects.swift */,
 				A5DC2CA5251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift */,
 				A5DC2CA9251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift */,
+				63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */,
 			);
 			path = "SwedbankPaySDK+Extensions";
 			sourceTree = "<group>";
@@ -523,6 +534,7 @@
 				A5535E842478080A00BFD586 /* Utils */,
 				C573118B237070E200EA98A6 /* Info.plist */,
 				A5535E7724755AE300BFD586 /* ViewModelTests.swift */,
+				63F5D6A026F0C2A100C1F207 /* AsyncViewModelTests.swift */,
 				A596D668247BECD8009605DB /* ViewControllerTests.swift */,
 				A596D66C247EA39B009605DB /* SwedbankPaySDKControllerTestCase.swift */,
 				A596D6722480FCA7009605DB /* ViewControllerConsumerTests.swift */,
@@ -831,6 +843,7 @@
 				A57170DA25011F8500AC28BE /* FileLines.swift in Sources */,
 				A59AEE9D25372C9A00255A3A /* Instrument.swift in Sources */,
 				C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */,
+				63F5D69F26F0B23600C1F207 /* ConfigurationAsync.swift in Sources */,
 				C50CF68D237AA3B0003F79DF /* TypeAliases.swift in Sources */,
 				A5808B0D261CA7A200FF7EC1 /* SwedbankPayExtraWebViewController.swift in Sources */,
 				A5AA1D6F2397B63D008A62CC /* CallbackHandling.swift in Sources */,
@@ -870,6 +883,9 @@
 				A5535E832478078A00BFD586 /* MockURLProtocolExpectation.swift in Sources */,
 				A596D6732480FCA7009605DB /* ViewControllerConsumerTests.swift in Sources */,
 				A5535E812478072C00BFD586 /* StubbedURLError.swift in Sources */,
+				63F5D6A326F0C96F00C1F207 /* AsyncTestConfiguration.swift in Sources */,
+				63F5D6A126F0C2A100C1F207 /* AsyncViewModelTests.swift in Sources */,
+				6367D3EB26F340F700F89F62 /* TestConfiguration.swift in Sources */,
 				A5535E7424754AFC00BFD586 /* MockURLProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
