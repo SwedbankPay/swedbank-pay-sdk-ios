@@ -9,9 +9,9 @@ class ViewModelTests : XCTestCase {
     
     override func setUp() {
         viewModel = SwedbankPaySDKViewModel(
-            configuration: TestConstants.configuration,
+            configuration: MockMerchantBackend.configuration(for: self),
             consumerData: TestConstants.consumerData,
-            paymentOrder: TestConstants.paymentOrder,
+            paymentOrder: MockMerchantBackend.paymentOrder(for: self),
             userData: nil
         )
     }
@@ -44,14 +44,14 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldMakeGetRequestToBackendUrl() {
-        expectRequest(to: TestConstants.backendUrl, expectedRequest: .get)
+        expectRequest(to: MockMerchantBackend.backendUrl(for: self), expectedRequest: .get)
         viewModel.identifyConsumer { _ in }
         waitForExpectations(timeout: timeout, handler: nil)
         MockURLProtocol.assertNoUnusedStubs()
     }
     
     func testItShouldRejectInvalidResponseToBackendUrl() {
-        MockURLProtocol.stubJson(url: TestConstants.backendUrl, json: [:])
+        MockURLProtocol.stubJson(url: MockMerchantBackend.backendUrl(for: self), json: [:])
         
         viewModel.identifyConsumer(completion: expectFailure())
         
@@ -60,9 +60,9 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldMakePostRequestToConsumersUrl() {
-        MockURLProtocol.stubBackendUrl()
+        MockURLProtocol.stubBackendUrl(for: self)
         
-        expectRequest(to: TestConstants.absoluteConsumersUrl, expectedRequest: .postJson({
+        expectRequest(to: MockMerchantBackend.absoluteConsumersUrl(for: self), expectedRequest: .postJson({
             let countryCodes = $0["shippingAddressRestrictedToCountryCodes"]
             let countryCodesArray = try XCTUnwrap(countryCodes as? [Any])
             let countryCode = countryCodesArray.first
@@ -76,8 +76,8 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldAcceptValidResponseToConsumersRequest() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubConsumers()
+        MockURLProtocol.stubBackendUrl(for: self)
+        MockURLProtocol.stubConsumers(for: self)
         
         viewModel.identifyConsumer(completion: expectSuccess {
             XCTAssertEqual($0.viewConsumerIdentification.absoluteString, TestConstants.viewConsumerSessionLink)
@@ -88,8 +88,8 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldRejectInvalidResponseToConsumersRequest() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubError(url: TestConstants.absoluteConsumersUrl)
+        MockURLProtocol.stubBackendUrl(for: self)
+        MockURLProtocol.stubError(url: MockMerchantBackend.absoluteConsumersUrl(for: self))
         viewModel.identifyConsumer(completion: expectFailure())
         waitForExpectations(timeout: timeout, handler: nil)
         MockURLProtocol.assertNoUnusedStubs()
@@ -98,8 +98,8 @@ class ViewModelTests : XCTestCase {
     func testItShouldMakePostRequestToPaymentOrdersUrl() {
         viewModel.consumerProfileRef = TestConstants.consumerProfileRef
         
-        MockURLProtocol.stubBackendUrl()
-        expectRequest(to: TestConstants.absolutePaymentordersUrl, expectedRequest: .postJson({
+        MockURLProtocol.stubBackendUrl(for: self)
+        expectRequest(to: MockMerchantBackend.absolutePaymentordersUrl(for: self), expectedRequest: .postJson({
             let paymentorder = $0["paymentorder"]
             let paymentorderObj = try XCTUnwrap(paymentorder as? [String : Any])
             let payer = paymentorderObj["payer"]
@@ -116,8 +116,8 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldAcceptValidResponseToPaymentOrdersRequest() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubPaymentorders()
+        MockURLProtocol.stubBackendUrl(for: self)
+        MockURLProtocol.stubPaymentorders(for: self)
         
         viewModel.createPaymentOrder(completion: expectSuccess {
             XCTAssertEqual($0.viewPaymentorder.absoluteString, TestConstants.viewPaymentorderLink)
@@ -128,8 +128,8 @@ class ViewModelTests : XCTestCase {
     }
     
     func testItShouldRejectInvalidResponseToPaymentOrdersRequest() {
-        MockURLProtocol.stubBackendUrl()
-        MockURLProtocol.stubError(url: TestConstants.absolutePaymentordersUrl)
+        MockURLProtocol.stubBackendUrl(for: self)
+        MockURLProtocol.stubError(url: MockMerchantBackend.absolutePaymentordersUrl(for: self))
         viewModel.createPaymentOrder(completion: expectFailure())
         waitForExpectations(timeout: timeout, handler: nil)
         MockURLProtocol.assertNoUnusedStubs()

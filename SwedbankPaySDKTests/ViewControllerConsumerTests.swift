@@ -13,11 +13,11 @@ class ViewControllerConsumerTests : SwedbankPaySDKControllerTestCase {
         setupPaymentorders: Bool = false
     ) {
         self.testConfiguration = testConfiguration
-        testConfiguration.setup(consumers: setupConsumers, paymentorders: setupPaymentorders)
+        testConfiguration.setup(testCase: self, consumers: setupConsumers, paymentorders: setupPaymentorders)
         viewController = SwedbankPaySDKController(
-            configuration: testConfiguration.sdkConfiguration,
+            configuration: testConfiguration.sdkConfiguration(for: self),
             consumer: TestConstants.consumerData,
-            paymentOrder: TestConstants.paymentOrder
+            paymentOrder: MockMerchantBackend.paymentOrder(for: self)
         )
     }
     
@@ -67,7 +67,7 @@ class ViewControllerConsumerTests : SwedbankPaySDKControllerTestCase {
             onConsumerIdentifiedCalled.fulfill()
         }
         
-        expectRequest(to: TestConstants.absolutePaymentordersUrl, expectedRequest: .postJson({
+        expectRequest(to: MockMerchantBackend.absolutePaymentordersUrl(for: self), expectedRequest: .postJson({
             let paymentorder = $0["paymentorder"]
             let paymentorderObj = try XCTUnwrap(paymentorder as? [String : Any])
             let payer = paymentorderObj["payer"]
@@ -120,15 +120,15 @@ class ViewControllerConsumerTests : SwedbankPaySDKControllerTestCase {
 }
 
 private extension TestConfiguration {
-    func setup(consumers: Bool, paymentorders: Bool) {
+    func setup(testCase: XCTestCase, consumers: Bool, paymentorders: Bool) {
         switch self {
         case .merchantBackend:
             if consumers {
-                MockURLProtocol.stubBackendUrl()
-                MockURLProtocol.stubConsumers()
+                MockURLProtocol.stubBackendUrl(for: testCase)
+                MockURLProtocol.stubConsumers(for: testCase)
             }
             if paymentorders {
-                MockURLProtocol.stubPaymentorders()
+                MockURLProtocol.stubPaymentorders(for: testCase)
             }
             
 #if swift(>=5.5)

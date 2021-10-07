@@ -6,7 +6,8 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
     private let timeout = 5 as TimeInterval
     
     private func makePaymentUrl(scheme: String, extraQueryItems: [URLQueryItem]? = nil) -> URL {
-        var paymentUrl = URLComponents(url: TestConstants.paymentOrder.urls.paymentUrl!, resolvingAgainstBaseURL: true)!
+        let basePaymentUrl = MockMerchantBackend.paymentOrder(for: self).urls.paymentUrl!
+        var paymentUrl = URLComponents(url: basePaymentUrl, resolvingAgainstBaseURL: true)!
         paymentUrl.scheme = scheme
         if let extraQueryItems = extraQueryItems {
             var query = paymentUrl.queryItems ?? []
@@ -31,13 +32,13 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
     }
     
     private func testPaymentUrl(testConfiguration: TestConfiguration, invokePaymentUrl: () -> Void) {
-        testConfiguration.setup()
+        testConfiguration.setup(testCase: self)
         
-        var paymentOrder = TestConstants.paymentOrder
+        var paymentOrder = MockMerchantBackend.paymentOrder(for: self)
         paymentOrder.urls.paymentUrl = originalPaymentUrl
         
         viewController = SwedbankPaySDKController(
-            configuration: testConfiguration.sdkConfiguration,
+            configuration: testConfiguration.sdkConfiguration(for: self),
             paymentOrder: paymentOrder
         )
         waitForWebViewLoaded()
@@ -112,11 +113,11 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
 }
 
 private extension TestConfiguration {
-    func setup() {
+    func setup(testCase: XCTestCase) {
         switch self {
         case .merchantBackend:
-            MockURLProtocol.stubBackendUrl()
-            MockURLProtocol.stubPaymentorders()
+            MockURLProtocol.stubBackendUrl(for: testCase)
+            MockURLProtocol.stubPaymentorders(for: testCase)
             
 #if swift(>=5.5)
         case .async:

@@ -5,11 +5,8 @@ import SwedbankPaySDK
 
 enum TestConstants {
     static let callbackScheme = "testcallback"
-    static let backendUrl = URL(string: "\(MockURLProtocol.scheme)://backendurl.invalid/")!
     static let consumersUrl = "consumersurl"
-    static let absoluteConsumersUrl = URL(string: "\(MockURLProtocol.scheme)://backendurl.invalid/consumersurl")!
     static let paymentordersUrl = "paymentordersurl"
-    static let absolutePaymentordersUrl = URL(string: "\(MockURLProtocol.scheme)://backendurl.invalid/paymentordersurl")!
     
     static let viewConsumerSessionLink = "data:,/*consumerLink*/"
     static let viewPaymentorderLink = "data:,/*paymentorderLink*/"
@@ -37,24 +34,8 @@ enum TestConstants {
         ]
     ]
     
-    static let configuration = SwedbankPaySDK.MerchantBackendConfiguration(
-        session: Session(configuration: MockURLProtocol.urlSessionConfiguration),
-        backendUrl: backendUrl,
-        callbackScheme: callbackScheme,
-        headers: nil,
-        domainWhitelist: nil,
-        additionalAllowedWebViewRedirects: nil
-    )
-    
     static let consumerCountryCode = "SE"
     static let consumerData = SwedbankPaySDK.Consumer(shippingAddressRestrictedToCountryCodes: [consumerCountryCode])
     
     static let consumerProfileRef = "consumerProfileRef"
-    static let paymentOrder = SwedbankPaySDK.PaymentOrder(
-        currency: "SEK",
-        amount: 1,
-        vatAmount: 0,
-        description: "",
-        urls: .init(configuration: configuration, language: .English)
-    )
 }

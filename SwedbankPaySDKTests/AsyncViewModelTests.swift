@@ -8,11 +8,11 @@ class AsyncViewModelTests : XCTestCase {
     private var viewModel: SwedbankPaySDKViewModel!
     
     override func setUpWithError() throws {
-        let configuration = try TestConfiguration.getAsyncConfigOrSkipTest().sdkConfiguration
+        let configuration = try TestConfiguration.getAsyncConfigOrSkipTest().sdkConfiguration(for: self)
         viewModel = SwedbankPaySDKViewModel(
             configuration: configuration,
             consumerData: TestConstants.consumerData,
-            paymentOrder: TestConstants.paymentOrder,
+            paymentOrder: MockMerchantBackend.paymentOrder(for: self),
             userData: nil
         )
     }
