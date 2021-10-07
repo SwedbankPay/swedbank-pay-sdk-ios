@@ -7,38 +7,41 @@ class AsyncViewModelTests : XCTestCase {
     
     private var viewModel: SwedbankPaySDKViewModel!
     
+    private var configuration: SwedbankPaySDKConfiguration!
+    
     override func setUpWithError() throws {
-        let configuration = try TestConfiguration.getAsyncConfigOrSkipTest().sdkConfiguration(for: self)
         viewModel = SwedbankPaySDKViewModel(
-            configuration: configuration,
-            consumerData: TestConstants.consumerData,
+            consumer: TestConstants.consumerData,
             paymentOrder: MockMerchantBackend.paymentOrder(for: self),
             userData: nil
         )
+        configuration = try TestConfiguration.getAsyncConfigOrSkipTest().sdkConfiguration(for: self)
     }
     
-    private func expectSuccess<T>(
-        whereValueSatisfies assertions: @escaping (T) -> Void = { _ in }
-    ) -> (Result<T, Error>) -> Void {
-        let invoked = expectation(description: "Callback invoked")
-        return {
-            invoked.fulfill()
-            $0.assertSuccess(whereValueSatisfies: assertions)
+    func testItShouldMoveToIdentifyingConsumerWhenStartedWithUseCheckinTrue() {
+        expectState(viewModel: viewModel) {
+            if case .identifyingConsumer(let info) = $0 {
+                XCTAssertEqual(info.viewConsumerIdentification.absoluteString, TestConstants.viewConsumerSessionLink)
+                return true
+            } else {
+                return false
+            }
         }
-    }
-    
-    func testIdentifyConsumerShouldSucceed() {
-        viewModel.identifyConsumer(completion: expectSuccess {
-            XCTAssertEqual($0.viewConsumerIdentification.absoluteString, TestConstants.viewConsumerSessionLink)
-        })
+        viewModel.start(useCheckin: true, configuration: configuration)
         
         waitForExpectations(timeout: timeout, handler: nil)
     }
     
-    func testCreatePaymentOrderShouldSucceed() {
-        viewModel.createPaymentOrder(completion: expectSuccess {
-            XCTAssertEqual($0.viewPaymentorder.absoluteString, TestConstants.viewPaymentorderLink)
-        })
+    func testItShouldMoveToPayingWhenStartedWithUseCheckinFalse() {
+        expectState(viewModel: viewModel) {
+            if case .paying(let info, _) = $0 {
+                XCTAssertEqual(info.viewPaymentorder.absoluteString, TestConstants.viewPaymentorderLink)
+                return true
+            } else {
+                return false
+            }
+        }
+        viewModel.start(useCheckin: false, configuration: configuration)
         
         waitForExpectations(timeout: timeout, handler: nil)
     }

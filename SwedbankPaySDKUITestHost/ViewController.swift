@@ -6,18 +6,20 @@ class ViewController: UINavigationController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewControllers = [createRootViewController()]
+        if !shouldRestoreState {
+            viewControllers = [createRootViewController()]
+        }
     }
     
     private func createRootViewController() -> UIViewController {
-        let viewController = SwedbankPaySDKController(
-            configuration: paymentTestConfiguration,
-            paymentOrder: testPaymentOrder
-        )
+        let viewController = SwedbankPaySDKController()
+        
+        viewController.restorationIdentifier = "paymentViewController"
         
         createPaymentDelegate()
         viewController.delegate = paymentDelegate
         
+        viewController.startPayment(withCheckin: false, consumer: nil, paymentOrder: testPaymentOrder, userData: nil)
         return viewController
     }
     
@@ -30,6 +32,16 @@ class ViewController: UINavigationController {
             paymentDelegate = try PaymentDelegate(port: port)
         } catch {
             print("Unable to create PaymentDelegate: \(error)")
+        }
+    }
+    
+    override func applicationFinishedRestoringState() {
+        super.applicationFinishedRestoringState()
+        if let viewController = topViewController as? SwedbankPaySDKController {
+            createPaymentDelegate()
+            viewController.delegate = paymentDelegate
+        } else {
+            print("Error: top view controller is not SwedbankPaySDKController")
         }
     }
 }

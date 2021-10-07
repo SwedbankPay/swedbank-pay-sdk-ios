@@ -74,7 +74,26 @@ public extension SwedbankPaySDKDelegate {
 }
 
 /// Swedbank Pay SDK ViewController, initialize this to start the payment process
-public final class SwedbankPaySDKController: UIViewController {
+///
+/// `SwedbankPaySDKController` supports subclassing. In most cases you should not
+/// need to do so, but if you select the `SwedbankPaySDKConfiguration` dynamically,
+/// and you support view controller state saving, then you must create a subclass
+/// and override the `configuration` property.
+///
+/// `SwedbankPaySDKController` conforms to `UIViewControllerRestoration`;
+/// it can restore itself and subclasses. For convenience, the no-argument constructor sets `Self`
+/// as the restoration class. It is also possible to use `Self` as the restoration class for a
+/// `SwedbankPaySDKController` created form a storyboard, but the regular restoration
+/// mechanism should also work in that case. Notably, state restoration will not work if you use the
+/// legacy intitializers that take a `SwedbankPaySDKConfiguration` directly.
+///
+/// If you use state restoration, and make use of the `userData` argument of `startPayment`,
+/// or the `userInfo` property of `SwedbankPaySDK.ViewPaymentOrderInfo`, then those values
+/// must be either `NSCoding` or `Codable`. If you use `Codable` types (recommended), you must also
+/// register them with the SDK by calling `SwedbankPaySDK.registerCodable` for those types.
+/// You can also register any custom `Codable` `Error` types your  `SwedbankPaySDKConfiguration`
+/// may throw; otherwise those will be turned to `NSError` during state saving.
+open class SwedbankPaySDKController: UIViewController, UIViewControllerRestoration {
     /// Ways that the payment can fail after the configuration
     /// has successfully started it.
     public enum WebContentError: Error {
@@ -90,8 +109,52 @@ public final class SwedbankPaySDKController: UIViewController {
         case RedirectFailure(error: Error)
     }
     
+    /// If you are using state restoration, and there is an error in the restoration process,
+    /// the SwedbankPaySDKController will be put in an error state with one of these errors.
+    public enum StateRestorationError: Error {
+        /// You tried to use a `Codable` as `userData` or as
+        /// `SwedbankPaySDK.ViewPaymentOrderInfo.userInfo`,
+        /// but the type was not registered  with `SwedbankPaySDK.registerCodable`.
+        ///
+        /// The associated value is the type name.
+        /// You should call `SwedbankPaySDK.registerCodable(Foo.self)` during app initialization,
+        /// e.g. in `UIApplicationDelegate.application(_:willFinishLaunchingWithOptions:)`.
+        case unregisteredCodable(String)
+        
+        /// The state was restored from a `SwedbankPaySDKController` that was initialized using
+        /// the legacy initializer that takes a configuration directly. State restoration will not work with such a setup.
+        case nonpersistableConfiguration
+        
+        /// There was an unexpected error condition during the restoration process.
+        case unknown
+    }
+    
+    /// The default value for `configuration`. If your setup does not need multiple configurations
+    /// in a single app, then you should set your configuration here and not worry about subclassing
+    /// `SwedbankPaySDKController`.
+    public static var defaultConfiguration: SwedbankPaySDKConfiguration?
+
+    /// The `SwedbankPaySDKConfiguration` used by this `SwedbankPaySDKController`.
+    ///
+    /// Note that `SwedbankPaySDKController` accesses this property only once during initialization,
+    /// and will use the returned value thereafter. Hence, you cannot change the configuration "in-flight"
+    /// by changing the value returned from here.
+    open var configuration: SwedbankPaySDKConfiguration {
+        if let configuration = nonpersistableConfiguration {
+            return configuration
+        } else if let configuration = SwedbankPaySDKController.defaultConfiguration {
+            return configuration
+        } else {
+            preconditionFailure("SwedbankPaySDKController.defaultConfiguration not set. Set defaultConfiguration or subclass SwedbankPaySDKController to implement dynamic configuration selection.")
+        }
+    }
+    
     /// A delegate to receive callbacks as the state of SwedbankPaySDKController changes.
-    public weak var delegate: SwedbankPaySDKDelegate?
+    public weak var delegate: SwedbankPaySDKDelegate? {
+        didSet {
+            notifyDelegateIfNeeded()
+        }
+    }
     
     /// Styling for the payment menu
     ///
@@ -109,7 +172,7 @@ public final class SwedbankPaySDKController: UIViewController {
     /// `SwedbankPaySDKConfiguration` (currently from either
     /// `postPaymentorders` or `patchUpdatePaymentorderSetinstrument`.
     public var currentPaymentOrder: SwedbankPaySDK.ViewPaymentOrderInfo? {
-        return viewModel.viewPaymentOrderInfo
+        return viewModel?.viewPaymentOrderInfo
     }
     
     /// `true` if the payment order is currently shown, `false` otherwise
@@ -119,7 +182,7 @@ public final class SwedbankPaySDKController: UIViewController {
     
     /// `true` if the payment order is currently being updated, `false` otherwise
     public var updatingPaymentOrder: Bool {
-        return viewModel.updating
+        return viewModel?.updating == true
     }
     
     public var _continueInBrowserMessage: (title: String, body: String, button: String)?
@@ -160,7 +223,9 @@ public final class SwedbankPaySDKController: UIViewController {
             rootWebViewController.navigationLogger = newValue
         }
     }
-        
+            
+    private let nonpersistableConfiguration: SwedbankPaySDKConfiguration?
+    
     private let userContentController = WKUserContentController()
     private lazy var rootWebViewController = createRootWebViewController()
     
@@ -174,14 +239,36 @@ public final class SwedbankPaySDKController: UIViewController {
     private lazy var initialLoadingIndicator = UIActivityIndicatorView(style: loadingIndicatorStyle)
     
     private var continueInBrowserAlert: UIAlertController?
-        
-    private let viewModel: SwedbankPaySDKViewModel
     
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    private var viewModel: SwedbankPaySDKViewModel? {
+        didSet {
+            oldValue?.onStateChanged = nil
+            viewModel?.onStateChanged = { [unowned self] in
+                self.updateUI()
+                self.notifyDelegateIfNeeded()
+            }
+            updateUI()
+            notifyDelegateIfNeeded()
+        }
     }
     
-    /// Initializes the Swedbank Pay SDK, and depending on the `consumerData`,
+    public required init?(coder aDecoder: NSCoder) {
+        nonpersistableConfiguration = nil
+        super.init(coder: aDecoder)
+    }
+    
+    /// Create a new `SwedbankPaySDKController`.
+    /// Call `startPayment` to start the payment.
+    public required init() {
+        nonpersistableConfiguration = nil
+        super.init(nibName: nil, bundle: nil)
+        restorationClass = Self.self
+    }
+    
+    /// Note: This is a legacy initializer. Please consider using the no-argument initializer
+    /// and `startPayment` instead.
+    ///
+    /// Initializes the SwedbankPaySDKController, and depending on the `consumerData`,
     /// starts the payment process with consumer identification or anonymous process
     /// - parameter configuration: Configuration object that handles creating
     /// and manipulating Consumer Identification Sessions and Payment Orders as needed.
@@ -202,14 +289,17 @@ public final class SwedbankPaySDKController: UIViewController {
         )
     }
     
-    /// Initializes the Swedbank Pay SDK, and starts the payment process
+    /// Note: This is a legacy initializer. Please consider using the no-argument initializer
+    /// and `startPayment` instead.
+    ///
+    /// Initializes the SwedbankPaySDKController, and starts the payment process
     ///  with consumer identification or anonymous process
     /// - parameter configuration: Configuration object that handles creating
     ///  and manipulating Consumer Identification Sessions and Payment Orders as needed.
     /// - parameter withCheckin: if `true`, performs checkin berfore creating the payment order
     /// - parameter consumer: consumer object for the checkin
     /// - parameter paymentOrder: the payment order to create
-    /// - userData: user data for your configuration. This value will be provided to your configuration callbacks.
+    /// - parameter userData: user data for your configuration. This value will be provided to your configuration callbacks.
     public init(
         configuration: SwedbankPaySDKConfiguration,
         withCheckin: Bool,
@@ -217,29 +307,68 @@ public final class SwedbankPaySDKController: UIViewController {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?
     ) {
-        viewModel = SwedbankPaySDKViewModel(
-            configuration: configuration,
-            consumerData: consumer,
-            paymentOrder: paymentOrder,
-            userData: userData
-        )
+        nonpersistableConfiguration = configuration
         super.init(nibName: nil, bundle: nil)
-        
-        /// Start the payment process
-        if withCheckin {
-            viewModel.identifyConsumer { [weak self] in
-                self?.handleIdentifyConsumerResult(result: $0)
-            }
-        } else {
-            createPaymentOrder()
-        }
+        startPayment(withCheckin: withCheckin, consumer: consumer, paymentOrder: paymentOrder, userData: userData)
     }
-    
+        
     deinit {
+        viewModel?.onStateChanged = nil
+        viewModel?.cancelUpdate()
         SwedbankPaySDK.removeCallbackUrlDelegate(self)
         set(scriptMessageHandler: nil)
-        viewModel.cancelUpdate()
         NotificationCenter.default.removeObserver(self)
+    }
+    
+    open override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        addRootWebViewController()
+        addInitialLoadingIndicator()
+        
+        updateUI()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(showContinueInBrowserNoteIfNeeded),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+    
+    open override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        SwedbankPaySDK.addCallbackUrlDelegate(self)
+        self.view.backgroundColor = UIColor.white
+    }
+    
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        SwedbankPaySDK.removeCallbackUrlDelegate(self)
+    }
+    
+    /// Starts a new payment.
+    ///
+    /// Calling this when a payment is already started has no effect.
+    ///
+    /// - parameter withCheckin: `true` to include the customer identification flow, `false` otherwise
+    /// - parameter consumer: the `Consumer` to use for customer identification
+    /// - parameter paymentOrder: the `PaymentOrder` to use to create the payment
+    /// - parameter userData: any additional data you may need for the identification and/or payment
+    public func startPayment(
+        withCheckin: Bool,
+        consumer: SwedbankPaySDK.Consumer?,
+        paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        userData: Any?
+    ) {
+        let maybeViewModel = self.viewModel
+        let viewModel = maybeViewModel ?? SwedbankPaySDKViewModel(
+            consumer: consumer, paymentOrder: paymentOrder, userData: userData
+        )
+        if maybeViewModel == nil {
+            self.viewModel = viewModel
+        }
+        viewModel.start(useCheckin: withCheckin, configuration: configuration)
     }
     
     /// Performs an update on the current payment order.
@@ -257,31 +386,13 @@ public final class SwedbankPaySDKController: UIViewController {
     ///
     /// See `SwedbankPaySDK.MerchantBackendConfiguration` for an example.
     public func updatePaymentOrder(updateInfo: Any) {
-        viewModel.updatePaymentOrder(
-            updateInfo: updateInfo
-        ) { [weak self] in
-            self?.handleUpdatePaymentOrderResult(updateInfo: updateInfo, result: $0)
-        }
+        viewModel?.updatePaymentOrder(updateInfo: updateInfo)
     }
     
     private func createRootWebViewController() -> SwedbankPayWebViewController {
         let config = WKWebViewConfiguration()
         config.userContentController = userContentController
         return SwedbankPayWebViewController(configuration: config, delegate: self)
-    }
-    
-    public override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        addRootWebViewController()
-        addInitialLoadingIndicator()
-        
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(showContinueInBrowserNoteIfNeeded),
-            name: UIApplication.didBecomeActiveNotification,
-            object: nil
-        )
     }
     
     private func addRootWebViewController() {
@@ -321,61 +432,50 @@ public final class SwedbankPaySDKController: UIViewController {
         ])
     }
     
-    /// Creates paymentOrder
-    private func createPaymentOrder() {
-        viewModel.createPaymentOrder { [weak self] in
-            self?.handleCreatePaymentOrderResult(result: $0)
+    private func updateUI() {
+        if isViewLoaded, let viewModel = viewModel {
+            switch viewModel.state {
+            case .idle:
+                break
+            case .initializingConsumerSession:
+                initialLoadingIndicator.startAnimating()
+            case .identifyingConsumer(let info):
+                showCheckin(info)
+            case .creatingPaymentOrder:
+                initialLoadingIndicator.startAnimating()
+            case .paying(let info, failedUpdate: let failedUpdate):
+                if failedUpdate == nil {
+                    showPaymentOrder(info: info, delay: false)
+                } else {
+                    initialLoadingIndicator.stopAnimating()
+                }
+            case .updatingPaymentOrder:
+                initialLoadingIndicator.startAnimating()
+            case .complete:
+                break
+            case .canceled:
+                break
+            case .failed:
+                break
+            }
         }
     }
     
-    private func handleResult<T>(result: Result<T, Error>, onSuccess: (T) -> Void) {
-        switch result {
-        case .success(let t):
-            onSuccess(t)
-        case .failure(let error):
-            paymentFailed(error: error)
+    private func notifyDelegateIfNeeded() {
+        if let viewModel = viewModel {
+            switch viewModel.state {
+            case .complete:
+                delegate?.paymentComplete()
+            case .canceled:
+                delegate?.paymentCanceled()
+            case .failed(_, let error):
+                delegate?.paymentFailed(error: error)
+            case .paying(_, failedUpdate: let failedUpdate?):
+                delegate?.updatePaymentOrderFailed(updateInfo: failedUpdate.updateInfo, error: failedUpdate.error)
+            default:
+                break
+            }
         }
-    }
-    
-    private func handleIdentifyConsumerResult(result: Result<SwedbankPaySDK.ViewConsumerIdentificationInfo, Error>) {
-        handleResult(result: result, onSuccess: showCheckin(_:))
-    }
-    
-    private func handleCreatePaymentOrderResult(result: Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) {
-        handleResult(result: result) {
-            showPaymentOrder(info: $0, delay: false)
-        }
-    }
-    
-    private func handleUpdatePaymentOrderResult(
-        updateInfo: Any,
-        result: Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>
-    ) {
-        switch result {
-        case .success(let info):
-            showPaymentOrder(info: info, delay: false)
-        case .failure(let error):
-            delegate?.updatePaymentOrderFailed(
-                updateInfo: updateInfo,
-                error: error
-            )
-        }
-    }
-    
-    public override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        SwedbankPaySDK.addCallbackUrlDelegate(self)
-        self.view.backgroundColor = UIColor.white
-    }
-    
-    public override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        SwedbankPaySDK.removeCallbackUrlDelegate(self)
-    }
-    
-    /// Dismisses the viewcontroller when close button has been pressed
-    @objc func closeButtonPressed() -> Void {
-        self.dismiss(animated: true, completion: nil)
     }
     
     /// Creates consumer identification JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
@@ -391,7 +491,6 @@ public final class SwedbankPaySDKController: UIViewController {
     }
     
     private func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentOrderInfo, delay: Bool) {
-        viewModel.viewPaymentOrderInfo = info
         loadPage(
             baseURL: info.webViewBaseURL,
             template: SwedbankPayWebContent.paymentTemplate,
@@ -404,7 +503,7 @@ public final class SwedbankPaySDKController: UIViewController {
     }
     
     private func reloadPaymentMenu(delay: Bool = false) {
-        if let info = viewModel.viewPaymentOrderInfo {
+        if case .paying(let info, _) = viewModel?.state {
             dismissExtraWebViews()
             showPaymentOrder(info: info, delay: delay)
         }
@@ -433,6 +532,96 @@ public final class SwedbankPaySDKController: UIViewController {
         
         initialLoadingIndicator.startAnimating()
         rootWebViewController.load(htmlString: html, baseURL: baseURL)
+    }
+    
+    // MARK: State Restoration
+    
+    private static let restorableStateVersion: Int64 = 1
+    private enum RestorableStateKeys: String {
+        case version = "com.swedbankpay.mobilesdk.version"
+        case viewModel = "com.swedbankpay.mobilesdk.viewmodel"
+        case hadNonpersistableConfiguration = "com.swedbankpay.mobilesdk.badconfig"
+    }
+    
+    open class func viewController(
+        withRestorationIdentifierPath identifierComponents: [String],
+        coder: NSCoder
+    ) -> UIViewController? {
+        
+        guard coder.decodeInt64(forKey: RestorableStateKeys.version.rawValue) == restorableStateVersion else {
+            return nil
+        }
+        
+        let viewController = Self()
+        viewController.restorationIdentifier = identifierComponents.last
+        viewController.restorationClass = self
+        return viewController
+    }
+    
+    open override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        
+        coder.encode(SwedbankPaySDKController.restorableStateVersion, forKey: RestorableStateKeys.version.rawValue)
+        
+        guard nonpersistableConfiguration == nil else {
+            print("""
+Warning: SwedbankPaySDKController initialized with nonpersistable configuration but asked to save state.
+State saving only works if SwedbankPaySDKController is created with the no-argument initializer or from a storyboard.
+You need to supply the configuration either by SwedbankPaySDKController.defaultConfiguration, or by subclassing
+and overriding the configuration property.
+""")
+            coder.encode(true, forKey: RestorableStateKeys.hadNonpersistableConfiguration.rawValue)
+            return
+        }
+        
+        guard let viewModel = viewModel else {
+            return
+        }
+        
+        do {
+            let viewModelData = try PropertyListEncoder().encode(viewModel)
+            coder.encode(viewModelData, forKey: RestorableStateKeys.viewModel.rawValue)
+        } catch {
+            print("Warning: Failed to encode state of \(self): \(error)")
+        }
+    }
+    
+    open override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+        guard coder.decodeInt64(forKey: RestorableStateKeys.version.rawValue) == SwedbankPaySDKController.restorableStateVersion else {
+            print("Warning: incompatible SwedbankPaySDKController saved state version; are you a time traveler?")
+            return
+        }
+        
+        do {
+            if coder.decodeBool(forKey: RestorableStateKeys.hadNonpersistableConfiguration.rawValue) {
+                print("""
+Warning: SwedbankPaySDKController initialized with nonpersistable configuration but asked to restore state.
+State saving only works if SwedbankPaySDKController is created with the no-argument initializer or from a storyboard.
+You need to supply the configuration either by SwedbankPaySDKController.defaultConfiguration, or by subclassing
+and overriding the configuration property.
+""")
+                throw StateRestorationError.nonpersistableConfiguration
+            } else {
+                guard let viewModelData = coder.decodeObject(of: NSData.self, forKey: RestorableStateKeys.viewModel.rawValue) else {
+                    // should never happen
+                    throw StateRestorationError.unknown
+                }
+                // should never throw
+                let viewModel = try PropertyListDecoder().decode(SwedbankPaySDKViewModel.self, from: viewModelData as Data)
+                self.viewModel = viewModel
+            }
+        } catch {
+            let viewModel = SwedbankPaySDKViewModel(consumer: nil, paymentOrder: nil, userData: nil)
+            let stateRestorationError = error as? StateRestorationError ?? .unknown
+            viewModel.onFailed(error: stateRestorationError)
+            self.viewModel = viewModel
+        }
+    }
+    
+    open override func applicationFinishedRestoringState() {
+        super.applicationFinishedRestoringState()
+        viewModel?.awakeAfterDecode(configuration: configuration)
     }
 }
 
@@ -474,7 +663,7 @@ private extension SwedbankPaySDKController {
     }
     
     func handlePaymentProcessUrl(url: URL) -> Bool {
-        guard let info = viewModel.viewPaymentOrderInfo else {
+        guard let vm = viewModel, let info = vm.viewPaymentOrderInfo else {
             return false
         }
         
@@ -482,10 +671,10 @@ private extension SwedbankPaySDKController {
         // So append a path to the payment urls if needed
         switch url.absoluteURL {
         case ensurePath(url: info.completeUrl):
-            paymentComplete()
+            vm.onComplete()
             return true
         case info.cancelUrl.map(ensurePath(url:)):
-            paymentCanceled()
+            vm.onCanceled()
             return true
         case info.paymentUrl.map(ensurePath(url:)):
             reloadPaymentMenu(delay: true)
@@ -496,18 +685,10 @@ private extension SwedbankPaySDKController {
             return false
         }
     }
-    
-    func paymentComplete() {
-        self.delegate?.paymentComplete()
-    }
-    
-    func paymentCanceled() {
-        self.delegate?.paymentCanceled()
-    }
-    
     func paymentFailed(error: Error) {
-        self.delegate?.paymentFailed(error: error)
+        viewModel?.onFailed(error: error)
     }
+    
 }
 
 extension SwedbankPaySDKController : CallbackUrlDelegate {
@@ -522,12 +703,12 @@ extension SwedbankPaySDKController : CallbackUrlDelegate {
     }
     
     private func urlMatchesPaymentUrl(url: URL) -> Bool {
-        guard let paymentUrl = viewModel.viewPaymentOrderInfo?.paymentUrl else {
+        guard let paymentUrl = viewModel?.viewPaymentOrderInfo?.paymentUrl else {
             return false
         }
         // See SwedbankPaySDKConfiguration for discussion on why we need to do this.
         return url == paymentUrl
-            || viewModel.configuration.url(url, matchesPaymentUrl: paymentUrl)
+            || viewModel?.configuration.url(url, matchesPaymentUrl: paymentUrl) == true
     }
 }
 
@@ -578,7 +759,7 @@ private extension SwedbankPaySDKController {
     private func handleConsumerIdentifiedEvent(_ messageBody: Any?) {
         debugPrint("SwedbankPaySDK: onConsumerIdentified event received")
         if let str = messageBody as? String {
-            viewModel.consumerProfileRef = str
+            viewModel?.continue(consumerProfileRef: str)
             
             #if DEBUG
             debugPrint("SwedbankPaySDK: consumerProfileRef set to: \(str)")
@@ -586,8 +767,6 @@ private extension SwedbankPaySDKController {
         } else {
             debugPrint("SwedbankPaySDK: onConsumerIdentified - failed to get consumerProfileRef")
         }
-        
-        createPaymentOrder()
     }
 }
 
@@ -668,7 +847,11 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
         } else {
             switch webRedirectBehavior {
             case .Default:
-                viewModel.configuration.decidePolicyForPaymentMenuRedirect(
+                guard let configuration = viewModel?.configuration else {
+                    completion(true)
+                    return
+                }
+                configuration.decidePolicyForPaymentMenuRedirect(
                     navigationAction: navigationAction
                 ) {
                     let allow = $0 == .openInWebView
@@ -688,5 +871,85 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
     
     func webViewDidFailNavigation(error: Error) {
         paymentFailed(error: WebContentError.RedirectFailure(error: error))
+    }
+}
+
+extension SwedbankPaySDKController.WebContentError: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case discriminator
+        case scriptUrl
+        case terminalFailure
+        case error
+        case codableErrorType
+    }
+    
+    private enum Discriminator: String, Codable {
+        case scriptLoadingFailure
+        case scriptError
+        case redirectFailure
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        switch try container.decode(Discriminator.self, forKey: .discriminator) {
+        case .scriptLoadingFailure:
+            self = .ScriptLoadingFailure(scriptUrl: try container.decode(URL.self, forKey: .scriptUrl))
+        case .scriptError:
+            self = .ScriptError(try container.decodeIfPresent(SwedbankPaySDK.TerminalFailure.self, forKey: .terminalFailure))
+        case .redirectFailure:
+            let error = try container.decodeErrorIfPresent(codableTypeKey: .codableErrorType, valueKey: .error)
+            self = .RedirectFailure(error: error ?? SwedbankPaySDKController.StateRestorationError.unknown)
+        }
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .ScriptLoadingFailure(let scriptUrl):
+            try container.encode(Discriminator.scriptLoadingFailure, forKey: .discriminator)
+            try container.encode(scriptUrl, forKey: .scriptUrl)
+        case .ScriptError(let terminalFailure):
+            try container.encode(Discriminator.scriptError, forKey: .discriminator)
+            try container.encodeIfPresent(terminalFailure, forKey: .terminalFailure)
+        case .RedirectFailure(let error):
+            try container.encode(Discriminator.redirectFailure, forKey: .discriminator)
+            try container.encodeIfPresent(error: error, codableTypeKey: .codableErrorType, valueKey: .error)
+        }
+    }
+}
+
+extension SwedbankPaySDKController.StateRestorationError: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case discriminator
+        case unregisteredTypeName
+    }
+    
+    private enum Discriminator: String, Codable {
+        case unregisteredCodable
+        case nonpersistableConfiguration
+        case unknown
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        switch try container.decode(Discriminator.self, forKey: .discriminator) {
+        case .unregisteredCodable:
+            self = .unregisteredCodable(try container.decode(String.self, forKey: .unregisteredTypeName))
+        case .nonpersistableConfiguration:
+            self = .nonpersistableConfiguration
+        case .unknown:
+            self = .unknown
+        }
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .unregisteredCodable(let unregisteredTypeName):
+            try container.encode(Discriminator.unregisteredCodable, forKey: .discriminator)
+            try container.encode(unregisteredTypeName, forKey: .unregisteredTypeName)
+        case .nonpersistableConfiguration:
+            try container.encode(Discriminator.nonpersistableConfiguration, forKey: .discriminator)
+        case .unknown:
+            try container.encode(Discriminator.unknown, forKey: .discriminator)
+        }
     }
 }

@@ -21,7 +21,7 @@ public extension SwedbankPaySDK {
     }
     
     ///  Consumer object for Swedbank Pay SDK
-    struct Consumer: Codable {
+    struct Consumer: Codable, Equatable {
         public var operation: ConsumerOperation
         public var language: Language
         public var shippingAddressRestrictedToCountryCodes: [String]

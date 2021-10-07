@@ -10,7 +10,7 @@
         <!--View Controller-->
         <scene sceneID="KXO-Zf-cvT">
             <objects>
-                <navigationController id="dji-Q5-E2O" customClass="ViewController" customModule="SwedbankPaySDKUITestHost" customModuleProvider="target" sceneMemberID="viewController">
+                <navigationController restorationIdentifier="navigationController" id="dji-Q5-E2O" customClass="ViewController" customModule="SwedbankPaySDKUITestHost" customModuleProvider="target" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="QcK-hn-2fj">
                         <rect key="frame" x="0.0" y="44" width="414" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
