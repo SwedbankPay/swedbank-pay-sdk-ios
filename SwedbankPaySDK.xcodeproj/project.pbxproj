@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6367D3EB26F340F700F89F62 /* TestConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6367D3EA26F340F700F89F62 /* TestConfiguration.swift */; };
+		63EECFF4270ED22D00C37B69 /* MockMerchantBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EECFF3270ED22D00C37B69 /* MockMerchantBackend.swift */; };
 		63F5D69F26F0B23600C1F207 /* ConfigurationAsync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */; };
 		63F5D6A126F0C2A100C1F207 /* AsyncViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D6A026F0C2A100C1F207 /* AsyncViewModelTests.swift */; };
 		63F5D6A326F0C96F00C1F207 /* AsyncTestConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D6A226F0C96F00C1F207 /* AsyncTestConfiguration.swift */; };
@@ -150,6 +151,7 @@
 
 /* Begin PBXFileReference section */
 		6367D3EA26F340F700F89F62 /* TestConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConfiguration.swift; sourceTree = "<group>"; };
+		63EECFF3270ED22D00C37B69 /* MockMerchantBackend.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockMerchantBackend.swift; sourceTree = "<group>"; };
 		63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationAsync.swift; sourceTree = "<group>"; };
 		63F5D6A026F0C2A100C1F207 /* AsyncViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncViewModelTests.swift; sourceTree = "<group>"; };
 		63F5D6A226F0C96F00C1F207 /* AsyncTestConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncTestConfiguration.swift; sourceTree = "<group>"; };
@@ -375,6 +377,7 @@
 		A5535E842478080A00BFD586 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				63EECFF3270ED22D00C37B69 /* MockMerchantBackend.swift */,
 				A5535E7124754AD000BFD586 /* TestConstants.swift */,
 				63F5D6A226F0C96F00C1F207 /* AsyncTestConfiguration.swift */,
 				A5535E7324754AFC00BFD586 /* MockURLProtocol.swift */,
@@ -872,6 +875,7 @@
 				A596D671247FF7FD009605DB /* PaymentUrlTests.swift in Sources */,
 				A57170DD25064EF400AC28BE /* FileLinesTests.swift in Sources */,
 				A5535E7824755AE300BFD586 /* ViewModelTests.swift in Sources */,
+				63EECFF4270ED22D00C37B69 /* MockMerchantBackend.swift in Sources */,
 				A57170E125066D3A00AC28BE /* GoodWebViewRedirectsTests.swift in Sources */,
 				A5535E7624754B2100BFD586 /* MockURLResult.swift in Sources */,
 				A542B35325249BA900AD8F09 /* Assertions.swift in Sources */,

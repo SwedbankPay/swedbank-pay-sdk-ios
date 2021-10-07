@@ -10,11 +10,11 @@ class ViewControllerTests : SwedbankPaySDKControllerTestCase {
     private func startViewController(testConfiguration: TestConfiguration, setupPaymentorders: Bool = true) {
         self.testConfiguration = testConfiguration
         if setupPaymentorders {
-            testConfiguration.setupPaymentorders()
+            testConfiguration.setupPaymentorders(testCase: self)
         }
         viewController = SwedbankPaySDKController(
-            configuration: testConfiguration.sdkConfiguration,
-            paymentOrder: TestConstants.paymentOrder
+            configuration: testConfiguration.sdkConfiguration(for: self),
+            paymentOrder: MockMerchantBackend.paymentOrder(for: self)
         )
     }
     
@@ -55,7 +55,8 @@ class ViewControllerTests : SwedbankPaySDKControllerTestCase {
         startViewController(testConfiguration: testConfiguration)
         waitForWebViewLoaded()
         
-        webView.evaluateJavaScript("window.location = '\(TestConstants.paymentOrder.urls.completeUrl.absoluteString)'", completionHandler: nil)
+        let completeUrl = MockMerchantBackend.paymentOrder(for: self).urls.completeUrl.absoluteString
+        webView.evaluateJavaScript("window.location = '\(completeUrl)'", completionHandler: nil)
         waitForExpectations(timeout: timeout, handler: nil)
     }
     func testItShouldReportSuccessAfterNavigationToCompleteUrl() {
@@ -74,7 +75,8 @@ class ViewControllerTests : SwedbankPaySDKControllerTestCase {
         waitForWebViewLoaded()
         wait(for: [expectEmptyWebView()], timeout: timeout)
         
-        webView.evaluateJavaScript("window.location = '\(TestConstants.paymentOrder.urls.paymentUrl!.absoluteString)'", completionHandler: nil)
+        let paymentUrl = MockMerchantBackend.paymentOrder(for: self).urls.paymentUrl!.absoluteString
+        webView.evaluateJavaScript("window.location = '\(paymentUrl)'", completionHandler: nil)
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)
     }
@@ -105,11 +107,11 @@ class ViewControllerTests : SwedbankPaySDKControllerTestCase {
 }
 
 private extension TestConfiguration {
-    func setupPaymentorders() {
+    func setupPaymentorders(testCase: XCTestCase) {
         switch self {
         case .merchantBackend:
-            MockURLProtocol.stubBackendUrl()
-            MockURLProtocol.stubPaymentorders()
+            MockURLProtocol.stubBackendUrl(for: testCase)
+            MockURLProtocol.stubPaymentorders(for: testCase)
             
 #if swift(>=5.5)
         case .async:

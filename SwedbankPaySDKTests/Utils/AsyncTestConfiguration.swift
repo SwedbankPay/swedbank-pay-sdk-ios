@@ -7,14 +7,14 @@ import SwedbankPaySDK
 struct AsyncTestConfiguration: SwedbankPaySDKConfigurationAsync {
     func postConsumers(consumer: SwedbankPaySDK.Consumer?, userData: Any?) async throws -> SwedbankPaySDK.ViewConsumerIdentificationInfo {
         return SwedbankPaySDK.ViewConsumerIdentificationInfo(
-            webViewBaseURL: TestConstants.backendUrl,
+            webViewBaseURL: URL(string: "about:blank")!,
             viewConsumerIdentification: URL(string: TestConstants.viewConsumerSessionLink)!
         )
     }
     
     func postPaymentorders(paymentOrder: SwedbankPaySDK.PaymentOrder?, userData: Any?, consumerProfileRef: String?) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo {
         return SwedbankPaySDK.ViewPaymentOrderInfo(
-            webViewBaseURL: TestConstants.backendUrl,
+            webViewBaseURL: URL(string: "about:blank")!,
             viewPaymentorder: URL(string: TestConstants.viewPaymentorderLink)!,
             completeUrl: paymentOrder!.urls.completeUrl,
             cancelUrl: paymentOrder!.urls.cancelUrl,

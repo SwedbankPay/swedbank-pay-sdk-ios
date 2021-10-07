@@ -36,7 +36,8 @@ public extension SwedbankPaySDK.PaymentOrderUrls {
             language: language,
             hostUrl: configuration.backendUrl,
             callbackUrl: callbackUrl,
-            termsOfServiceUrl: termsOfServiceUrl
+            termsOfServiceUrl: termsOfServiceUrl,
+            identifier: identifier
         )
     }
     

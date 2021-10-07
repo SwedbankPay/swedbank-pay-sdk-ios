@@ -11,10 +11,10 @@ enum TestConfiguration {
 }
 
 extension TestConfiguration {
-    var sdkConfiguration: SwedbankPaySDKConfiguration {
+    func sdkConfiguration(for testCase: XCTestCase) -> SwedbankPaySDKConfiguration {
         switch self {
         case .merchantBackend:
-            return TestConstants.configuration
+            return MockMerchantBackend.configuration(for: testCase)
             
 #if swift(>=5.5)
         case .async:
