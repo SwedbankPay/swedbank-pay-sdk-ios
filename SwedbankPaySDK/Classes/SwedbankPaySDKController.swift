@@ -122,6 +122,8 @@ public final class SwedbankPaySDKController: UIViewController {
         return viewModel.updating
     }
     
+    public var _continueInBrowserMessage: (title: String, body: String, button: String)?
+    
     // These are useful for investigating issuers' compatibility with WKWebView
     //
     // As some 3DS pages are unfortunately incompatible with WKWebView,
@@ -171,6 +173,8 @@ public final class SwedbankPaySDKController: UIViewController {
     }
     private lazy var initialLoadingIndicator = UIActivityIndicatorView(style: loadingIndicatorStyle)
     
+    private var continueInBrowserAlert: UIAlertController?
+        
     private let viewModel: SwedbankPaySDKViewModel
     
     required init(coder aDecoder: NSCoder) {
@@ -235,6 +239,7 @@ public final class SwedbankPaySDKController: UIViewController {
         SwedbankPaySDK.removeCallbackUrlDelegate(self)
         set(scriptMessageHandler: nil)
         viewModel.cancelUpdate()
+        NotificationCenter.default.removeObserver(self)
     }
     
     /// Performs an update on the current payment order.
@@ -270,6 +275,13 @@ public final class SwedbankPaySDKController: UIViewController {
         
         addRootWebViewController()
         addInitialLoadingIndicator()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(showContinueInBrowserNoteIfNeeded),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
     }
     
     private func addRootWebViewController() {
@@ -421,6 +433,37 @@ public final class SwedbankPaySDKController: UIViewController {
         
         initialLoadingIndicator.startAnimating()
         rootWebViewController.load(htmlString: html, baseURL: baseURL)
+    }
+}
+
+private extension SwedbankPaySDKController {
+    @objc func showContinueInBrowserNoteIfNeeded() {
+        switch (rootWebViewController.isContinuingInBrowser, continueInBrowserAlert) {
+        case (true, nil):
+            showContinueInBrowserNote()
+        case (false, .some):
+            hideContinueInBrowserNote()
+        default:
+            break
+        }
+    }
+    
+    private func showContinueInBrowserNote() {
+        guard let (title, body, button) = _continueInBrowserMessage else {
+            return
+        }
+        
+        let alert = UIAlertController(title: title, message: body, preferredStyle: .alert)
+        continueInBrowserAlert = alert
+        alert.addAction(UIAlertAction(title: button, style: .default) { [weak self] _ in
+            self?.hideContinueInBrowserNote()
+        })
+        present(alert, animated: true)
+    }
+    
+    private func hideContinueInBrowserNote() {
+        continueInBrowserAlert?.dismiss(animated: true)
+        continueInBrowserAlert = nil
     }
 }
 

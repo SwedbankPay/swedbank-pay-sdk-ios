@@ -24,6 +24,8 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
     var isAtRoot: Bool {
         return lastRootPage != nil
     }
+    
+    private(set) var isContinuingInBrowser = false
 
     override init(
         configuration: WKWebViewConfiguration,
@@ -38,6 +40,7 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
     }
 
     func load(htmlString: String, baseURL: URL?) {
+        isContinuingInBrowser = false
         dismissJavascriptDialog()
         let navigation = webView.loadHTMLString(htmlString, baseURL: baseURL)
         lastRootPage = (navigation, baseURL)
@@ -135,6 +138,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
         // (this has been tested). In any case, it is important to
         // keep testing the SDK against different issuers and keep
         // the goodlist up-to-date.
+        isContinuingInBrowser = true
         let target = isAtRoot ? url : (webView.url ?? url)
         UIApplication.shared.open(target, options: [:], completionHandler: nil)
     }
