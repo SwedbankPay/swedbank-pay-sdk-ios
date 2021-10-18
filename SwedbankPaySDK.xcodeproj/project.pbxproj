@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		6367D3EB26F340F700F89F62 /* TestConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6367D3EA26F340F700F89F62 /* TestConfiguration.swift */; };
+		63CB6613271D991200100683 /* Storyboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 63CB6612271D991200100683 /* Storyboard.storyboard */; };
+		63CB6615271D997100100683 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CB6614271D997100100683 /* ViewController.swift */; };
 		63EECFF4270ED22D00C37B69 /* MockMerchantBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EECFF3270ED22D00C37B69 /* MockMerchantBackend.swift */; };
 		63F5D69F26F0B23600C1F207 /* ConfigurationAsync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */; };
 		63F5D6A126F0C2A100C1F207 /* AsyncViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D6A026F0C2A100C1F207 /* AsyncViewModelTests.swift */; };
@@ -151,6 +153,8 @@
 
 /* Begin PBXFileReference section */
 		6367D3EA26F340F700F89F62 /* TestConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConfiguration.swift; sourceTree = "<group>"; };
+		63CB6612271D991200100683 /* Storyboard.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Storyboard.storyboard; sourceTree = "<group>"; };
+		63CB6614271D997100100683 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		63EECFF3270ED22D00C37B69 /* MockMerchantBackend.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockMerchantBackend.swift; sourceTree = "<group>"; };
 		63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationAsync.swift; sourceTree = "<group>"; };
 		63F5D6A026F0C2A100C1F207 /* AsyncViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncViewModelTests.swift; sourceTree = "<group>"; };
@@ -356,9 +360,11 @@
 			isa = PBXGroup;
 			children = (
 				A5494B0D26330207006EB38B /* AppDelegate.swift */,
+				63CB6614271D997100100683 /* ViewController.swift */,
 				A5494B482633036E006EB38B /* PaymentTestConfiguration.swift */,
 				A598BF3C263838880032E261 /* PaymentDelegate.swift */,
 				A5C061B326402A93004A7FEF /* LaunchScreen.storyboard */,
+				63CB6612271D991200100683 /* Storyboard.storyboard */,
 				A5494B1B26330209006EB38B /* Info.plist */,
 			);
 			path = SwedbankPaySDKUITestHost;
@@ -746,6 +752,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A5C061B426402A93004A7FEF /* LaunchScreen.storyboard in Resources */,
+				63CB6613271D991200100683 /* Storyboard.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -816,6 +823,7 @@
 				A5494B0E26330207006EB38B /* AppDelegate.swift in Sources */,
 				A598BF48263844540032E261 /* TestMessage.swift in Sources */,
 				A5494B492633036E006EB38B /* PaymentTestConfiguration.swift in Sources */,
+				63CB6615271D997100100683 /* ViewController.swift in Sources */,
 				A598BF3D263838880032E261 /* PaymentDelegate.swift in Sources */,
 				A598BF96263AD1ED0032E261 /* SocketHelper.swift in Sources */,
 			);
