@@ -8,9 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		6367D3EB26F340F700F89F62 /* TestConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6367D3EA26F340F700F89F62 /* TestConfiguration.swift */; };
+		63CB660D27171C2D00100683 /* ViewModelCodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CB660C27171C2D00100683 /* ViewModelCodingTests.swift */; };
+		63CB660F27171D4D00100683 /* ViewModelStateEquals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CB660E27171D4D00100683 /* ViewModelStateEquals.swift */; };
+		63CB66112719982800100683 /* ViewControllerRestorationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CB66102719982800100683 /* ViewControllerRestorationTests.swift */; };
 		63CB6613271D991200100683 /* Storyboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 63CB6612271D991200100683 /* Storyboard.storyboard */; };
 		63CB6615271D997100100683 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CB6614271D997100100683 /* ViewController.swift */; };
+		63EECFD0270730C800C37B69 /* CodableUserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EECFCF270730C800C37B69 /* CodableUserData.swift */; };
 		63EECFF4270ED22D00C37B69 /* MockMerchantBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EECFF3270ED22D00C37B69 /* MockMerchantBackend.swift */; };
+		63EECFF6270F2DF500C37B69 /* ViewModelTestUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EECFF5270F2DF500C37B69 /* ViewModelTestUtil.swift */; };
+		63EECFF82710742C00C37B69 /* ViewModelStateCodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EECFF72710742C00C37B69 /* ViewModelStateCodingTests.swift */; };
+		63EECFFA271080C300C37B69 /* ViewPaymentOrderInfoEquals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EECFF9271080C300C37B69 /* ViewPaymentOrderInfoEquals.swift */; };
 		63F5D69F26F0B23600C1F207 /* ConfigurationAsync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */; };
 		63F5D6A126F0C2A100C1F207 /* AsyncViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D6A026F0C2A100C1F207 /* AsyncViewModelTests.swift */; };
 		63F5D6A326F0C96F00C1F207 /* AsyncTestConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F5D6A226F0C96F00C1F207 /* AsyncTestConfiguration.swift */; };
@@ -153,9 +160,16 @@
 
 /* Begin PBXFileReference section */
 		6367D3EA26F340F700F89F62 /* TestConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConfiguration.swift; sourceTree = "<group>"; };
+		63CB660C27171C2D00100683 /* ViewModelCodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelCodingTests.swift; sourceTree = "<group>"; };
+		63CB660E27171D4D00100683 /* ViewModelStateEquals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelStateEquals.swift; sourceTree = "<group>"; };
+		63CB66102719982800100683 /* ViewControllerRestorationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerRestorationTests.swift; sourceTree = "<group>"; };
 		63CB6612271D991200100683 /* Storyboard.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Storyboard.storyboard; sourceTree = "<group>"; };
 		63CB6614271D997100100683 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		63EECFCF270730C800C37B69 /* CodableUserData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableUserData.swift; sourceTree = "<group>"; };
 		63EECFF3270ED22D00C37B69 /* MockMerchantBackend.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockMerchantBackend.swift; sourceTree = "<group>"; };
+		63EECFF5270F2DF500C37B69 /* ViewModelTestUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelTestUtil.swift; sourceTree = "<group>"; };
+		63EECFF72710742C00C37B69 /* ViewModelStateCodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelStateCodingTests.swift; sourceTree = "<group>"; };
+		63EECFF9271080C300C37B69 /* ViewPaymentOrderInfoEquals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewPaymentOrderInfoEquals.swift; sourceTree = "<group>"; };
 		63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationAsync.swift; sourceTree = "<group>"; };
 		63F5D6A026F0C2A100C1F207 /* AsyncViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncViewModelTests.swift; sourceTree = "<group>"; };
 		63F5D6A226F0C96F00C1F207 /* AsyncTestConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncTestConfiguration.swift; sourceTree = "<group>"; };
@@ -395,6 +409,9 @@
 				A57170DE2506531B00AC28BE /* FileUtils.swift */,
 				A542B35225249BA900AD8F09 /* Assertions.swift */,
 				6367D3EA26F340F700F89F62 /* TestConfiguration.swift */,
+				63EECFF5270F2DF500C37B69 /* ViewModelTestUtil.swift */,
+				63EECFF9271080C300C37B69 /* ViewPaymentOrderInfoEquals.swift */,
+				63CB660E27171D4D00100683 /* ViewModelStateEquals.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -474,6 +491,7 @@
 				A5DC2CA5251A2D730037C7DA /* ViewConsumerIdentificationInfo.swift */,
 				A5DC2CA9251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift */,
 				63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */,
+				63EECFCF270730C800C37B69 /* CodableUserData.swift */,
 			);
 			path = "SwedbankPaySDK+Extensions";
 			sourceTree = "<group>";
@@ -550,6 +568,9 @@
 				A596D670247FF7FD009605DB /* PaymentUrlTests.swift */,
 				A57170DC25064EF400AC28BE /* FileLinesTests.swift */,
 				A57170E025066D3A00AC28BE /* GoodWebViewRedirectsTests.swift */,
+				63EECFF72710742C00C37B69 /* ViewModelStateCodingTests.swift */,
+				63CB660C27171C2D00100683 /* ViewModelCodingTests.swift */,
+				63CB66102719982800100683 /* ViewControllerRestorationTests.swift */,
 			);
 			path = SwedbankPaySDKTests;
 			sourceTree = "<group>";
@@ -852,6 +873,7 @@
 				A504895123C8A2FD00201DEC /* SwedbankPayWebContent.swift in Sources */,
 				C50CF69D237AACC3003F79DF /* Consumer.swift in Sources */,
 				A57170DA25011F8500AC28BE /* FileLines.swift in Sources */,
+				63EECFD0270730C800C37B69 /* CodableUserData.swift in Sources */,
 				A59AEE9D25372C9A00255A3A /* Instrument.swift in Sources */,
 				C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */,
 				63F5D69F26F0B23600C1F207 /* ConfigurationAsync.swift in Sources */,
@@ -879,22 +901,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63EECFF82710742C00C37B69 /* ViewModelStateCodingTests.swift in Sources */,
 				A596D66D247EA39B009605DB /* SwedbankPaySDKControllerTestCase.swift in Sources */,
 				A596D671247FF7FD009605DB /* PaymentUrlTests.swift in Sources */,
 				A57170DD25064EF400AC28BE /* FileLinesTests.swift in Sources */,
 				A5535E7824755AE300BFD586 /* ViewModelTests.swift in Sources */,
+				63CB66112719982800100683 /* ViewControllerRestorationTests.swift in Sources */,
 				63EECFF4270ED22D00C37B69 /* MockMerchantBackend.swift in Sources */,
 				A57170E125066D3A00AC28BE /* GoodWebViewRedirectsTests.swift in Sources */,
 				A5535E7624754B2100BFD586 /* MockURLResult.swift in Sources */,
+				63CB660D27171C2D00100683 /* ViewModelCodingTests.swift in Sources */,
 				A542B35325249BA900AD8F09 /* Assertions.swift in Sources */,
 				A596D66F247FD164009605DB /* MissingStubError.swift in Sources */,
 				A596D66B247BF85B009605DB /* TestURLStubs.swift in Sources */,
 				A5535E7224754AD000BFD586 /* TestConstants.swift in Sources */,
+				63EECFFA271080C300C37B69 /* ViewPaymentOrderInfoEquals.swift in Sources */,
 				A596D669247BECD8009605DB /* ViewControllerTests.swift in Sources */,
 				A57170DF2506531B00AC28BE /* FileUtils.swift in Sources */,
 				A5535E832478078A00BFD586 /* MockURLProtocolExpectation.swift in Sources */,
+				63CB660F27171D4D00100683 /* ViewModelStateEquals.swift in Sources */,
 				A596D6732480FCA7009605DB /* ViewControllerConsumerTests.swift in Sources */,
 				A5535E812478072C00BFD586 /* StubbedURLError.swift in Sources */,
+				63EECFF6270F2DF500C37B69 /* ViewModelTestUtil.swift in Sources */,
 				63F5D6A326F0C96F00C1F207 /* AsyncTestConfiguration.swift in Sources */,
 				63F5D6A126F0C2A100C1F207 /* AsyncViewModelTests.swift in Sources */,
 				6367D3EB26F340F700F89F62 /* TestConfiguration.swift in Sources */,
@@ -1244,6 +1272,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = SwedbankPaySDKTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1266,6 +1295,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = SwedbankPaySDKTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

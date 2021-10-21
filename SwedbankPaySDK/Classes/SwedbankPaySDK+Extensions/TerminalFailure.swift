@@ -14,7 +14,7 @@
 // limitations under the License.
 
 public extension SwedbankPaySDK {
-    struct TerminalFailure {
+    struct TerminalFailure: Codable {
         public var origin: String?
         public var messageId: String?
         public var details: String?

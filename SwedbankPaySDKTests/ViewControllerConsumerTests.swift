@@ -40,13 +40,7 @@ class ViewControllerConsumerTests : SwedbankPaySDKControllerTestCase {
         startViewController(testConfiguration: testConfiguration)
         waitForWebViewLoaded()
         
-        let expectation = self.expectation(description: "view-consumer-identification page loaded in web view")
-        webView.evaluateJavaScript("document.evaluate('//script[1]', document, null, XPathResult.ANY_UNORDERED_NODE_TYPE).singleNodeValue.textContent") { script, error in
-            XCTAssertNil(error)
-            if let s = script as? String, s.contains("var url = '\(TestConstants.viewConsumerSessionLink)'") && s.contains("payex.hostedView.consumer(") {
-                expectation.fulfill()
-            }
-        }
+        expectViewConsumerIdentificationPageInWebView()
         waitForExpectations(timeout: timeout, handler: nil)
     }
     func testItShouldShowViewConsumerIdentificationPage() {

@@ -30,7 +30,7 @@ public extension SwedbankPaySDK {
     /// and a server implementing the Merchant Backend API, such as the example backends
     /// provided by Swedbank Pay, but it can be useful when using a  custom
     /// `SwedbankPaySDKConfiguration` as well.
-    struct PaymentOrder : Codable {
+    struct PaymentOrder : Codable, Equatable {
         /// The operation to perform
         public var operation: PaymentOrderOperation
         
@@ -183,7 +183,7 @@ public extension SwedbankPaySDK {
     ///
     /// The Mobile SDK places some requirements on these URLs,  different to the web-page case.
     /// See individual properties for discussion.
-    struct PaymentOrderUrls : Codable {
+    struct PaymentOrderUrls : Codable, Equatable {
         /// Array of URLs that are valid for embedding this payment order.
         ///
         /// The SDK generates the web page that embeds the payment order internally, so it is not really
@@ -266,7 +266,7 @@ public extension SwedbankPaySDK {
     }
     
     /// Information about the payee (recipient) of a payment order
-    struct PayeeInfo : Codable {
+    struct PayeeInfo : Codable, Equatable {
         /// The unique identifier of this payee set by Swedbank Pay.
         ///
         /// This is usually the Merchant ID. However, usually best idea to set this value in your backend
@@ -315,7 +315,7 @@ public extension SwedbankPaySDK {
     }
     
     /// Information about the payer of a payment order
-    struct PaymentOrderPayer : Codable {
+    struct PaymentOrderPayer : Codable, Equatable {
         /// A consumer profile reference obtained through the Checkin flow.
         ///
         /// If you have your `SwedbankPaySDKController` to do the Checkin flow, your
@@ -373,7 +373,7 @@ public extension SwedbankPaySDK {
     /// When using `OrderItem`s, make sure that the sum of the `OrderItem`s'
     /// `amount` and `vatAmount` are equal to the `PaymentOrder`'s `amount`
     /// and `vatAmount` properties, respectively.
-    struct OrderItem : Codable {
+    struct OrderItem : Codable, Equatable {
         /// A reference that identifies the item in your own systems.
         public var reference: String
         /// Name of the item
@@ -469,7 +469,7 @@ public extension SwedbankPaySDK {
     ///
     /// You should populate this data as completely as possible to decrease the likelihood of 3-D Secure
     /// Strong Authentication.
-    struct RiskIndicator : Codable {
+    struct RiskIndicator : Codable, Equatable {
         /// For electronic delivery, the e-mail address where the merchandise is delivered
         public var deliveryEmailAddress: String?
         /// Indicator of merchandise delivery timeframe.
@@ -587,7 +587,7 @@ public extension SwedbankPaySDK {
     ///
     /// When using `ShipIndicator.PickUpAtStore`, you should populate this data as completely as
     /// possible to decrease the risk factor of the purchase.
-    struct PickUpAddress : Codable {
+    struct PickUpAddress : Codable, Equatable {
         /// Name of the payer
         public var name: String?
         /// Street address of the payer

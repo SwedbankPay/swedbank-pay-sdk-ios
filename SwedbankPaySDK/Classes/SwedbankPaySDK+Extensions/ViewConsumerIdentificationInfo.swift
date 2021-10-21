@@ -23,7 +23,7 @@ public extension SwedbankPaySDK {
     /// and supply a ViewConsumerIdentificationInfo
     /// in your SwedbankPayConfiguration.postConsumers
     /// completion call.
-    struct ViewConsumerIdentificationInfo {
+    struct ViewConsumerIdentificationInfo: Codable {
         /// The url to use as the WKWebView page url
         /// when showing the checkin UI.
         public var webViewBaseURL: URL?

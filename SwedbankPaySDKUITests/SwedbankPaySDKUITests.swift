@@ -6,6 +6,8 @@ private let tapCardOptionTimeout = 10.0
 private let scaTimeout = 120.0
 private let resultTimeout = 180.0
 
+private let stateSavingDelay = 5.0
+
 private let retryableActionMaxAttempts = 5
 
 private let noScaCardNumber = "4925000000000004"
@@ -153,5 +155,50 @@ class SwedbankPaySDKUITests: XCTestCase {
             continueButton.tap()
             return (try? waitForPaymentComplete()) != nil
         }, "completion timeout")
+    }
+    
+    private func restartAndRestoreState() {
+        XCUIDevice.shared.press(.home)
+        Thread.sleep(forTimeInterval: stateSavingDelay)
+        app.terminate()
+        app.launchArguments.append("-restore")
+        app.launch()
+    }
+    
+    func testItShouldShowWebViewAfterRestoration() {
+        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        
+        restartAndRestoreState()
+        
+        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+    }
+    
+    func testItShouldShowPaymentMenuAfterRestoration() {
+        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+        
+        restartAndRestoreState()
+        
+        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+    }
+    
+    func testItShouldSucceedAtPaymentAfterRestoration() throws {
+        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+        
+        restartAndRestoreState()
+        
+        try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
+        try waitForPaymentComplete()
+    }
+    
+    func testItShouldReportSuccessAfterRestoration() throws {
+        try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
+        try waitForPaymentComplete()
+        
+        restartAndRestoreState()
+        
+        try waitForPaymentComplete()
     }
 }

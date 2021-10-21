@@ -2,6 +2,10 @@ import XCTest
 import WebKit
 @testable import SwedbankPaySDK
 
+private func mockAttemptOpenUniversalLink(_: URL, completionHandler: (Bool) -> Void) {
+    completionHandler(false)
+}
+
 class SwedbankPaySDKControllerTestCase : XCTestCase {
     private let webviewLoadingTimeout = 5 as TimeInterval
     
@@ -23,7 +27,7 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
             // to always fail on universal links, as UIApplication will not
             // call the completionHandler in tests, which ultimately results
             // in WKWebView throwing an exception.
-            webViewController.attemptOpenUniversalLink = { _, completionHandler in completionHandler(false) }
+            webViewController.attemptOpenUniversalLink = mockAttemptOpenUniversalLink
         }
     }
     
@@ -37,6 +41,13 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
             viewController?.delegate = delegate
             return delegate
         }
+    }
+    func replaceViewController(viewController: SwedbankPaySDKController) {
+        assert(window != nil, "viewController not yet set in this test")
+        self.viewController.delegate = nil
+        viewController.delegate = _delegate
+        window!.rootViewController = viewController
+        webViewController.attemptOpenUniversalLink = mockAttemptOpenUniversalLink
     }
     
     var webViewController: SwedbankPayWebViewController {
@@ -75,6 +86,16 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
         return expectation
     }
     
+    func expectViewConsumerIdentificationPageInWebView() {
+        let expectation = self.expectation(description: "view-consumer-identification page loaded in web view")
+        webView.evaluateJavaScript("document.evaluate('//script[1]', document, null, XPathResult.ANY_UNORDERED_NODE_TYPE).singleNodeValue.textContent") { script, error in
+            XCTAssertNil(error)
+            if let s = script as? String, s.contains("var url = '\(TestConstants.viewConsumerSessionLink)'") && s.contains("payex.hostedView.consumer(") {
+                expectation.fulfill()
+            }
+        }
+    }
+    
     @discardableResult
     func expectViewPaymentorderPageInWebView() -> XCTestExpectation {
         let expectation = self.expectation(description: "view-paymentorder page loaded in web view")
@@ -86,7 +107,7 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
         }
         return expectation
     }
-    
+        
     class TestDelegate : SwedbankPaySDKDelegate {
         var onComplete: (() -> Void)?
         var onFailed: ((Error) -> Void)?

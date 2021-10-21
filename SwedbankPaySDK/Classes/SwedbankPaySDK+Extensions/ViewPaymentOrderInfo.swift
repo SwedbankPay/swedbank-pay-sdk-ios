@@ -143,3 +143,45 @@ public extension SwedbankPaySDK {
         }
     }
 }
+
+extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case webViewBaseURL
+        case viewPaymentorder
+        case completeUrl
+        case cancelUrl
+        case paymentUrl
+        case termsOfServiceUrl
+        case instrument
+        case availableInstruments
+        case codableUserInfoType
+        case userInfo
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            webViewBaseURL: container.decodeIfPresent(URL.self, forKey: .webViewBaseURL),
+            viewPaymentorder: container.decode(URL.self, forKey: .viewPaymentorder),
+            completeUrl: container.decode(URL.self, forKey: .completeUrl),
+            cancelUrl: container.decodeIfPresent(URL.self, forKey: .cancelUrl),
+            paymentUrl: container.decodeIfPresent(URL.self, forKey: .paymentUrl),
+            termsOfServiceUrl: container.decodeIfPresent(URL.self, forKey: .termsOfServiceUrl),
+            instrument: container.decodeIfPresent(SwedbankPaySDK.Instrument.self, forKey: .instrument),
+            availableInstruments: container.decodeIfPresent([SwedbankPaySDK.Instrument].self, forKey: .availableInstruments),
+            userInfo: container.decodeUserDataIfPresent(codableTypeKey: .codableUserInfoType, valueKey: .userInfo)
+        )
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(webViewBaseURL, forKey: .webViewBaseURL)
+        try container.encode(viewPaymentorder, forKey: .viewPaymentorder)
+        try container.encode(completeUrl, forKey: .completeUrl)
+        try container.encodeIfPresent(cancelUrl, forKey: .cancelUrl)
+        try container.encodeIfPresent(paymentUrl, forKey: .paymentUrl)
+        try container.encodeIfPresent(termsOfServiceUrl, forKey: .termsOfServiceUrl)
+        try container.encodeIfPresent(instrument, forKey: .instrument)
+        try container.encodeIfPresent(availableInstruments, forKey: .availableInstruments)
+        try container.encodeIfPresent(userData: userInfo, codableTypeKey: .codableUserInfoType, valueKey: .userInfo)
+    }
+}
