@@ -18,6 +18,7 @@ import PackageDescription
 
 let package = Package(
     name: "SwedbankPaySDK",
+    defaultLocalization: "en",
     platforms: [.iOS(.v10)],
     products: [
         .library(name: "SwedbankPaySDK", targets: ["SwedbankPaySDK"]),
@@ -30,6 +31,7 @@ let package = Package(
         .target(
             name: "SwedbankPaySDK",
             path: "SwedbankPaySDK",
+            exclude: ["Info.plist"],
             resources: [.copy("Resources/good_redirects")],
             swiftSettings: [.define("SWIFT_PACKAGE_MANAGER")]
         ),
@@ -40,7 +42,8 @@ let package = Package(
                 .target(name: "SwedbankPaySDK"),
                 .product(name: "Alamofire", package: "Alamofire")
             ],
-            path: "SwedbankPaySDKMerchantBackend"
+            path: "SwedbankPaySDKMerchantBackend",
+            exclude: ["Info.plist"]
         )
     ],
     swiftLanguageVersions: [.v5]
