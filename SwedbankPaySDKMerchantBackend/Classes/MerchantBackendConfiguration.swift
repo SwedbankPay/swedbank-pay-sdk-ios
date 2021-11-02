@@ -58,7 +58,10 @@ public extension SwedbankPaySDK {
         }
         public let callbackScheme: String
         
-        let additionalAllowedWebViewRedirects: [WebViewRedirect]?
+        @available(*, deprecated, message: "no longer used")
+        var additionalAllowedWebViewRedirects: [WebViewRedirect]? {
+            return nil
+        }
         
         /// Initializer for `SwedbankPaySDK.MerchantBackendConfiguration`
         /// - parameter backendUrl: backend URL
@@ -71,7 +74,24 @@ public extension SwedbankPaySDK {
         ///  defaults to `backendURL` if nil
         /// - parameter pinPublicKeys: Optional array of domains for certification pinning,
         ///  matched against any certificate found anywhere in the app bundle
-        /// - parameter additionalAllowedWebViewRedirects: additional url patterns that will be opened in the web view
+        public init(
+            backendUrl: URL,
+            callbackScheme: String? = nil,
+            headers: [String: String]?,
+            domainWhitelist: [WhitelistedDomain]? = nil,
+            pinPublicKeys: [PinPublicKeys]? = nil
+        ) {
+            let session = MerchantBackendConfiguration.makeSession(pinPublicKeys: pinPublicKeys)
+            self.init(
+                session: session,
+                backendUrl: backendUrl,
+                callbackScheme: callbackScheme,
+                headers: headers,
+                domainWhitelist: domainWhitelist
+            )
+        }
+        
+        @available(*, deprecated, message: "additionalAllowedWebViewRedirects is ignored")
         public init(
             backendUrl: URL,
             callbackScheme: String? = nil,
@@ -80,24 +100,22 @@ public extension SwedbankPaySDK {
             pinPublicKeys: [PinPublicKeys]? = nil,
             additionalAllowedWebViewRedirects: [WebViewRedirect]? = nil
         ) {
-            let session = MerchantBackendConfiguration.makeSession(pinPublicKeys: pinPublicKeys)
             self.init(
-                session: session,
                 backendUrl: backendUrl,
                 callbackScheme: callbackScheme,
                 headers: headers,
                 domainWhitelist: domainWhitelist,
-                additionalAllowedWebViewRedirects: additionalAllowedWebViewRedirects
+                pinPublicKeys: pinPublicKeys
             )
         }
+
         
         internal init(
             session: Alamofire.Session,
             backendUrl: URL,
             callbackScheme: String?,
             headers: [String: String]?,
-            domainWhitelist: [WhitelistedDomain]?,
-            additionalAllowedWebViewRedirects: [WebViewRedirect]?
+            domainWhitelist: [WhitelistedDomain]?
         ) {
             api = MerchantBackendApi(
                 session: session,
@@ -109,7 +127,6 @@ public extension SwedbankPaySDK {
             rootLink = RootLink(href: backendUrl)
             
             self.callbackScheme = callbackScheme ?? MerchantBackendConfiguration.getDefaultCallbackScheme()
-            self.additionalAllowedWebViewRedirects = additionalAllowedWebViewRedirects
         }
         
         private static func makeSession(pinPublicKeys: [PinPublicKeys]?) -> Session {
@@ -308,26 +325,6 @@ public extension SwedbankPaySDK {
                 }
             }
             return request
-        }
-        
-        public func decidePolicyForPaymentMenuRedirect(
-            navigationAction: WKNavigationAction,
-            completion: @escaping (SwedbankPaySDK.PaymentMenuRedirectPolicy) -> Void
-        ) {
-            guard let url = navigationAction.request.url else {
-                completion(.openInWebView)
-                return
-            }
-            let allowedByUser = additionalAllowedWebViewRedirects?.contains(
-                where: { $0.allows(url: url) }
-            ) == true
-            if allowedByUser {
-                completion(.openInWebView)
-            } else {
-                urlMatchesListOfGoodRedirects(url) { matches in
-                    completion(matches ? .openInWebView : .openInBrowser)
-                }
-            }
         }
     }
 }

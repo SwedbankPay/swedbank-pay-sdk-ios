@@ -1,2 +1,7 @@
 "browserAlertTitle" = "You're almost done!";
 "browserAlertBody" = "Your payment is being processed. Return to your browser to continue.";
+
+"maybeStuckAlertTitle" = "Stuck?";
+"maybeStuckAlertBody" = "It looks like the payment has not progressed for a while. Do you want to wait, or retry the payment in compatibility mode?";
+"maybeStuckAlertWait" = "Wait";
+"maybeStuckAlertRetry" = "Retry";

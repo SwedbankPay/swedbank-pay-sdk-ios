@@ -17,7 +17,12 @@ import UIKit
 import WebKit
 
 final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
+    private static let guessMaybeStuckInterval = 30.0
+    private static let maybeStuckNoteMinimumIntervalFromDidBecomeActive = 3.0
+    
     private var lastRootPage: (navigation: WKNavigation?, baseURL: URL?)?
+    
+    var shouldShowExternalAppAlerts = true
 
     var navigationLogger: ((URL) -> Void)?
 
@@ -27,6 +32,7 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
     
     private enum ProcessHost {
         case webView
+        case externalApp(openDate: Date)
         case browser
     }
     
@@ -35,6 +41,7 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
             wrangleProcessHostAlert()
         }
     }
+    private var wrangleProcessHostAlertTimer: Timer?
 
     override init(
         configuration: WKWebViewConfiguration,
@@ -44,6 +51,7 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
         webView.navigationDelegate = self
     }
     deinit {
+        wrangleProcessHostAlertTimer?.invalidate()
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -60,10 +68,11 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
             name: UIApplication.didBecomeActiveNotification,
             object: nil
         )
+         
     }
     
     @objc private func appDidBecomeActive() {
-        wrangleProcessHostAlert()
+        wrangleProcessHostAlert(appDidBecomeActiveDate: Date())
     }
 
     func load(htmlString: String, baseURL: URL?) {
@@ -108,6 +117,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
     ) {
         attemptOpenUniversalLink(url) { opened in
             if opened {
+                self.processHost = .externalApp(openDate: Date())
                 decisionHandler(.cancel)
             } else {
                 self.decidePolicyForNormalLink(
@@ -141,7 +151,11 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
             }
         } else {
             // A custom-scheme url. Must let another app take care of it.
-            UIApplication.shared.open(url, options: [:])
+            UIApplication.shared.open(url, options: [:]) { opened in
+                if opened {
+                    self.processHost = .externalApp(openDate: Date())
+                }
+            }
             decisionHandler(.cancel)
         }
     }
@@ -214,7 +228,10 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
 
 extension SwedbankPayWebViewController {
     // visible for testing
-    func wrangleProcessHostAlert() {
+    func wrangleProcessHostAlert(appDidBecomeActiveDate: Date? = nil, now: @autoclosure () -> Date = Date()) {
+        wrangleProcessHostAlertTimer?.invalidate()
+        wrangleProcessHostAlertTimer = nil
+        
         // Give JS alerts priority over these.
         // This should really never be an issue,
         // but we'd rather not crash if it somehow happens.
@@ -224,20 +241,60 @@ extension SwedbankPayWebViewController {
         }
         
         presentedVC?.dismiss(animated: true, completion: nil)
-        let alert = makeProcessHostAlert()
+        let alert = makeProcessHostAlert(appDidBecomeActiveDate: appDidBecomeActiveDate, now: now)
         if let alert = alert {
             alert.isProcessHostAlertController = true
             present(alert, animated: true, completion: nil)
         }
     }
     
-    private func makeProcessHostAlert() -> UIAlertController? {
+    private func makeProcessHostAlert(appDidBecomeActiveDate: Date?, now: () -> Date) -> UIAlertController? {
         switch processHost {
         case .webView:
             return nil
+        case .externalApp(let openDate):
+            return shouldShowExternalAppAlerts
+                ? wrangleExternalAppAlert(openDate: openDate, appDidBecomeActiveDate: appDidBecomeActiveDate, now: now())
+                : nil
         case .browser:
             return makeBrowserAlert()
         }
+    }
+    
+    private func wrangleExternalAppAlert(openDate: Date, appDidBecomeActiveDate: Date?, now: Date) -> UIAlertController? {
+        var earliestAlertDate = openDate + Self.guessMaybeStuckInterval
+        if let appDidBecomeActiveDate = appDidBecomeActiveDate {
+            earliestAlertDate = max(earliestAlertDate, appDidBecomeActiveDate + Self.maybeStuckNoteMinimumIntervalFromDidBecomeActive)
+        }
+        let interval = earliestAlertDate.timeIntervalSince(now)
+        let shouldShow = interval <= 0
+        if !shouldShow {
+            wrangleProcessHostAlertTimer = .scheduledTimer(withTimeInterval: interval, repeats: false) { [unowned self] _ in
+                self.wrangleProcessHostAlert()
+            }
+        }
+        return shouldShow ? makeExternalAppAlert() : nil
+    }
+    
+    private func makeExternalAppAlert() -> UIAlertController {
+        let alert = UIAlertController(
+            title: SwedbankPaySDKResources.localizedString(key: "maybeStuckAlertTitle"),
+            message: SwedbankPaySDKResources.localizedString(key: "maybeStuckAlertBody"),
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(
+            title: SwedbankPaySDKResources.localizedString(key: "maybeStuckAlertWait"),
+            style: .default)
+        )
+        alert.addAction(UIAlertAction(
+            title: SwedbankPaySDKResources.localizedString(key: "maybeStuckAlertRetry"),
+            style: .default
+        ) { [weak self] _ in
+            if let self = self {
+                self.delegate?.webViewControllerRetryWithBrowserRedirectBehavior(self)
+            }
+        })
+        return alert
     }
     
     private func makeBrowserAlert() -> UIAlertController {

@@ -25,4 +25,6 @@ protocol SwedbankPayWebViewControllerDelegate: AnyObject {
     func allowWebViewNavigation(navigationAction: WKNavigationAction, completion: @escaping (Bool) -> Void)
     
     func webViewDidFailNavigation(error: Error)
+    
+    func webViewControllerRetryWithBrowserRedirectBehavior(_ webViewController: SwedbankPayWebViewController)
 }

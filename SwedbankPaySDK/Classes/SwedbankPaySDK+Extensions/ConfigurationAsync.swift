@@ -146,6 +146,7 @@ public extension SwedbankPaySDKConfigurationAsync {
     /// payment menu redirects.
     /// - parameter url: the URL to check
     /// - returns: `true` if url matches the list, `false` otherwise
+    @available(*, deprecated, message: "no longer maintained")
     func urlMatchesListOfGoodRedirects(_ url: URL) async -> Bool {
         return await withUnsafeContinuation { continuation in
             urlMatchesListOfGoodRedirects(url, completion: continuation.resume(returning:))
