@@ -18,7 +18,7 @@ import UIKit
 
 class GoodWebViewRedirects {
     static let instance = GoodWebViewRedirects(openDataFile: {
-        let path = getResourceBundle()
+        let path = SwedbankPaySDKResources
             .path(forResource: "good_redirects", ofType: nil)
         return path.flatMap { fopen($0, "r") }
     })
@@ -43,15 +43,6 @@ class GoodWebViewRedirects {
             }
         }
     }
-    
-    private static func getResourceBundle() -> Bundle {
-        #if SWIFT_PACKAGE_MANAGER
-        return Bundle.module
-        #else
-        return Bundle(for: GoodWebViewRedirects.self)
-        #endif
-    }
-    
     private func getData() -> [SwedbankPaySDK.WebViewRedirect]? {
         let cache = self.cache
         let data = cache ?? readFromFile()

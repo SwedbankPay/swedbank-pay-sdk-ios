@@ -25,7 +25,16 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
         return lastRootPage != nil
     }
     
-    private(set) var isContinuingInBrowser = false
+    private enum ProcessHost {
+        case webView
+        case browser
+    }
+    
+    private var processHost = ProcessHost.webView {
+        didSet {
+            wrangleProcessHostAlert()
+        }
+    }
 
     override init(
         configuration: WKWebViewConfiguration,
@@ -34,13 +43,31 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
         super.init(configuration: configuration, delegate: delegate)
         webView.navigationDelegate = self
     }
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func appDidBecomeActive() {
+        wrangleProcessHostAlert()
+    }
 
     func load(htmlString: String, baseURL: URL?) {
-        isContinuingInBrowser = false
+        processHost = .webView
         dismissJavascriptDialog()
         let navigation = webView.loadHTMLString(htmlString, baseURL: baseURL)
         lastRootPage = (navigation, baseURL)
@@ -114,7 +141,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
             }
         } else {
             // A custom-scheme url. Must let another app take care of it.
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            UIApplication.shared.open(url, options: [:])
             decisionHandler(.cancel)
         }
     }
@@ -138,9 +165,12 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
         // (this has been tested). In any case, it is important to
         // keep testing the SDK against different issuers and keep
         // the goodlist up-to-date.
-        isContinuingInBrowser = true
         let target = isAtRoot ? url : (webView.url ?? url)
-        UIApplication.shared.open(target, options: [:], completionHandler: nil)
+        UIApplication.shared.open(target, options: [:]) { opened in
+            if opened {
+                self.processHost = .browser
+            }
+        }
     }
     
     private func ensurePath(url: URL) -> URL {
@@ -165,6 +195,8 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
     }
     
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        // Assume the payment is processing in the web view whenever there is a new navigation.
+        processHost = .webView
         if navigation != lastRootPage?.navigation {
             lastRootPage = nil
             delegate?.webViewControllerDidNavigateOutOfRoot(self)
@@ -177,5 +209,56 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         delegate?.webViewDidFailNavigation(error: error)
+    }
+}
+
+extension SwedbankPayWebViewController {
+    // visible for testing
+    func wrangleProcessHostAlert() {
+        // Give JS alerts priority over these.
+        // This should really never be an issue,
+        // but we'd rather not crash if it somehow happens.
+        let presentedVC = presentedViewController
+        guard presentedVC == nil || (presentedVC as? UIAlertController)?.isProcessHostAlertController == true else {
+            return
+        }
+        
+        presentedVC?.dismiss(animated: true, completion: nil)
+        let alert = makeProcessHostAlert()
+        if let alert = alert {
+            alert.isProcessHostAlertController = true
+            present(alert, animated: true, completion: nil)
+        }
+    }
+    
+    private func makeProcessHostAlert() -> UIAlertController? {
+        switch processHost {
+        case .webView:
+            return nil
+        case .browser:
+            return makeBrowserAlert()
+        }
+    }
+    
+    private func makeBrowserAlert() -> UIAlertController {
+        let alert = UIAlertController(
+            title: SwedbankPaySDKResources.localizedString(key: "browserAlertTitle"),
+            message: SwedbankPaySDKResources.localizedString(key: "browserAlertBody"),
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        return alert
+    }
+}
+
+private extension UIAlertController {
+    private static var isProcessHostControllerKey: Void = ()
+    var isProcessHostAlertController: Bool {
+        get {
+            objc_getAssociatedObject(self, &Self.isProcessHostControllerKey) as? Bool == true
+        }
+        set {
+            objc_setAssociatedObject(self, &Self.isProcessHostControllerKey, newValue, .OBJC_ASSOCIATION_RETAIN)
+        }
     }
 }
