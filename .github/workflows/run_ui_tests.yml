@@ -7,7 +7,7 @@ on:
 
 jobs:
   ui_test:
-    runs-on: macos-latest
+    runs-on: macos-11
 
     steps:
       - uses: actions/checkout@v2
