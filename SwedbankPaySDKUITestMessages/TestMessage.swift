@@ -1,5 +1,5 @@
-enum TestMessage: String {
+enum TestMessage: Equatable, Codable {
     case complete
     case canceled
-    case error
+    case error(errorMessage: String)
 }
