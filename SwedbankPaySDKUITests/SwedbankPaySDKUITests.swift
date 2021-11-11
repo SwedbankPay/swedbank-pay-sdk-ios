@@ -5,6 +5,7 @@ private let initialTimeout = 60.0
 private let tapCardOptionTimeout = 10.0
 private let scaTimeout = 120.0
 private let resultTimeout = 180.0
+private let errorResultTimeout = 10.0
 
 private let stateSavingDelay = 5.0
 
@@ -16,12 +17,25 @@ private let expiryDate = "1230"
 private let noScaCvv = "111"
 private let scaCvv = "268"
 
+private struct NonExistentElementError: Error {
+    var element: XCUIElement
+}
+
+private func assertExists(_ element: XCUIElement, _ message: String) throws {
+    let exists = element.exists
+    XCTAssert(exists, message)
+    if !exists {
+        throw NonExistentElementError(element: element)
+    }
+}
+
 private func waitAndAssertExists(
     timeout: Double = defaultTimeout,
     _ element: XCUIElement,
     _ message: String
-) {
-    return XCTAssert(element.waitForExistence(timeout: timeout), message)
+) throws {
+    _ = element.waitForExistence(timeout: timeout)
+    try assertExists(element, message)
 }
 
 class SwedbankPaySDKUITests: XCTestCase {
@@ -73,14 +87,13 @@ class SwedbankPaySDKUITests: XCTestCase {
         keyboardDoneButton.tap()
     }
     
-    private func retryUntilTrue(f: () -> Bool) -> Bool {
+    private func retryUntilTrue(f: () -> Bool) {
         for i in 0..<retryableActionMaxAttempts {
             print("attempt \(i)")
             if f() {
-                return true
+                return
             }
         }
-        return false
     }
     
     override func setUpWithError() throws {
@@ -92,7 +105,6 @@ class SwedbankPaySDKUITests: XCTestCase {
         messageServer!.start(onMessage: messageList.append(message:))
         
         app.launchArguments = ["\(messageServer!.port)"]
-        app.launch()
     }
     
     override func tearDown() {
@@ -100,61 +112,93 @@ class SwedbankPaySDKUITests: XCTestCase {
         messageServer?.stop()
     }
     
+    private func waitForResult(timeout: Double = resultTimeout) -> TestMessage? {
+        print("Waiting \(timeout)s for payment result")
+        return messageList.waitForFirst(timeout: timeout)
+    }
+    
+    private func waitForResultAndAssertComplete() {
+        let result = waitForResult()
+        XCTAssertEqual(result, .complete)
+    }
+    
+    private func waitForResultAndAssertNil() {
+        let result = waitForResult(timeout: errorResultTimeout)
+        XCTAssertNil(result)
+    }
+    
     /// Sanity check: Check that a web view is displayed
-    func testItShouldDisplayWebView() {
-        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+    func testItShouldDisplayWebView() throws {
+        app.launch()
+        defer {
+            waitForResultAndAssertNil()
+        }
+        
+        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+    }
+    
+    /// Sanity check: Check that error messages are sent through the message channel
+    func testItShouldSendErrorMessage() {
+        app.launchArguments.append("-testerror")
+        app.launch()
+        let result = messageList.waitForFirst(timeout: resultTimeout)
+        XCTAssertEqual(result, .error(errorMessage: "testerror"), "Unexpected result for error message test: \(String(describing: result))")
     }
     
     private func beginPayment(
         cardNumber: String,
         cvv: String
     ) throws {
-        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
-        waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+        try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         
-        XCTAssert(retryUntilTrue {
+        retryUntilTrue {
             cardOption.tap()
             return creditCardOption.waitForExistence(timeout: tapCardOptionTimeout)
-        }, "Credit card option not found")
+        }
+        try assertExists(creditCardOption, "Credit card option not found")
         creditCardOption.tap()
         
-        waitAndAssertExists(panInput, "PAN input not found")
+        try waitAndAssertExists(panInput, "PAN input not found")
         input(to: panInput, text: cardNumber)
         
-        waitAndAssertExists(expiryInput, "Expiry date input not found")
+        try waitAndAssertExists(expiryInput, "Expiry date input not found")
         input(to: expiryInput, text: expiryDate)
         
-        waitAndAssertExists(cvvInput, "CVV input not found")
+        try waitAndAssertExists(cvvInput, "CVV input not found")
         input(to: cvvInput, text: cvv)
         
-        waitAndAssertExists(payButton, "Pay button not found")
+        try waitAndAssertExists(payButton, "Pay button not found")
         payButton.tap()
-    }
-    
-    private func waitForPaymentComplete() throws {
-        print("Waiting \(resultTimeout)s for payment to complete")
-        let result = try messageList.poll(timeout: resultTimeout)
-        XCTAssertEqual(result, .complete, "Payment was not successful: \(result)")
     }
         
     /// Check that a payment without SCA works
     func testItShouldSucceedAtPaymentWithoutSca() throws {
+        app.launch()
+        defer {
+            waitForResultAndAssertComplete()
+        }
+        
         try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
-        try waitForPaymentComplete()
     }
     
     /// Check that a payment with SCA works
     func testItShouldSucceedAtPaymentWithSca() throws {
+        app.launch()
+        defer {
+            waitForResultAndAssertComplete()
+        }
+        
         try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
-        waitAndAssertExists(
+        try waitAndAssertExists(
             timeout: scaTimeout,
             continueButton, "Continue button not found"
         )
-        XCTAssert(retryUntilTrue {
+        retryUntilTrue {
             continueButton.tap()
-            return (try? waitForPaymentComplete()) != nil
-        }, "completion timeout")
+            return messageList.waitForFirst(timeout: resultTimeout) != nil
+        }
     }
     
     private func restartAndRestoreState() {
@@ -165,40 +209,57 @@ class SwedbankPaySDKUITests: XCTestCase {
         app.launch()
     }
     
-    func testItShouldShowWebViewAfterRestoration() {
-        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+    func testItShouldShowWebViewAfterRestoration() throws {
+        app.launch()
+        defer {
+            waitForResultAndAssertNil()
+        }
+        
+        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
         restartAndRestoreState()
         
-        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
     }
     
-    func testItShouldShowPaymentMenuAfterRestoration() {
-        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
-        waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+    func testItShouldShowPaymentMenuAfterRestoration() throws {
+        app.launch()
+        defer {
+            waitForResultAndAssertNil()
+        }
+        
+        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         
         restartAndRestoreState()
         
-        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
-        waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
     }
     
     func testItShouldSucceedAtPaymentAfterRestoration() throws {
-        waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
-        waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+        app.launch()
+        defer {
+            waitForResultAndAssertComplete()
+        }
+        
+        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         
         restartAndRestoreState()
         
         try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
-        try waitForPaymentComplete()
     }
     
     func testItShouldReportSuccessAfterRestoration() throws {
+        app.launch()
+        defer {
+            waitForResultAndAssertComplete()
+        }
+        
         try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
-        try waitForPaymentComplete()
+        waitForResultAndAssertComplete()
         
         restartAndRestoreState()
-        
-        try waitForPaymentComplete()
     }
 }
