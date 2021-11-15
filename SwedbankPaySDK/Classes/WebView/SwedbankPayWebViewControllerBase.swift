@@ -141,14 +141,20 @@ private extension SwedbankPayWebViewControllerBase {
         javascriptDialog.addTextField(alert: alert)
         
         let okHandler = javascriptDialog.getOKHandler(alert: alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+        alert.addAction(UIAlertAction(
+            title: SwedbankPaySDKResources.localizedString(key: "OK"),
+            style: .default
+        ) { _ in
             self.onJavascriptDialogDismissed = nil
             okHandler()
         })
         
         let cancelHandler = javascriptDialog.cancelHandler
         if let cancelHandler = cancelHandler {
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
+            alert.addAction(UIAlertAction(
+                title: SwedbankPaySDKResources.localizedString(key: "Cancel"),
+                style: .cancel
+            ) { _ in
                 self.onJavascriptDialogDismissed = nil
                 cancelHandler()
             })
