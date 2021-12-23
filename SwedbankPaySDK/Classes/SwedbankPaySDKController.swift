@@ -212,7 +212,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     ///
     /// When this value is `.Default`, the SDK will attempt to detect the payment
     /// getting stuck, and allows the user to retry the payment with this setting
-    /// changed to `.AlwaysUseWebView`.
+    /// changed to `.AlwaysUseBrowser`.
     ///
     /// When this value is not `.Default`, the SDK will not attempt to detect the payment
     /// getting stuck.
