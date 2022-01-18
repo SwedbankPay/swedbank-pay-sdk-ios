@@ -303,7 +303,10 @@ extension SwedbankPayWebViewController {
             message: SwedbankPaySDKResources.localizedString(key: "browserAlertBody"),
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(
+            title: SwedbankPaySDKResources.localizedString(key: "OK"),
+            style: .default
+        ))
         return alert
     }
 }

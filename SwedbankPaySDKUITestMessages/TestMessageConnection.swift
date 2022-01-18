@@ -11,14 +11,23 @@ class TestMessageConnection {
     }
     
     func send(message: TestMessage) {
-        let dataStr = "\(message)\n"
-        let data = dataStr.data(using: .utf8)!
+        let data = try! JSONEncoder().encode(message)
+        let length: Int = data.count
+        let lengthResult = withUnsafeBytes(of: length) {
+            fwrite($0.baseAddress, $0.count, 1, stream)
+        }
+        guard lengthResult == 1 else {
+            perror("fwrite")
+            return
+        }
         let result = data.withUnsafeBytes {
             fwrite($0.baseAddress, $0.count, 1, stream)
         }
-        if result == 1 {
-            fflush(stream)
+        guard result == 1 else {
+            perror("fwrite")
+            return
         }
+        fflush(stream)
     }
     
     func close() {
@@ -26,14 +35,27 @@ class TestMessageConnection {
     }
     
     func receiveMessages(onMessage: (TestMessage) -> Void) {
-        var len: size_t = 0
-        while let cLine = fgetln(stream, &len) {
-            let data = Data(bytes: cLine, count: len)
-            let line = String(data: data, encoding: .utf8)?
-                .trimmingCharacters(in: .newlines)
-            let message = line.flatMap(TestMessage.init(rawValue:))
-            message.map(onMessage)
+        while let message = receiveMessage() {
+            onMessage(message)
         }
         fclose(stream)
+    }
+    
+    private func receiveMessage() -> TestMessage? {
+        var length: Int = 0
+        let lengthResult = withUnsafeMutableBytes(of: &length) {
+            fread($0.baseAddress, $0.count, 1, stream)
+        }
+        guard lengthResult == 1 else {
+            return nil
+        }
+        var data = Data(count: length)
+        let result = data.withUnsafeMutableBytes {
+            fread($0.baseAddress, $0.count, 1, stream)
+        }
+        guard result == 1 else {
+            return nil
+        }
+        return try! JSONDecoder().decode(TestMessage.self, from: data)
     }
 }
