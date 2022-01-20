@@ -11,8 +11,8 @@ private let stateSavingDelay = 5.0
 
 private let retryableActionMaxAttempts = 5
 
-private let noScaCardNumber = "4925000000000004"
-private let scaCardNumber = "4761739001010416"
+private let noScaCardNumber = "4581097032723517"
+private let scaCardNumber = "5226612199533406"
 private let expiryDate = "1230"
 private let noScaCvv = "111"
 private let scaCvv = "268"
