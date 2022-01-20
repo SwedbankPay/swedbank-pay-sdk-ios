@@ -17,7 +17,7 @@ a backend server that implements the Merchant Backend API.
   s.swift_versions = '5.0', '5.1'
   
   s.dependency 'SwedbankPaySDK', s.version.to_s
-  s.dependency 'Alamofire', '~> 5.4'
+  s.dependency 'Alamofire', '~> 5.5'
 
   s.source_files = 'SwedbankPaySDKMerchantBackend/Classes/**/*'
 end
