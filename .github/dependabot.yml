@@ -7,3 +7,7 @@ updates:
     time: "03:00"
     timezone: Europe/Oslo
   open-pull-requests-limit: 99
+  reviewers:
+  - OlofT
+  assignees:
+  - OlofT

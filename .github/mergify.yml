@@ -1,0 +1,19 @@
+pull_request_rules:
+  - name: Automatic approve on Dependabot PR
+    conditions:
+      - author~=^dependabot(|-preview)\[bot\]$
+    actions:
+      review:
+        type: APPROVE
+
+  - name: Automatically merge Dependabot PR
+    conditions:
+      - author~=^dependabot(|-preview)\[bot\]$
+      - '#commits-behind=0' # Only merge up to date pull requests
+      - check-success=ui_test
+      - check-success=test
+      - check-success=Codacy Static Code Analysis
+      - check-success=license/cla
+    actions:
+      merge:
+        method: merge
