@@ -16,6 +16,7 @@ class ViewModelStateCodingTests: XCTestCase {
     
     private static func makeViewPaymentOrderInfo(userInfo: Any?) -> SwedbankPaySDK.ViewPaymentOrderInfo {
         return SwedbankPaySDK.ViewPaymentOrderInfo(
+            isV3: false,
             webViewBaseURL: URL(string: "about:blank")!,
             viewPaymentorder: URL(string: TestConstants.viewPaymentorderLink)!,
             completeUrl: URL(string: "about:blank")!,
@@ -33,7 +34,8 @@ class ViewModelStateCodingTests: XCTestCase {
             webViewBaseURL: URL(string: "about:blank")!,
             viewConsumerIdentification: URL(string: TestConstants.viewConsumerSessionLink)!
         )))
-        try testCoding(state: .creatingPaymentOrder(TestConstants.consumerProfileRef))
+        try testCoding(state: .creatingPaymentOrder(TestConstants.consumerProfileRef, isV3: true))
+        try testCoding(state: .creatingPaymentOrder(TestConstants.consumerProfileRef, isV3: false))
         try testCoding(state: .paying(ViewModelStateCodingTests.viewPaymentOrderInfo))
         try testCoding(state: .complete(ViewModelStateCodingTests.viewPaymentOrderInfo))
         try testCoding(state: .canceled(ViewModelStateCodingTests.viewPaymentOrderInfo))

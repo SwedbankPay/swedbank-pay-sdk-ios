@@ -86,7 +86,8 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
     func postPaymentorders(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
-        consumerProfileRef: String?
+        consumerProfileRef: String?,
+        isV3: Bool
     ) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo
     
     /// Called by SwedbankPaySDKController when it needs to update the
@@ -196,10 +197,11 @@ public extension SwedbankPaySDKConfigurationAsync {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
         consumerProfileRef: String?,
+        isV3: Bool,
         completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
     ) {
         bridge(completion) {
-            try await postPaymentorders(paymentOrder: paymentOrder, userData: userData, consumerProfileRef: consumerProfileRef)
+            try await postPaymentorders(paymentOrder: paymentOrder, userData: userData, consumerProfileRef: consumerProfileRef, isV3: isV3)
         }
     }
     

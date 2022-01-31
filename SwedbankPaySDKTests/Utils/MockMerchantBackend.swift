@@ -27,7 +27,9 @@ extension MockMerchantBackend {
     }
     
     static func paymentOrder(for testCase: XCTestCase) -> SwedbankPaySDK.PaymentOrder{
+        
         SwedbankPaySDK.PaymentOrder(
+            
             currency: "SEK",
             amount: 1,
             vatAmount: 0,

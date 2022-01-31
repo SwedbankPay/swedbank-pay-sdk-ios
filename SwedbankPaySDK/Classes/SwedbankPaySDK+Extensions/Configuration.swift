@@ -55,6 +55,7 @@ public protocol SwedbankPaySDKConfiguration {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
         consumerProfileRef: String?,
+        isV3: Bool,
         completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
     )
     

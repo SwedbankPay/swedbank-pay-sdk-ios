@@ -429,6 +429,11 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         ])
     }
     
+    /*
+     TODO v3: must know whether to use v2 or v3 html templates
+     modify SwedbankPaySDKViewModel.State to contain that information
+     modify showCheckin and showPaymentOrder to choose the template accordingly
+    */
     private func updateUI() {
         if isViewLoaded, let viewModel = viewModel {
             switch viewModel.state {

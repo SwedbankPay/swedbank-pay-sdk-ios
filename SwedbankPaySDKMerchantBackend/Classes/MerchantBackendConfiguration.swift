@@ -230,11 +230,14 @@ public extension SwedbankPaySDK {
             paymentOrder: SwedbankPaySDK.PaymentOrder?,
             userData: Any?,
             consumerProfileRef: String?,
+            isV3: Bool,
             completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
         ) {
             guard var paymentOrder = paymentOrder else {
                 fatalError("MerchantBackendConfiguration requires use of PaymentOrder")
             }
+            paymentOrder.isV3 = isV3
+            
             if let consumerProfileRef = consumerProfileRef {
                 paymentOrder.payer = .init(consumerProfileRef: consumerProfileRef)
             }
@@ -258,6 +261,7 @@ public extension SwedbankPaySDK {
                             : nil
                         
                         let info = ViewPaymentOrderInfo(
+                            isV3: paymentOrder.isV3,
                             webViewBaseURL: paymentOrder.urls.hostUrls.first ?? self.backendUrl,
                             viewPaymentorder: viewPaymentorder,
                             completeUrl: paymentOrder.urls.completeUrl,

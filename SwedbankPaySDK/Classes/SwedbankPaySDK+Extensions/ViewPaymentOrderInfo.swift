@@ -24,6 +24,10 @@ public extension SwedbankPaySDK {
     /// in your SwedbankPayConfiguration.postPaymentorders
     /// completion call.
     struct ViewPaymentOrderInfo {
+        
+        /// v3 does not have a viewPaymentorder link, but a view-checkout link - rename and refactor in steps
+        public var isV3: Bool
+        
         /// The url to use as the WKWebView page url
         /// when showing the payment menu.
         ///
@@ -121,6 +125,7 @@ public extension SwedbankPaySDK {
         public var userInfo: Any?
 
         public init(
+            isV3: Bool,
             webViewBaseURL: URL?,
             viewPaymentorder: URL,
             completeUrl: URL,
@@ -131,6 +136,7 @@ public extension SwedbankPaySDK {
             availableInstruments: [Instrument]? = nil,
             userInfo: Any? = nil
         ) {
+            self.isV3 = isV3
             self.webViewBaseURL = webViewBaseURL
             self.viewPaymentorder = viewPaymentorder
             self.completeUrl = completeUrl
@@ -146,6 +152,7 @@ public extension SwedbankPaySDK {
 
 extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
     private enum CodingKeys: String, CodingKey {
+        case isV3
         case webViewBaseURL
         case viewPaymentorder
         case completeUrl
@@ -161,6 +168,7 @@ extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         try self.init(
+            isV3: container.decode(Bool.self, forKey: .isV3),
             webViewBaseURL: container.decodeIfPresent(URL.self, forKey: .webViewBaseURL),
             viewPaymentorder: container.decode(URL.self, forKey: .viewPaymentorder),
             completeUrl: container.decode(URL.self, forKey: .completeUrl),
@@ -174,6 +182,7 @@ extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
     }
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(isV3, forKey: .isV3)
         try container.encodeIfPresent(webViewBaseURL, forKey: .webViewBaseURL)
         try container.encode(viewPaymentorder, forKey: .viewPaymentorder)
         try container.encode(completeUrl, forKey: .completeUrl)

@@ -5,6 +5,7 @@ import SwedbankPaySDK
 
 @available(iOS 15.0, *)
 struct AsyncTestConfiguration: SwedbankPaySDKConfigurationAsync {
+    
     func postConsumers(consumer: SwedbankPaySDK.Consumer?, userData: Any?) async throws -> SwedbankPaySDK.ViewConsumerIdentificationInfo {
         return SwedbankPaySDK.ViewConsumerIdentificationInfo(
             webViewBaseURL: URL(string: "about:blank")!,
@@ -12,8 +13,10 @@ struct AsyncTestConfiguration: SwedbankPaySDKConfigurationAsync {
         )
     }
     
-    func postPaymentorders(paymentOrder: SwedbankPaySDK.PaymentOrder?, userData: Any?, consumerProfileRef: String?) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo {
+    func postPaymentorders(paymentOrder: SwedbankPaySDK.PaymentOrder?, userData: Any?, consumerProfileRef: String?, isV3: Bool) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo {
         return SwedbankPaySDK.ViewPaymentOrderInfo(
+            
+            isV3: isV3,
             webViewBaseURL: URL(string: "about:blank")!,
             viewPaymentorder: URL(string: TestConstants.viewPaymentorderLink)!,
             completeUrl: paymentOrder!.urls.completeUrl,

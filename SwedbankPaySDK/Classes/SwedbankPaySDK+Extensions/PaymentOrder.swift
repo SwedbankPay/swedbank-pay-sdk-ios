@@ -34,6 +34,22 @@ public extension SwedbankPaySDK {
         /// The operation to perform
         public var operation: PaymentOrderOperation
         
+        /// Whether to use v3 or v2, it must contain "Checkout3"
+        public var productName: String?
+        
+        /// Shortcut to know if this is v3 or not
+        public var isV3: Bool {
+            get {
+                return productName != PaymentOrder.checkout3
+            }
+            set (value) {
+                productName = value ? PaymentOrder.checkout3 : nil
+            }
+        }
+        
+        /// Constant for the productName when using version 3
+        static let checkout3 = "Checkout3"
+        
         /// Currency to use
         public var currency: String
         
@@ -124,6 +140,7 @@ public extension SwedbankPaySDK {
         
         public init(
             operation: PaymentOrderOperation = .Purchase,
+            isV3: Bool = false,
             currency: String,
             amount: Int64,
             vatAmount: Int64,
@@ -145,6 +162,7 @@ public extension SwedbankPaySDK {
             initiatingSystemUserAgent: String? = nil
         ) {
             self.operation = operation
+            self.productName = isV3 ? PaymentOrder.checkout3 : nil
             self.currency = currency
             self.amount = amount
             self.vatAmount = vatAmount
