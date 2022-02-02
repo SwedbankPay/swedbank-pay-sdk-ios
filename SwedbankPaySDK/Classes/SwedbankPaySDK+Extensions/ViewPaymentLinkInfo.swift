@@ -15,7 +15,21 @@
 
 import Foundation
 
+
+extension SwedbankPaySDK.ViewPaymentLinkInfo {
+    
+    /// The `view-paymentorder` link from Swedbank Pay (v2) is now renamed to viewPaymentLink
+    @available(*, unavailable, renamed: "viewPaymentLink")
+    public var viewPaymentorder: URL {
+        fatalError("Unavailable::viewPaymentorder")
+    }
+}
+
 public extension SwedbankPaySDK {
+    
+    @available(*, unavailable, renamed: "ViewPaymentLinkInfo")
+    typealias ViewPaymentOrderInfo = ViewPaymentLinkInfo
+    
     /// Data required to show the payment menu.
     ///
     /// If you provide a custom SwedbankPayConfiguration
@@ -23,10 +37,13 @@ public extension SwedbankPaySDK {
     /// and supply a ViewPaymentOrderInfo
     /// in your SwedbankPayConfiguration.postPaymentorders
     /// completion call.
-    struct ViewPaymentOrderInfo {
+    struct ViewPaymentLinkInfo {
         
         /// v3 does not have a viewPaymentorder link, but a view-checkout link - rename and refactor in steps
         public var isV3: Bool
+        
+        /// TODO: link to use for identifying consumer
+        public var viewConsumerIdentification: URL?
         
         /// The url to use as the WKWebView page url
         /// when showing the payment menu.
@@ -34,8 +51,8 @@ public extension SwedbankPaySDK {
         /// This should match your payment order's `hostUrls`.
         public var webViewBaseURL: URL?
         
-        /// The `view-paymentorder` link from Swedbank Pay.
-        public var viewPaymentorder: URL
+        /// The `view-paymentorder` link from Swedbank Pay (v2), or the `view-checkout` link (v3).
+        public var viewPaymentLink: URL
         
         /// The `completeUrl` of the payment order
         ///
@@ -127,7 +144,7 @@ public extension SwedbankPaySDK {
         public init(
             isV3: Bool,
             webViewBaseURL: URL?,
-            viewPaymentorder: URL,
+            viewPaymentLink: URL,
             completeUrl: URL,
             cancelUrl: URL?,
             paymentUrl: URL?,
@@ -138,7 +155,7 @@ public extension SwedbankPaySDK {
         ) {
             self.isV3 = isV3
             self.webViewBaseURL = webViewBaseURL
-            self.viewPaymentorder = viewPaymentorder
+            self.viewPaymentLink = viewPaymentLink
             self.completeUrl = completeUrl
             self.cancelUrl = cancelUrl
             self.paymentUrl = paymentUrl
@@ -150,11 +167,11 @@ public extension SwedbankPaySDK {
     }
 }
 
-extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
+extension SwedbankPaySDK.ViewPaymentLinkInfo: Codable {
     private enum CodingKeys: String, CodingKey {
         case isV3
         case webViewBaseURL
-        case viewPaymentorder
+        case viewPaymentLink
         case completeUrl
         case cancelUrl
         case paymentUrl
@@ -170,7 +187,7 @@ extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
         try self.init(
             isV3: container.decode(Bool.self, forKey: .isV3),
             webViewBaseURL: container.decodeIfPresent(URL.self, forKey: .webViewBaseURL),
-            viewPaymentorder: container.decode(URL.self, forKey: .viewPaymentorder),
+            viewPaymentLink: container.decode(URL.self, forKey: .viewPaymentLink),
             completeUrl: container.decode(URL.self, forKey: .completeUrl),
             cancelUrl: container.decodeIfPresent(URL.self, forKey: .cancelUrl),
             paymentUrl: container.decodeIfPresent(URL.self, forKey: .paymentUrl),
@@ -184,7 +201,7 @@ extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(isV3, forKey: .isV3)
         try container.encodeIfPresent(webViewBaseURL, forKey: .webViewBaseURL)
-        try container.encode(viewPaymentorder, forKey: .viewPaymentorder)
+        try container.encode(viewPaymentLink, forKey: .viewPaymentLink)
         try container.encode(completeUrl, forKey: .completeUrl)
         try container.encodeIfPresent(cancelUrl, forKey: .cancelUrl)
         try container.encodeIfPresent(paymentUrl, forKey: .paymentUrl)

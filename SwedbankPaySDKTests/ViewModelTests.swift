@@ -71,8 +71,12 @@ class ViewModelTests : XCTestCase {
         MockURLProtocol.stubConsumers(for: self)
         
         expectState(viewModel: viewModel) {
-            if case .identifyingConsumer(let info) = $0 {
-                XCTAssertEqual(info.viewConsumerIdentification.absoluteString, TestConstants.viewConsumerSessionLink)
+            if case .identifyingConsumer(let infoOptions, _) = $0 {
+                if case .v2(let info) = infoOptions {
+                    XCTAssertEqual(info.viewConsumerIdentification.absoluteString, TestConstants.viewConsumerSessionLink)
+                } else {
+                    XCTFail("Mixing V2 and V3")
+                }
                 return true
             } else {
                 return false
@@ -145,8 +149,8 @@ class ViewModelTests : XCTestCase {
         MockURLProtocol.stubPaymentorders(for: self)
         
         expectState(viewModel: viewModel) {
-            if case .paying(let info, _) = $0 {
-                XCTAssertEqual(info.viewPaymentorder.absoluteString, TestConstants.viewPaymentorderLink)
+            if case .paying(let info, _, _) = $0 {
+                XCTAssertEqual(info.viewPaymentLink.absoluteString, TestConstants.viewPaymentorderLink)
                 return true
             } else {
                 return false

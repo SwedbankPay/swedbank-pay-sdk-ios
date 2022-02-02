@@ -87,8 +87,8 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
         consumerProfileRef: String?,
-        isV3: Bool
-    ) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo
+        options: SwedbankPaySDK.VersionOptions
+    ) async throws -> SwedbankPaySDK.ViewPaymentLinkInfo
     
     /// Called by SwedbankPaySDKController when it needs to update the
     /// ongoing payment order.
@@ -108,9 +108,9 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any
-    ) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo
+    ) async throws -> SwedbankPaySDK.ViewPaymentLinkInfo
     
     /// Called by SwedbankPaySDKController when the payment menu is about to navigate
     /// to a different page. Testing has shown that some pages are incompatible with
@@ -134,9 +134,9 @@ public extension SwedbankPaySDKConfigurationAsync {
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any
-    ) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo {
+    ) async throws -> SwedbankPaySDK.ViewPaymentLinkInfo {
         return viewPaymentOrderInfo
     }
 }
@@ -197,20 +197,20 @@ public extension SwedbankPaySDKConfigurationAsync {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
         consumerProfileRef: String?,
-        isV3: Bool,
-        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
+        options: SwedbankPaySDK.VersionOptions,
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     ) {
         bridge(completion) {
-            try await postPaymentorders(paymentOrder: paymentOrder, userData: userData, consumerProfileRef: consumerProfileRef, isV3: isV3)
+            try await postPaymentorders(paymentOrder: paymentOrder, userData: userData, consumerProfileRef: consumerProfileRef, options: options)
         }
     }
     
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any,
-        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest {
         return bridge(completion) {
             try await updatePaymentOrder(paymentOrder: paymentOrder, userData: userData, viewPaymentOrderInfo: viewPaymentOrderInfo, updateInfo: updateInfo)

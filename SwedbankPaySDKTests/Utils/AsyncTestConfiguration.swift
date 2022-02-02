@@ -13,12 +13,12 @@ struct AsyncTestConfiguration: SwedbankPaySDKConfigurationAsync {
         )
     }
     
-    func postPaymentorders(paymentOrder: SwedbankPaySDK.PaymentOrder?, userData: Any?, consumerProfileRef: String?, isV3: Bool) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo {
-        return SwedbankPaySDK.ViewPaymentOrderInfo(
+    func postPaymentorders(paymentOrder: SwedbankPaySDK.PaymentOrder?, userData: Any?, consumerProfileRef: String?, options: SwedbankPaySDK.VersionOptions) async throws -> SwedbankPaySDK.ViewPaymentLinkInfo {
+        return SwedbankPaySDK.ViewPaymentLinkInfo(
             
-            isV3: isV3,
+            isV3: options.contains(.isV3),
             webViewBaseURL: URL(string: "about:blank")!,
-            viewPaymentorder: URL(string: TestConstants.viewPaymentorderLink)!,
+            viewPaymentLink: URL(string: TestConstants.viewPaymentorderLink)!,
             completeUrl: paymentOrder!.urls.completeUrl,
             cancelUrl: paymentOrder!.urls.cancelUrl,
             paymentUrl: paymentOrder!.urls.paymentUrl,

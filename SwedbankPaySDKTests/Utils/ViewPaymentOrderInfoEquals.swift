@@ -1,9 +1,9 @@
 import XCTest
 import SwedbankPaySDK
 
-extension Optional where Wrapped == SwedbankPaySDK.ViewPaymentOrderInfo {
+extension Optional where Wrapped == SwedbankPaySDK.ViewPaymentLinkInfo {
     func assertEqualTo<UserInfo: Equatable>(
-        other: SwedbankPaySDK.ViewPaymentOrderInfo?, userInfoType: UserInfo.Type
+        other: SwedbankPaySDK.ViewPaymentLinkInfo?, userInfoType: UserInfo.Type
     ) throws {
         if let self = self {
             let other = try XCTUnwrap(other)
@@ -14,9 +14,9 @@ extension Optional where Wrapped == SwedbankPaySDK.ViewPaymentOrderInfo {
     }
 }
 
-extension SwedbankPaySDK.ViewPaymentOrderInfo {
+extension SwedbankPaySDK.ViewPaymentLinkInfo {
     func assertEqualTo<UserInfo: Equatable>(
-        other: SwedbankPaySDK.ViewPaymentOrderInfo, userInfoType: UserInfo.Type
+        other: SwedbankPaySDK.ViewPaymentLinkInfo, userInfoType: UserInfo.Type
     ) throws {
         baseAssertEqualTo(other: other)
         let userInfo = try XCTUnwrap(self.userInfo as? UserInfo, "self.userInfo is not an instance of \(userInfoType)")
@@ -24,7 +24,7 @@ extension SwedbankPaySDK.ViewPaymentOrderInfo {
         XCTAssertEqual(userInfo, otherUserInfo)
     }
     
-    private func baseAssertEqualTo(other: SwedbankPaySDK.ViewPaymentOrderInfo) {
+    private func baseAssertEqualTo(other: SwedbankPaySDK.ViewPaymentLinkInfo) {
         XCTAssertEqual(webViewBaseURL, other.webViewBaseURL)
         XCTAssertEqual(completeUrl, other.completeUrl)
         XCTAssertEqual(cancelUrl, other.cancelUrl)

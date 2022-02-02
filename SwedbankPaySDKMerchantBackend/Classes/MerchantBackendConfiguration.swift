@@ -22,6 +22,7 @@ private let callbackURLTypeKey = "com.swedbank.SwedbankPaySDK.callback"
 private enum OperationRel {
     static let viewConsumerIdentification = "view-consumer-identification"
     static let viewPaymentOrder = "view-paymentorder"
+    static let viewPaymentLink = "view-checkout"
 }
 
 private extension Array where Element == SwedbankPaySDK.Operation {
@@ -230,13 +231,13 @@ public extension SwedbankPaySDK {
             paymentOrder: SwedbankPaySDK.PaymentOrder?,
             userData: Any?,
             consumerProfileRef: String?,
-            isV3: Bool,
-            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
+            options: SwedbankPaySDK.VersionOptions,
+            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
         ) {
             guard var paymentOrder = paymentOrder else {
                 fatalError("MerchantBackendConfiguration requires use of PaymentOrder")
             }
-            paymentOrder.isV3 = isV3
+            paymentOrder.isV3 = options.contains(.isV3)
             
             if let consumerProfileRef = consumerProfileRef {
                 paymentOrder.payer = .init(consumerProfileRef: consumerProfileRef)
@@ -260,10 +261,10 @@ public extension SwedbankPaySDK {
                             ? paymentOrderIn.paymentOrder?.instrument
                             : nil
                         
-                        let info = ViewPaymentOrderInfo(
+                        let info = ViewPaymentLinkInfo(
                             isV3: paymentOrder.isV3,
                             webViewBaseURL: paymentOrder.urls.hostUrls.first ?? self.backendUrl,
-                            viewPaymentorder: viewPaymentorder,
+                            viewPaymentLink: viewPaymentorder,
                             completeUrl: paymentOrder.urls.completeUrl,
                             cancelUrl: paymentOrder.urls.cancelUrl,
                             paymentUrl: paymentOrder.urls.paymentUrl,
@@ -283,16 +284,16 @@ public extension SwedbankPaySDK {
         public func updatePaymentOrder(
             paymentOrder: SwedbankPaySDK.PaymentOrder?,
             userData: Any?,
-            viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
+            viewPaymenLinkInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
             updateInfo: Any,
-            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>
+            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>
             ) -> Void
         ) -> SwedbankPaySDKRequest? {
             guard let instrument = updateInfo as? SwedbankPaySDK.Instrument else {
                 fatalError("Invalid updateInfo: \(updateInfo) (expected SwedbankPaySDK.Instrument)")
             }
             
-            guard let link = viewPaymentOrderInfo.userInfo as? SetInstrumentLink else {
+            guard let link = viewPaymenLinkInfo.userInfo as? SetInstrumentLink else {
                 completion(.failure(SwedbankPaySDK.MerchantBackendError.paymentNotInInstrumentMode))
                 return nil
             }
@@ -301,12 +302,19 @@ public extension SwedbankPaySDK {
                 do {
                     let paymentOrderIn = try $0.get()
                     
-                    var newInfo = viewPaymentOrderInfo
+                    var newInfo = viewPaymenLinkInfo
                     
-                    if let viewPaymentorder = paymentOrderIn.operations.find(
+                    // supporting v2
+                    if viewPaymenLinkInfo.isV3 == false, let viewPaymentorder = paymentOrderIn.operations.find(
                         rel: OperationRel.viewPaymentOrder
                     ) {
-                        newInfo.viewPaymentorder = viewPaymentorder
+                        newInfo.viewPaymentLink = viewPaymentorder
+                    }
+                    else if viewPaymenLinkInfo.isV3, let viewPaymentLink = paymentOrderIn.operations.find(
+                        rel: OperationRel.viewPaymentLink
+                    ) {
+                        // regular v3
+                        newInfo.viewPaymentLink = viewPaymentLink
                     }
                     
                     if let availableInstruments = paymentOrderIn.paymentOrder?.availableInstruments {

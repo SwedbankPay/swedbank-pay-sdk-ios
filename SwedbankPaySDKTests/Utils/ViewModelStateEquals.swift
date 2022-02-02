@@ -10,14 +10,24 @@ extension SwedbankPaySDKViewModel.State {
         switch (self, other) {
             case (.idle, .idle): break
             case (.initializingConsumerSession, .initializingConsumerSession): break
-            case (.identifyingConsumer(let lhs), .identifyingConsumer(let rhs)):
-                XCTAssertEqual(lhs.viewConsumerIdentification, rhs.viewConsumerIdentification)
-                XCTAssertEqual(lhs.webViewBaseURL, rhs.webViewBaseURL)
-            case (.creatingPaymentOrder(let lhs, isV3: let isV3Left), .creatingPaymentOrder(let rhs, isV3: let isV3Right)):
+            case (.identifyingConsumer(let lhs, let optionsLeft), .identifyingConsumer(let rhs, let optionsRight)):
+                XCTAssertEqual(optionsLeft, optionsRight)
+                switch (lhs, rhs) {
+                    case (.v2(let left), .v2(let right)):
+                        XCTAssertEqual(left.viewConsumerIdentification, right.viewConsumerIdentification)
+                        XCTAssertEqual(left.webViewBaseURL, right.webViewBaseURL)
+                    case (.v3(let left), .v3(let right)):
+                        XCTAssertEqual(left.viewConsumerIdentification, right.viewConsumerIdentification)
+                        XCTAssertEqual(left.webViewBaseURL, right.webViewBaseURL)
+                    default:
+                        XCTFail("Mixing V2 and V3")
+                }
+            case (.creatingPaymentOrder(let lhs, options: let optionsLeft), .creatingPaymentOrder(let rhs, options: let optionsRight)):
                 XCTAssertEqual(lhs, rhs)
-                XCTAssertEqual(isV3Left, isV3Right)
-            case (.paying(let lhs, _), .paying(let rhs, _)):
+                XCTAssertEqual(optionsLeft, optionsRight)
+            case (.paying(let lhs, options: let optionsLeft, _), .paying(let rhs, options: let optionsRight, _)):
                 try lhs.assertEqualTo(other: rhs, userInfoType: userInfoType)
+                XCTAssertEqual(optionsLeft, optionsRight)
             case (.complete(let lhs), .complete(let rhs)):
                 try lhs.assertEqualTo(other: rhs, userInfoType: userInfoType)
             case (.canceled(let lhs), .canceled(let rhs)):

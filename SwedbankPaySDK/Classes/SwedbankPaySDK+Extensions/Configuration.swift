@@ -55,8 +55,8 @@ public protocol SwedbankPaySDKConfiguration {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
         consumerProfileRef: String?,
-        isV3: Bool,
-        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
+        options: SwedbankPaySDK.VersionOptions,
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     )
     
     /// Called by SwedbankPaySDKController when it needs to update the
@@ -78,9 +78,9 @@ public protocol SwedbankPaySDKConfiguration {
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any,
-        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest?
     
     /// Called by SwedbankPaySDKController when the payment menu is about to navigate
@@ -159,9 +159,9 @@ public extension SwedbankPaySDKConfiguration {
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?,
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any,
-        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest? {
         completion(.success(viewPaymentOrderInfo))
         return nil

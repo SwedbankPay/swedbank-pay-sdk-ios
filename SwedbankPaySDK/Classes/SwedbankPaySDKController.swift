@@ -20,7 +20,7 @@ import WebKit
 public protocol SwedbankPaySDKDelegate: AnyObject {
     /// Called whenever the payment order is shown in this
     /// view controller's view.
-    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentOrderInfo)
+    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo)
     /// Called when the payment order is no longer visible after being shown.
     /// Usually this happens because the payment order needed to redirect
     /// to a 3D-Secure page.
@@ -61,7 +61,7 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     func overrideTermsOfServiceTapped(url: URL) -> Bool
 }
 public extension SwedbankPaySDKDelegate {
-    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentOrderInfo) {}
+    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo) {}
     func paymentOrderDidHide() {}
     func updatePaymentOrderFailed(
         updateInfo: Any,
@@ -171,7 +171,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     /// Is value is always the most recent value returned from your
     /// `SwedbankPaySDKConfiguration` (currently from either
     /// `postPaymentorders` or `patchUpdatePaymentorderSetinstrument`.
-    public var currentPaymentOrder: SwedbankPaySDK.ViewPaymentOrderInfo? {
+    public var currentPaymentOrder: SwedbankPaySDK.ViewPaymentLinkInfo? {
         return viewModel?.viewPaymentOrderInfo
     }
     
@@ -441,13 +441,13 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
                 break
             case .initializingConsumerSession:
                 initialLoadingIndicator.startAnimating()
-            case .identifyingConsumer(let info):
-                showCheckin(info)
+            case .identifyingConsumer(let info, let options):
+                showCheckin(info, options: options)
             case .creatingPaymentOrder:
                 initialLoadingIndicator.startAnimating()
-            case .paying(let info, failedUpdate: let failedUpdate):
+            case .paying(let info, options: let options, failedUpdate: let failedUpdate):
                 if failedUpdate == nil {
-                    showPaymentOrder(info: info, delay: false)
+                    showPaymentOrder(info: info, delay: false, options: options)
                 } else {
                     initialLoadingIndicator.stopAnimating()
                 }
@@ -472,7 +472,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
                 delegate?.paymentCanceled()
             case .failed(_, let error):
                 delegate?.paymentFailed(error: error)
-            case .paying(_, failedUpdate: let failedUpdate?):
+            case .paying(_, options: _, failedUpdate: let failedUpdate?):
                 delegate?.updatePaymentOrderFailed(updateInfo: failedUpdate.updateInfo, error: failedUpdate.error)
             default:
                 break
@@ -482,6 +482,18 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     
     /// Creates consumer identification JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
     /// - parameter list: List of operations available; need to find correct type of operation from it
+    private func showCheckin(_ info: SwedbankPaySDK.IdentifyingVersion, options: SwedbankPaySDK.VersionOptions) {
+        //TODO: use isV3 to select template
+        switch info {
+            case .v2(let info):
+                showCheckin(info)
+            case .v3(let info):
+                showCheckin(info)
+            
+        }
+    }
+    
+    /// Version 2 checkin
     private func showCheckin(_ info: SwedbankPaySDK.ViewConsumerIdentificationInfo) {
         loadPage(
             baseURL: info.webViewBaseURL,
@@ -492,11 +504,27 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         }
     }
     
-    private func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentOrderInfo, delay: Bool) {
+    /// Version 3 checkin
+    private func showCheckin(_ info: SwedbankPaySDK.ViewPaymentLinkInfo) {
+        guard let viewConsumerIdentification = info.viewConsumerIdentification else {
+            fatalError("ConsumerIdentification not implemented for v3")
+        }
+        
+        loadPage(
+            baseURL: info.webViewBaseURL,
+            template: SwedbankPayWebContent.checkInTemplate,
+            scriptUrl: viewConsumerIdentification
+        ) { [weak self] (event, argument) in
+            self?.on(consumerEvent: event, argument: argument)
+        }
+    }
+    
+    private func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentLinkInfo, delay: Bool, options: SwedbankPaySDK.VersionOptions) {
+        //TODO: use isV3 to select template
         loadPage(
             baseURL: info.webViewBaseURL,
             template: SwedbankPayWebContent.paymentTemplate,
-            scriptUrl: info.viewPaymentorder,
+            scriptUrl: info.viewPaymentLink,
             delay: delay
         ) { [weak self] (event, argument) in
             self?.on(paymentEvent: event, argument: argument)
@@ -505,9 +533,9 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     }
     
     private func reloadPaymentMenu(delay: Bool = false) {
-        if case .paying(let info, _) = viewModel?.state {
+        if case .paying(let info, options: let options, _) = viewModel?.state {
             dismissExtraWebViews()
-            showPaymentOrder(info: info, delay: delay)
+            showPaymentOrder(info: info, delay: delay, options: options)
         }
     }
     
