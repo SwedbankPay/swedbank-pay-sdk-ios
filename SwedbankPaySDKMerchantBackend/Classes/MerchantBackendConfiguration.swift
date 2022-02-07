@@ -252,7 +252,7 @@ public extension SwedbankPaySDK {
                     do {
                         let paymentOrderIn = try $0.get()
 
-                        let viewPaymentorder = try paymentOrderIn.operations.require(
+                        let viewLink = try paymentOrderIn.operations.require(
                             rel: isV3 ? OperationRel.viewPaymentLink : OperationRel.viewPaymentOrder
                         )
                         let setInstrument = paymentOrderIn.mobileSDK?.setInstrument
@@ -266,7 +266,7 @@ public extension SwedbankPaySDK {
                         let info = ViewPaymentLinkInfo(
                             isV3: isV3,
                             webViewBaseURL: paymentOrder.urls.hostUrls.first ?? self.backendUrl,
-                            viewPaymentLink: viewPaymentorder,
+                            viewPaymentLink: viewLink,
                             completeUrl: paymentOrder.urls.completeUrl,
                             cancelUrl: paymentOrder.urls.cancelUrl,
                             paymentUrl: paymentOrder.urls.paymentUrl,

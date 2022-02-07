@@ -85,7 +85,6 @@ final class SwedbankPaySDKViewModel {
                 //isV3 handles identification of consumers automatically - so no need for special handle of this
                 initializeConsumerSession(options: options)
             } else {
-                //let options: SwedbankPaySDK.VersionOptions = useCheckin ? [.isV3, .useCheckin] : .isV3
                 createPaymentOrder(consumerProfileRef: nil, options: options)
             }
         }

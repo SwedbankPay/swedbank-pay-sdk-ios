@@ -524,7 +524,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         //TODO: use isV3 to select template
         loadPage(
             baseURL: info.webViewBaseURL,
-            template: SwedbankPayWebContent.paymentTemplate,
+            template: info.isV3 ? SwedbankPayWebContent.paymentTemplateV3 : SwedbankPayWebContent.paymentTemplate,
             scriptUrl: info.viewPaymentLink,
             delay: delay
         ) { [weak self] (event, argument) in

@@ -162,6 +162,52 @@ extension SwedbankPayWebContent {
         </body>
     </html>
     """
+    
+    static let paymentTemplateV3: HTMLTemplate<PaymentEvent> = """
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Swedbank Pay Checkout is Awesome!</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+            <script type="text/javascript">
+
+                window.onload = function () {
+    
+                    \(PaymentEvent.onScriptLoaded, "null");
+                    var parameters = {
+                        container: {
+                            checkinContainer: "checkin-container",
+                            paymentMenuContainer: "payment-menu-container",
+                            checkout: "checkout"
+                        },
+                        onPayerIdentified: function onPayerIdentified(payerIdentified) {
+                            console.log(payerIdentified);
+                        },
+                        onEventNotification: function onEventNotification(eventNotification) {
+                            console.log(eventNotification);
+                        },
+                        onError: function(error) {
+                            \(PaymentEvent.onError, "error");
+                        }
+                    }
+                    var style = \(TemplateComponent.style);
+                    if (style) {
+                        parameters.style = style;
+                    }
+                    window.payex.hostedView.checkout(parameters).open("checkin");
+                }
+
+            </script>
+        </head>
+        <body>
+            <div id="checkout" />
+            <div id="checkin"></div>
+            <div id="payment-menu"></div>
+    
+            <script src="\(TemplateComponent.scriptUrl)"></script>
+        </body>
+    </html>
+    """
 }
 
 private extension SwedbankPayWebContent {
