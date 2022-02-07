@@ -237,7 +237,8 @@ public extension SwedbankPaySDK {
             guard var paymentOrder = paymentOrder else {
                 fatalError("MerchantBackendConfiguration requires use of PaymentOrder")
             }
-            paymentOrder.isV3 = options.contains(.isV3)
+            let isV3 = options.contains(.isV3)
+            paymentOrder.isV3 = isV3
             
             if let consumerProfileRef = consumerProfileRef {
                 paymentOrder.payer = .init(consumerProfileRef: consumerProfileRef)
@@ -250,8 +251,9 @@ public extension SwedbankPaySDK {
                 ) {
                     do {
                         let paymentOrderIn = try $0.get()
+
                         let viewPaymentorder = try paymentOrderIn.operations.require(
-                            rel: OperationRel.viewPaymentOrder
+                            rel: isV3 ? OperationRel.viewPaymentLink : OperationRel.viewPaymentOrder
                         )
                         let setInstrument = paymentOrderIn.mobileSDK?.setInstrument
                         let availableInstruments = setInstrument != nil
@@ -262,7 +264,7 @@ public extension SwedbankPaySDK {
                             : nil
                         
                         let info = ViewPaymentLinkInfo(
-                            isV3: paymentOrder.isV3,
+                            isV3: isV3,
                             webViewBaseURL: paymentOrder.urls.hostUrls.first ?? self.backendUrl,
                             viewPaymentLink: viewPaymentorder,
                             completeUrl: paymentOrder.urls.completeUrl,

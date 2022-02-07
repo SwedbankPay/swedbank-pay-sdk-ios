@@ -354,6 +354,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     /// - parameter userData: any additional data you may need for the identification and/or payment
     public func startPayment(
         withCheckin: Bool,
+        isV3: Bool = false,
         consumer: SwedbankPaySDK.Consumer?,
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?
@@ -365,7 +366,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         if maybeViewModel == nil {
             self.viewModel = viewModel
         }
-        viewModel.start(useCheckin: withCheckin, configuration: configuration)
+        viewModel.start(useCheckin: withCheckin, isV3: isV3, configuration: configuration)
     }
     
     /// Performs an update on the current payment order.

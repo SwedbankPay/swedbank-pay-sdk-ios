@@ -341,7 +341,7 @@ public extension SwedbankPaySDK {
         /// the `consumerProfileRef` received from the Checkin flow. Your
         /// `SwedbankPaySDKConfiguration` can then use that value here to forward it
         /// to your backend for payment order creation.
-        public var consumerProfileRef: String?
+        public var consumerProfileRef: String?  //NOTE: This is not used in V3 and will be removed
         
         /// The email address of the payer.
         ///

@@ -19,7 +19,9 @@ class ViewController: UINavigationController {
         createPaymentDelegate()
         viewController.delegate = paymentDelegate
         
-        viewController.startPayment(withCheckin: false, consumer: nil, paymentOrder: testPaymentOrder, userData: nil)
+        let isV3 = CommandLine.arguments.contains("-testV3")
+        
+        viewController.startPayment(withCheckin: false, isV3: isV3, consumer: nil, paymentOrder: testPaymentOrder, userData: nil)
         return viewController
     }
     
