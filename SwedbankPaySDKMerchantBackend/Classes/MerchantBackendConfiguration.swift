@@ -243,6 +243,16 @@ public extension SwedbankPaySDK {
             if let consumerProfileRef = consumerProfileRef {
                 paymentOrder.payer = .init(consumerProfileRef: consumerProfileRef)
             }
+            else if options.contains([.useCheckin, .isV3]) {
+                //print(paymentOrder.payer)
+                if paymentOrder.payer == nil {
+                    // Asuming digital products if you have not supplied - TODO: change useCheckin to force-define this
+                    paymentOrder.payer = .init(requireConsumerInfo: true)
+                }
+                //paymentOrder.payer = .init(consumerProfileRef: consumerProfileRef)
+            } else if options.contains(.isV3) == false && paymentOrder.payer != nil {
+                paymentOrder.payer = nil
+            }
             withTopLevelResources(completion) { topLevelResources in
                 topLevelResources.paymentorders.post(
                     api: self.api,
@@ -251,7 +261,6 @@ public extension SwedbankPaySDK {
                 ) {
                     do {
                         let paymentOrderIn = try $0.get()
-
                         let viewLink = try paymentOrderIn.operations.require(
                             rel: isV3 ? OperationRel.viewPaymentLink : OperationRel.viewPaymentOrder
                         )

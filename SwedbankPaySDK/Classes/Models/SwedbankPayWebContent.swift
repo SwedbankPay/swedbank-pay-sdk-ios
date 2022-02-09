@@ -113,6 +113,8 @@ extension SwedbankPayWebContent {
         case onScriptLoaded
         case onScriptError
         case onError
+        case payerIdentified
+        case generalEvent
     }
     
     static let paymentTemplate: HTMLTemplate<PaymentEvent> = """
@@ -170,7 +172,12 @@ extension SwedbankPayWebContent {
             <title>Swedbank Pay Checkout is Awesome!</title>
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
             <script type="text/javascript">
-
+                
+                window.onerror = function(message, source, lineno, colno, error) {
+                    var url = '\(TemplateComponent.scriptUrl)';
+                    \(PaymentEvent.onScriptError, "url");
+                }
+                
                 window.onload = function () {
     
                     \(PaymentEvent.onScriptLoaded, "null");
@@ -182,9 +189,14 @@ extension SwedbankPayWebContent {
                         },
                         onPayerIdentified: function onPayerIdentified(payerIdentified) {
                             console.log(payerIdentified);
+                            \(PaymentEvent.payerIdentified, "payerIdentified");
                         },
                         onEventNotification: function onEventNotification(eventNotification) {
-                            console.log(eventNotification);
+                            if (eventNotification.sourceEvent == "OnPayerIdentified") {
+                                \(PaymentEvent.payerIdentified, "eventNotification");
+                            } else {
+                                \(PaymentEvent.generalEvent, "eventNotification");
+                            }
                         },
                         onError: function(error) {
                             \(PaymentEvent.onError, "error");
@@ -201,8 +213,8 @@ extension SwedbankPayWebContent {
         </head>
         <body>
             <div id="checkout" />
-            <div id="checkin"></div>
-            <div id="payment-menu"></div>
+            <div id="checkin" />
+            <div id="payment-menu" />
     
             <script src="\(TemplateComponent.scriptUrl)"></script>
         </body>

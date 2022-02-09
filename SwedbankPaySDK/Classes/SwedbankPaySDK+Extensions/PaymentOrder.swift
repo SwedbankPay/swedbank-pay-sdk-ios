@@ -333,15 +333,27 @@ public extension SwedbankPaySDK {
     }
     
     /// Information about the payer of a payment order
+    /// V3: Bounds on the consumer profile we want to obtain through the Checkin flow.
     struct PaymentOrderPayer : Codable, Equatable {
-        /// A consumer profile reference obtained through the Checkin flow.
+        /// Set to true by merchants who want to receive profile information from Swedbank Pay. This applies both when the merchant needs email and/or msisdn for digital goods, and when full shipping address is needed. If set to false, Swedbank Pay will depend on the merchant to send the email and/or msisdn for digital products, and also the shipping address if the order is shipped.
+        public var requireConsumerInfo: Bool?
+        
+        /// Set to true for merchants who only sell digital goods and only require email and/or msisdn as shipping details. Set to false if the merchant also sells physical goods.
+        public var digitalProducts: Bool?
+        
+        /// List of supported shipping countries for merchant. Using [ISO-3166] standard, e.g: [ "NO", "US", "SE" ]
+        public var shippingAddressRestrictedToCountryCodes: [String]?
+        
+        // NOTE: All below is V2 only and will be removed
+        
+        /// A consumer profile reference obtained through the Checkin flow. Note that everything regarding V2 will be removed.
         ///
         /// If you have your `SwedbankPaySDKController` to do the Checkin flow, your
         /// `SwedbankPaySDKConfiguration.postPaymentorders` will be called with
         /// the `consumerProfileRef` received from the Checkin flow. Your
         /// `SwedbankPaySDKConfiguration` can then use that value here to forward it
         /// to your backend for payment order creation.
-        public var consumerProfileRef: String?  //NOTE: This is not used in V3 and will be removed
+        public var consumerProfileRef: String?
         
         /// The email address of the payer.
         ///
@@ -376,6 +388,17 @@ public extension SwedbankPaySDK {
             self.email = email
             self.msisdn = msisdn
             self.payerReference = payerReference
+        }
+        
+        public init(
+            requireConsumerInfo: Bool? = nil,
+            digitalProducts: Bool? = nil,
+            shippingAddressRestrictedToCountryCodes: [String]? = nil
+        ) {
+            self.consumerProfileRef = nil
+            self.requireConsumerInfo = requireConsumerInfo
+            self.digitalProducts = digitalProducts
+            self.shippingAddressRestrictedToCountryCodes = shippingAddressRestrictedToCountryCodes
         }
     }
 

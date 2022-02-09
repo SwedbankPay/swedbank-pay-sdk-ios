@@ -16,5 +16,6 @@ let testPaymentOrder = SwedbankPaySDK.PaymentOrder(
     amount: 100,
     vatAmount: 20,
     description: "Test Purchase",
-    urls: .init(configuration: paymentTestConfiguration, language: .English)
+    urls: .init(configuration: paymentTestConfiguration, language: .English),
+    payer: .init(requireConsumerInfo: true, digitalProducts: false, shippingAddressRestrictedToCountryCodes: ["NO"])
 )

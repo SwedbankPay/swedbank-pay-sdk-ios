@@ -1,4 +1,5 @@
 import XCTest
+@testable import SwedbankPaySDKMerchantBackend
 
 private let defaultTimeout = 30.0
 private let initialTimeout = 60.0
@@ -55,6 +56,33 @@ class SwedbankPaySDKUITests: XCTestCase {
         XCTAssert(elements.count <= 1)
         return elements.first
     }
+    // V3 identification
+    private var emailInput: XCUIElement {
+        webText(label: "Email")
+    }
+    private var phoneInput: XCUIElement {
+        webText(label: "Mobile number")
+    }
+    private var nextButton: XCUIElement {
+        webView.buttons.element(matching: .init(format: "label BEGINSWITH 'Next'"))
+    }
+    private var firstNameInput: XCUIElement {
+        webText(label: "First name")
+    }
+    private var lastNameInput: XCUIElement {
+        webText(label: "Last name")
+    }
+    private var addressInput: XCUIElement {
+        webText(label: "Address")
+    }
+    private var zipCodeInput: XCUIElement {
+        webText(label: "Zip code")
+    }
+    private var cityInput: XCUIElement {
+        webText(label: "City")
+    }
+    
+    // purchase
     private var cardOption: XCUIElement {
         webText(label: "Card")
     }
@@ -156,6 +184,28 @@ class SwedbankPaySDKUITests: XCTestCase {
         XCTAssertEqual(result, .error(errorMessage: "testerror"), "Unexpected result for error message test: \(String(describing: result))")
     }
     
+    private func beginPayerIdentificationV3() throws {
+        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        
+        try waitAndAssertExists(phoneInput, "Phone option not found")
+        try waitAndAssertExists(emailInput, "Email option not found")
+        
+        input(to: emailInput, text: "email@example.com")
+        input(to: phoneInput, text: "+46733123456")
+        
+        try waitAndAssertExists(nextButton, "Next button not found")
+        nextButton.tap()
+        
+        try waitAndAssertExists(firstNameInput, "Name input not found")
+        input(to: firstNameInput, text: "Example")
+        input(to: lastNameInput, text: "ExamplesSon")
+        input(to: addressInput, text: "Example street")
+        input(to: zipCodeInput, text: "0001")
+        input(to: cityInput, text: "Example city")
+        
+        nextButton.tap()
+    }
+    
     private func beginPayment(
         cardNumber: String,
         cvv: String
@@ -182,6 +232,24 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         try waitAndAssertExists(payButton, "Pay button not found")
         payButton.tap()
+    }
+    
+    
+    
+    /// Check that a V3 payment with the new checkin gets the info
+    func testV3SucceedsAtPaymentWithCheckin() throws {
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testCheckin")
+        app.launch()
+        defer {
+            waitForResultAndAssertComplete()
+        }
+        
+        try beginPayerIdentificationV3()
+        
+        // wait for payerIdentification
+        
+        //try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
     }
         
     /// Check that a payment without SCA works

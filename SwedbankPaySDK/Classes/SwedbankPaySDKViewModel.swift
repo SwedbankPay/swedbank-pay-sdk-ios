@@ -50,6 +50,33 @@ final class SwedbankPaySDKViewModel {
                 return info
             case .failed(let info, _):
                 return info
+            case .payerIdentified(let info, _):
+                return info
+        }
+    }
+    
+    var versionOptions: SwedbankPaySDK.VersionOptions? {
+        switch state {
+            case .idle:
+                return nil
+            case .initializingConsumerSession(options: let options):
+                return options
+            case .identifyingConsumer(_, options: let options):
+                return options
+            case .creatingPaymentOrder(_, options: let options):
+                return options
+            case .paying(_, options: let options, _):
+                return options
+            case .updatingPaymentOrder(_, _, options: let options):
+                return options
+            case .complete(_):
+                return nil
+            case .canceled(_):
+                return nil
+            case .failed:
+                return nil
+            case .payerIdentified(_, let options):
+                return options
         }
     }
     
@@ -96,6 +123,17 @@ final class SwedbankPaySDKViewModel {
                 consumerProfileRef: consumerProfileRef,
                 options: options
             )
+        }
+    }
+    
+    /// Payer identified event received
+    /// - parameter messageBody: JS object as returned from Payex
+    func handlePayerIdentified(_ messageBody: Any?) {
+        debugPrint("SwedbankPaySDK: onPayerIdentified event received")
+        if let options = versionOptions,
+            let info = viewPaymentOrderInfo {
+            state = .payerIdentified(info, options: options)
+            //make a call to the SwedbankPaySDKConfiguration to allow it to update the payment order if needed.
         }
     }
     
@@ -148,19 +186,11 @@ final class SwedbankPaySDKViewModel {
         case identifyingConsumer(SwedbankPaySDK.IdentifyingVersion, options: SwedbankPaySDK.VersionOptions)
         case creatingPaymentOrder(String?, options: SwedbankPaySDK.VersionOptions)
         case paying(SwedbankPaySDK.ViewPaymentLinkInfo, options: SwedbankPaySDK.VersionOptions, failedUpdate: (updateInfo: Any, error: Error)? = nil)
+        case payerIdentified(SwedbankPaySDK.ViewPaymentLinkInfo, options: SwedbankPaySDK.VersionOptions)
         case updatingPaymentOrder(SwedbankPaySDK.ViewPaymentLinkInfo, Update, options: SwedbankPaySDK.VersionOptions)
         case complete(SwedbankPaySDK.ViewPaymentLinkInfo?)
         case canceled(SwedbankPaySDK.ViewPaymentLinkInfo?)
         case failed(SwedbankPaySDK.ViewPaymentLinkInfo?, Error)
-        /*
-         TODO:
-         State.consumerIdentified should be added
-         Should move to this state if using v3 after the onPayerIdentified javascript event is received
-         You may refactor continue(consumerProfileRef:) to be used for this purpose, or you may add a new callback (arguably cleaner). Your choice.
-         That callback should, in turn, make a call to the SwedbankPaySDKConfiguration to allow it to update the payment order if needed. See below.
-         When the SwedbankPaySDKConfiguration returns the possibly-updated payment order, should move to the .paying state
-         updateUI() should show a loading indicator in this state
-         */
     }
 }
 
@@ -325,6 +355,7 @@ extension SwedbankPaySDKViewModel.State: Codable {
         case identifyingConsumer
         case creatingPaymentOrder
         case paying
+        case payerIdentified
         case complete
         case canceled
         case failed
@@ -351,6 +382,10 @@ extension SwedbankPaySDKViewModel.State: Codable {
                 let info = try container.decode(SwedbankPaySDK.ViewPaymentLinkInfo.self, forKey: .info)
                 let options = try container.decode(SwedbankPaySDK.VersionOptions.self, forKey: .options)
                 self = .paying(info, options: options)
+            case .payerIdentified:
+                let info = try container.decode(SwedbankPaySDK.ViewPaymentLinkInfo.self, forKey: .info)
+                let options = try container.decode(SwedbankPaySDK.VersionOptions.self, forKey: .options)
+                self = .payerIdentified(info, options: options)
             case .complete:
                 let info = try container.decodeIfPresent(SwedbankPaySDK.ViewPaymentLinkInfo.self, forKey: .info)
                 self = .complete(info)
@@ -399,6 +434,10 @@ extension SwedbankPaySDKViewModel.State: Codable {
                 try container.encode(Discriminator.failed, forKey: .discriminator)
                 try container.encodeIfPresent(info, forKey: .info)
                 try container.encodeIfPresent(error: error, codableTypeKey: .codableErrorType, valueKey: .error)
+            case .payerIdentified(let info, options: let options):
+                try container.encode(Discriminator.payerIdentified, forKey: .discriminator)
+                try container.encode(info, forKey: .info)
+                try container.encode(options, forKey: .options)
         }
     }
 }
