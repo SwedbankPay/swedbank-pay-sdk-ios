@@ -36,7 +36,10 @@ final class SwedbankPaySDKViewModel {
                 return nil
             case .initializingConsumerSession:
                 return nil
-            case .identifyingConsumer:
+            case .identifyingConsumer(let version, _):
+                if case .v3(let info) = version {
+                    return info
+                }
                 return nil
             case .creatingPaymentOrder:
                 return nil
@@ -100,6 +103,7 @@ final class SwedbankPaySDKViewModel {
     }
     
     func start(useCheckin: Bool, isV3: Bool = false, configuration: @autoclosure () -> SwedbankPaySDKConfiguration) {
+        
         if case .idle = state {
             if self.configuration == nil {
                 self.configuration = configuration()
@@ -127,9 +131,7 @@ final class SwedbankPaySDKViewModel {
     }
     
     /// Payer identified event received
-    /// - parameter messageBody: JS object as returned from Payex
-    func handlePayerIdentified(_ messageBody: Any?) {
-        debugPrint("SwedbankPaySDK: onPayerIdentified event received")
+    func handlePayerIdentified() {
         if let options = versionOptions,
             let info = viewPaymentOrderInfo {
             state = .payerIdentified(info, options: options)
@@ -491,6 +493,15 @@ extension SwedbankPaySDKViewModel: Codable {
                 createPaymentOrder(consumerProfileRef: consumerProfileRef, options: options, fromAwakeAfterDecode: true)
             default:
                 break
+        }
+    }
+}
+
+extension SwedbankPaySDKViewModel {
+    
+    public static var testModel: SwedbankPaySDKViewModel? {
+        didSet {
+            print("did set: \(testModel)")
         }
     }
 }

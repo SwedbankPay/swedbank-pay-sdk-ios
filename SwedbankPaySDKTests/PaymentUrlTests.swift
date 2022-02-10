@@ -36,6 +36,7 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
         
         var paymentOrder = MockMerchantBackend.paymentOrder(for: self)
         paymentOrder.urls.paymentUrl = originalPaymentUrl
+        //print(paymentOrder.payer)
         
         viewController = SwedbankPaySDKController(
             configuration: testConfiguration.sdkConfiguration(for: self),

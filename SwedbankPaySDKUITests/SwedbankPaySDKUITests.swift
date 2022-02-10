@@ -237,7 +237,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     
     /// Check that a V3 payment with the new checkin gets the info
-    func testV3SucceedsAtPaymentWithCheckin() throws {
+    func testV3PaymentWithCheckin() throws {
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testCheckin")
         app.launch()
@@ -246,10 +246,25 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
         
         try beginPayerIdentificationV3()
-        
         // wait for payerIdentification
         
         //try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
+    }
+    
+    /// Check that a V3 payment with the new checkin can be updated and resumed
+    func testV3PaymentUpdate() throws {
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testCheckin")
+        
+        app.launch()
+        defer {
+            waitForResultAndAssertComplete()
+        }
+        
+        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        try waitAndAssertExists(phoneInput, "Phone option not found")
+        
+        try beginPayerIdentificationV3()
     }
         
     /// Check that a payment without SCA works

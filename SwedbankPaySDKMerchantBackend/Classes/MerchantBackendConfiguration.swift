@@ -286,6 +286,7 @@ public extension SwedbankPaySDK {
                         )
                         completion(.success(info))
                     } catch let error {
+                        //print("got error: \(error)")
                         completion(.failure(error))
                     }
                 }

@@ -366,6 +366,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         if maybeViewModel == nil {
             self.viewModel = viewModel
         }
+        SwedbankPaySDKViewModel.testModel = viewModel
         viewModel.start(useCheckin: withCheckin, isV3: isV3, configuration: configuration)
     }
     
@@ -471,8 +472,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
                     break
                 case .payerIdentified(_, options: let options):
                     if options.contains(.useCheckin) {
-                        //TODO: updating payment if needed!
-                        initialLoadingIndicator.startAnimating()
+                        //Now we call backendConfiguration to let them update the payment
                     }
                     break
             }
@@ -520,19 +520,19 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     }
     
     private func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentLinkInfo, delay: Bool, options: SwedbankPaySDK.VersionOptions) {
-        //TODO: use isV3 to select template
-        if info.isV3 {
-            print(SwedbankPayWebContent.paymentTemplateV3)
-        }
+        //we use isV3 to select template
+        let template = info.isV3 ? SwedbankPayWebContent.paymentTemplateV3 : SwedbankPayWebContent.paymentTemplate
         loadPage(
             baseURL: info.webViewBaseURL,
-            template: info.isV3 ? SwedbankPayWebContent.paymentTemplateV3 : SwedbankPayWebContent.paymentTemplate,
+            template: template,
             scriptUrl: info.viewPaymentLink,
             delay: delay
         ) { [weak self] (event, argument) in
             self?.on(paymentEvent: event, argument: argument)
         }
-        delegate?.paymentOrderDidShow(info: info)
+        if options.contains(.isV3) == false {
+            delegate?.paymentOrderDidShow(info: info)
+        }
     }
     
     private func reloadPaymentMenu(delay: Bool = false) {
@@ -754,11 +754,31 @@ private extension SwedbankPaySDKController {
             let failure = parseTerminalFailure(jsTerminalFailure: argument)
             paymentFailed(error: WebContentError.ScriptError(failure))
         case .payerIdentified:
-            debugPrint("user payer identity: \(argument ?? "no args")")
-            viewModel?.handlePayerIdentified(argument)
+            handlePayerIdentified(argument)
         case .generalEvent:
             debugPrint("generalEvent from JS: \(argument ?? "no args")")
+            //to tell the delegate that the webView with paymentOrder has shown, we must listen to the first OnCheckoutResized after OnCheckoutLoaded?
+            if let argument = argument as? [String: Any],
+               let source = argument["sourceEvent"] as? String,
+               source == "OnCheckoutLoaded",
+               let viewModel = viewModel,
+               viewModel.versionOptions?.contains(.isV3) ?? false,
+               let info = viewModel.viewPaymentOrderInfo {
+                
+                print("loaded event from \(source)")
+                DispatchQueue.main.async {
+                    self.delegate?.paymentOrderDidShow(info: info)
+                }
+            }
+            break
         }
+    }
+    
+    /// Payer identified event received
+    /// - parameter messageBody: JS object as returned from Payex
+    private func handlePayerIdentified(_ messageBody: Any?) {
+        debugPrint("SwedbankPaySDK: onPayerIdentified event received \(messageBody ?? "")")
+        viewModel?.handlePayerIdentified()
     }
     
     /// Consumer identified event received
