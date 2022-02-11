@@ -22,8 +22,7 @@ extension MockMerchantBackend {
             backendUrl: backendUrl(for: testCase),
             callbackScheme: TestConstants.callbackScheme,
             headers: nil,
-            domainWhitelist: nil,
-            additionalAllowedWebViewRedirects: nil
+            domainWhitelist: nil
         )
     }
     

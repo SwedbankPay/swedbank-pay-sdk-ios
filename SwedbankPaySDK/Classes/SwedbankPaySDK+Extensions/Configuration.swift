@@ -83,14 +83,14 @@ public protocol SwedbankPaySDKConfiguration {
     ) -> SwedbankPaySDKRequest?
     
     /// Called by SwedbankPaySDKController when the payment menu is about to navigate
-    /// to a different page. Testing has shown that some pages are incompatible with
-    /// WKWebView. The SDK contains a list of redirects tested to be working, but you
-    /// can customize the behaviour by providing a custom implementation of this method.
+    /// to a different page.
     ///
-    /// The default implementation returns .openInWebView if the url of the navigation
-    /// matches the built-in list, and .openInBrowser otherwise.
-    /// If you override this method, but wish to access the built-in list of known-good
-    /// redirects, call urlMatchesListOfGoodRedirects.
+    /// Testing has shown that some pages are incompatible with WKWebView.
+    /// The SDK attempts to detect when that happens and allows the user to retry
+    /// the payment with all redirects going to the browser instead. You may, however,
+    /// control the handling of redirects in the initial attempt by implementing this method.
+    ///
+    /// The default implementation calls completion with `.openInWebView`.
     ///
     /// - parameter navigationAction: the navigation that is about to happen
     /// - parameter completion: callback you must invoke to supply the result
@@ -174,6 +174,7 @@ public extension SwedbankPaySDKConfiguration {
     ///
     /// - parameter url: the URL to check
     /// - parameter completion: called with `true` if url matches the list, called with `false` otherwise
+    @available(*, deprecated, message: "no longer maintained")
     func urlMatchesListOfGoodRedirects(_ url: URL, completion: @escaping (Bool) -> Void) {
         GoodWebViewRedirects.instance.allows(url: url, completion: completion)
     }
@@ -182,13 +183,7 @@ public extension SwedbankPaySDKConfiguration {
         navigationAction: WKNavigationAction,
         completion: @escaping (SwedbankPaySDK.PaymentMenuRedirectPolicy) -> Void
     ) {
-        guard let url = navigationAction.request.url else {
-            completion(.openInWebView)
-            return
-        }
-        urlMatchesListOfGoodRedirects(url) { matches in
-            completion(matches ? .openInWebView : .openInBrowser)
-        }
+        completion(.openInWebView)
     }
 }
 

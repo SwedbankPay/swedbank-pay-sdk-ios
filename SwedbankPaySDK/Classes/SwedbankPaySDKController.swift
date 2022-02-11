@@ -185,33 +185,42 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         return viewModel?.updating == true
     }
     
-    // These are useful for investigating issuers' compatibility with WKWebView
-    //
-    // As some 3DS pages are unfortunately incompatible with WKWebView,
-    // we err on the side of caution and only allow pages we have tested
-    // by default. You can add your own entries either by editing the
-    // good_redirects file (and please submit a pull request if you do),
-    // or by specifying them in the additionalAllowedWebViewRedirects
-    // property of your SwedbankPaySDK.Configuration.
-    //
-    // To discover more WKWebView compatible pages, you can set
-    // the SwedbankPaySDKController's webRedirectBehavior
-    // to .AlwaysUseWebView, and set a webNavigationLogger
-    // to gather the urls used. At this time the decision to
-    // use WKWebView is based on the domain name only; more
-    // sophisticated patterns can be added to the system if
-    // a reasonable need arises.
-    //
-    // To help with debugging, there is also the option to open all
-    // pages in the browser. You can use this to check if a problem
-    // with a PSP is or is not related to WKWebView.
+    /// Options for `webRedirectBehavior`
+    ///
+    /// Testing has shown that some pages are not compatible with WKWebView.
+    /// In those cases, the redirect must be opened in the browser instead.
+    /// The default behavior is to allow the `configuration` to control
+    /// the redirect (which, in turn, defaults to using the web view) but attempt to
+    /// detect the incompatibility and allow for retry with the "always use browser"
+    /// behavior.
     public enum WebRedirectBehavior {
+        /// Call `SwedbankPaySDKConfiguration.decidePolicyForPaymentMenuRedirect`
+        /// to determine the outcome.
+        ///
+        /// Also attempts to detect the payment getting stuck. If that happens, the SDK
+        /// will alert the user. If the user chooses to retry the payment,
+        /// `webRedirectBehavior` is set to `.AlwaysUseBrowser` and
+        /// the payment menu is reloaded.
         case Default
+        /// Always use the web view; do not call `decidePolicyForPaymentMenuRedirect`.
         case AlwaysUseWebView
+        /// Always use the browser; do not call `decidePolicyForPaymentMenuRedirect`.
         case AlwaysUseBrowser
     }
     
-    public var webRedirectBehavior = WebRedirectBehavior.Default
+    /// Controls how redirects from the payment menu are handled.
+    ///
+    /// When this value is `.Default`, the SDK will attempt to detect the payment
+    /// getting stuck, and allows the user to retry the payment with this setting
+    /// changed to `.AlwaysUseBrowser`.
+    ///
+    /// When this value is not `.Default`, the SDK will not attempt to detect the payment
+    /// getting stuck.
+    public var webRedirectBehavior = WebRedirectBehavior.Default {
+        didSet {
+            rootWebViewController.shouldShowExternalAppAlerts = webRedirectBehavior == .Default
+        }
+    }
     
     public var webNavigationLogger: ((URL) -> Void)? {
         get {
@@ -782,6 +791,13 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
             set(scriptMessageHandler: nil)
             initialLoadingIndicator.stopAnimating()
             delegate?.paymentOrderDidHide()
+        }
+    }
+    
+    func webViewControllerRetryWithBrowserRedirectBehavior(_ webViewController: SwedbankPayWebViewController) {
+        if webViewController === rootWebViewController {
+            webRedirectBehavior = .AlwaysUseBrowser
+            reloadPaymentMenu()
         }
     }
     
