@@ -18,6 +18,8 @@ import WebKit
 
 /// Swedbank Pay SDK protocol, conform to this to get the result of the payment process
 public protocol SwedbankPaySDKDelegate: AnyObject {
+    /// Called when the backend has confirmed address, you can now calculate shipping costs.
+    func shippingAddressIsKnown()
     /// Called whenever the payment order is shown in this
     /// view controller's view.
     func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo)
@@ -61,6 +63,7 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     func overrideTermsOfServiceTapped(url: URL) -> Bool
 }
 public extension SwedbankPaySDKDelegate {
+    func shippingAddressIsKnown() {}
     func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo) {}
     func paymentOrderDidHide() {}
     func updatePaymentOrderFailed(
@@ -366,7 +369,6 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         if maybeViewModel == nil {
             self.viewModel = viewModel
         }
-        SwedbankPaySDKViewModel.testModel = viewModel
         viewModel.start(useCheckin: withCheckin, isV3: isV3, configuration: configuration)
     }
     
@@ -431,11 +433,6 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         ])
     }
     
-    /*
-     TODO v3: must know whether to use v2 or v3 html templates
-     modify SwedbankPaySDKViewModel.State to contain that information
-     modify showCheckin and showPaymentOrder to choose the template accordingly
-    */
     private func updateUI() {
         if isViewLoaded, let viewModel = viewModel {
             switch viewModel.state {
@@ -467,13 +464,22 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
                         print("failed with error: \(error)")
                     }
                     initialLoadingIndicator.stopAnimating()
-                    //Now the integrators need to display the error to the user.
+                    //Now the integrator (you) need to display the error to the user.
                     
                     break
-                case .payerIdentified(_, options: let options):
-                    if options.contains(.useCheckin) {
-                        //Now we call backendConfiguration to let them update the payment
+                case .payerIdentification(_, options: _, state: let identificationState, error: let error):
+                    //Now the integrator (you) need to update the payment order accordingly, with shipping options etc.
+                    switch identificationState {
+                        case .userInputConfirmed:
+                            debugPrint("Payer was identified!")
+                        case .addressIsKnown:
+                            debugPrint("addressIsKnown, update payment with shipping costs")
+                            delegate?.shippingAddressIsKnown()
                     }
+                    if let error = error {
+                        debugPrint("Error accored during identification: \(error)")
+                    }
+                    
                     break
             }
         }
@@ -499,7 +505,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     /// Creates consumer identification JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
     /// - parameter list: List of operations available; need to find correct type of operation from it
     private func showCheckin(_ info: SwedbankPaySDK.IdentifyingVersion, options: SwedbankPaySDK.VersionOptions) {
-        //TODO: use isV3 to select template
+        //use isV3 to select template
         switch info {
             case .v2(let info):
                 showCheckin(info)
@@ -743,6 +749,8 @@ private extension SwedbankPaySDKController {
         }
     }
     
+    /// Currently there is a bug on the payex side which sends the notifications too early - we have to wait for rezise events before triggering any calls... (this is reported and will probably be fixed very soon).
+    static var payerHasBeenIdentified = false
     func on(paymentEvent: SwedbankPayWebContent.PaymentEvent, argument: Any?) {
         switch paymentEvent {
         case .onScriptLoaded:
@@ -754,21 +762,31 @@ private extension SwedbankPaySDKController {
             let failure = parseTerminalFailure(jsTerminalFailure: argument)
             paymentFailed(error: WebContentError.ScriptError(failure))
         case .payerIdentified:
-            handlePayerIdentified(argument)
+                SwedbankPaySDKController.payerHasBeenIdentified = true
         case .generalEvent:
             debugPrint("generalEvent from JS: \(argument ?? "no args")")
             //to tell the delegate that the webView with paymentOrder has shown, we must listen to the first OnCheckoutResized after OnCheckoutLoaded?
             if let argument = argument as? [String: Any],
                let source = argument["sourceEvent"] as? String,
-               source == "OnCheckoutLoaded",
                let viewModel = viewModel,
-               viewModel.versionOptions?.contains(.isV3) ?? false,
+               let versionOptions = viewModel.versionOptions,
+               versionOptions.contains(.isV3),
                let info = viewModel.viewPaymentOrderInfo {
                 
-                print("loaded event from \(source)")
-                DispatchQueue.main.async {
-                    self.delegate?.paymentOrderDidShow(info: info)
+                if source == "OnCheckoutLoaded" {
+                    DispatchQueue.main.async {
+                        self.delegate?.paymentOrderDidShow(info: info)
+                    }
+                } else if SwedbankPaySDKController.payerHasBeenIdentified && source == "OnCheckoutResized" {
+                    SwedbankPaySDKController.payerHasBeenIdentified = false
+                    
+                    //unless specified the merchant (you) won't be expecting payer identification
+                    if versionOptions.contains(.useCheckin) {
+                        handlePayerIdentified(argument)
+                    }
                 }
+                
+                
             }
             break
         }

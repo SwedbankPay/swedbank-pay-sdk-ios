@@ -39,10 +39,13 @@ public extension SwedbankPaySDK {
     /// completion call.
     struct ViewPaymentLinkInfo {
         
+        /// To refer to the payment and expand its properties we need to store its id.
+        public var paymentId: String?
+        
         /// v3 does not have a viewPaymentorder link, but a view-checkout link - rename and refactor in steps
         public var isV3: Bool
         
-        /// TODO: link to use for identifying consumer
+        /// link to use for identifying consumer
         public var viewConsumerIdentification: URL?
         
         /// The url to use as the WKWebView page url
@@ -120,6 +123,7 @@ public extension SwedbankPaySDK {
         /// `SwedbankPaySDKDelegate`.
         public var termsOfServiceUrl: URL?
         
+        
         /// If the payment order is in instrument mode, the current instrument
         ///
         /// The SDK does not use this property for anything, so you need not set
@@ -142,6 +146,7 @@ public extension SwedbankPaySDK {
         public var userInfo: Any?
 
         public init(
+            paymentId: String? = nil,
             isV3: Bool,
             webViewBaseURL: URL?,
             viewPaymentLink: URL,
@@ -153,6 +158,7 @@ public extension SwedbankPaySDK {
             availableInstruments: [Instrument]? = nil,
             userInfo: Any? = nil
         ) {
+            self.paymentId = paymentId
             self.isV3 = isV3
             self.webViewBaseURL = webViewBaseURL
             self.viewPaymentLink = viewPaymentLink
@@ -169,6 +175,7 @@ public extension SwedbankPaySDK {
 
 extension SwedbankPaySDK.ViewPaymentLinkInfo: Codable {
     private enum CodingKeys: String, CodingKey {
+        case paymentId
         case isV3
         case webViewBaseURL
         case viewPaymentLink
@@ -185,6 +192,7 @@ extension SwedbankPaySDK.ViewPaymentLinkInfo: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         try self.init(
+            paymentId: container.decodeIfPresent(String.self, forKey: .paymentId),
             isV3: container.decode(Bool.self, forKey: .isV3),
             webViewBaseURL: container.decodeIfPresent(URL.self, forKey: .webViewBaseURL),
             viewPaymentLink: container.decode(URL.self, forKey: .viewPaymentLink),
@@ -199,6 +207,7 @@ extension SwedbankPaySDK.ViewPaymentLinkInfo: Codable {
     }
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(paymentId, forKey: .paymentId)
         try container.encode(isV3, forKey: .isV3)
         try container.encodeIfPresent(webViewBaseURL, forKey: .webViewBaseURL)
         try container.encode(viewPaymentLink, forKey: .viewPaymentLink)

@@ -83,6 +83,17 @@ public protocol SwedbankPaySDKConfiguration {
         completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest?
     
+    /// Expand the payer info from a payment after being identified, to allow for calculating shipping costs.
+    /// Note that the default implementation only listens to
+    /// - Parameters:
+    ///   - paymentInfo: The payment order to expand
+    ///   - completion: Supply your own type depending on your backend implementation.
+    /// - Returns: a cancellation handle to the request started by this call
+    func expandPayerAfterIdentified (
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) -> SwedbankPaySDKRequest? 
+    
     /// Called by SwedbankPaySDKController when the payment menu is about to navigate
     /// to a different page.
     ///

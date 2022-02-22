@@ -103,7 +103,6 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
     /// - parameter updateInfo: the updateInfo value from the `updatePaymentOrder` call
     /// As you are in control of both the configuration and the update call, you can
     /// coordinate the actual type used here.
-    /// - parameter completion: callback you must invoke to supply the result
     /// - returns: updated SwedbankPaySDK.ViewPaymentOrderInfo for the payment
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
@@ -111,6 +110,14 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
         viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any
     ) async throws -> SwedbankPaySDK.ViewPaymentLinkInfo
+    
+    /// Called by SwedbankPaySDKController when it needs to get payer information
+    ///
+    /// - parameter paymentInfo: the current SwedbankPaySDK.ViewPaymentLinkInfo show to the user
+    /// - throws if error, otherwise success
+    func expandPayerAfterIdentified(
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo
+    ) async throws
     
     /// Called by SwedbankPaySDKController when the payment menu is about to navigate
     /// to a different page. Testing has shown that some pages are incompatible with
@@ -138,6 +145,12 @@ public extension SwedbankPaySDKConfigurationAsync {
         updateInfo: Any
     ) async throws -> SwedbankPaySDK.ViewPaymentLinkInfo {
         return viewPaymentOrderInfo
+    }
+    
+    func expandPayerAfterIdentified(
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo
+    ) async throws {
+        
     }
 }
 
@@ -214,6 +227,15 @@ public extension SwedbankPaySDKConfigurationAsync {
     ) -> SwedbankPaySDKRequest {
         return bridge(completion) {
             try await updatePaymentOrder(paymentOrder: paymentOrder, userData: userData, viewPaymentOrderInfo: viewPaymentOrderInfo, updateInfo: updateInfo)
+        }
+    }
+    
+    func expandPayerAfterIdentified(
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) -> SwedbankPaySDKRequest? {
+        return bridge(completion) {
+            try await expandPayerAfterIdentified(paymentInfo: paymentInfo)
         }
     }
     

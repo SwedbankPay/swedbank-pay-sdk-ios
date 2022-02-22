@@ -35,7 +35,7 @@ extension MockMerchantBackend {
             vatAmount: 0,
             description: "",
             urls: .init(configuration: configuration(for: testCase), language: .English, identifier: "test"),
-            payer: .init(requireConsumerInfo: true, digitalProducts: false, shippingAddressRestrictedToCountryCodes: ["no"]
+            payer: .init(requireConsumerInfo: true, digitalProducts: false, shippingAddressRestrictedToCountryCodes: ["no"])
         )
     }
 }

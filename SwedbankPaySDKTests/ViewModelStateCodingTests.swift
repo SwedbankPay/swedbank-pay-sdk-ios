@@ -30,7 +30,7 @@ class ViewModelStateCodingTests: XCTestCase {
     func testSimpleCases() throws {
         try testCoding(state: .idle)
         try testCoding(state: .initializingConsumerSession(options: .useCheckin))
-        //TODO: test v3!
+        
         try testCoding(state: .identifyingConsumer(.v2(SwedbankPaySDK.ViewConsumerIdentificationInfo(
             webViewBaseURL: URL(string: "about:blank")!,
             viewConsumerIdentification: URL(string: TestConstants.viewConsumerSessionLink)!
@@ -44,6 +44,9 @@ class ViewModelStateCodingTests: XCTestCase {
         try testCoding(state: .paying(ViewModelStateCodingTests.viewPaymentOrderInfo, options: [.isV3, .useCheckin]))
         try testCoding(state: .complete(ViewModelStateCodingTests.viewPaymentOrderInfo))
         try testCoding(state: .canceled(ViewModelStateCodingTests.viewPaymentOrderInfo))
+        
+        try testCoding(state: .payerIdentification(ViewModelStateCodingTests.viewPaymentOrderInfo, options: [.isV3, .useCheckin], state: .addressIsKnown, error: nil))
+        try testCoding(state: .payerIdentification(ViewModelStateCodingTests.viewPaymentOrderInfo, options: [.isV3, .useCheckin], state: .userInputConfirmed, error: nil))
     }
     
     func testCodableUserData() throws {

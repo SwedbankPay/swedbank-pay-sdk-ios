@@ -37,6 +37,17 @@ extension SwedbankPaySDKViewModel.State {
                 let lhsError = try XCTUnwrap(lhsError as? Err, "\(String(describing: lhsError)) is not \(errorType)")
                 let rhsError = try XCTUnwrap(rhsError as? Err, "\(String(describing: rhsError)) is not \(errorType)")
                 XCTAssertEqual(lhsError, rhsError)
+            case (.payerIdentification(let leftLink, options: let optionsLeft, state: let leftState, error: let lhsError), .payerIdentification(let rightLink, options: let optionsRight, state: let rightState, error: let rhsError)):
+                print("here")
+                try leftLink.assertEqualTo(other: rightLink, userInfoType: userInfoType)
+                XCTAssertEqual(optionsLeft, optionsRight)
+                XCTAssertEqual(leftState, rightState)
+                if lhsError != nil || rhsError != nil {
+                    let lhsError = try XCTUnwrap(lhsError as? Err, "\(String(describing: lhsError)) is not \(errorType)")
+                    let rhsError = try XCTUnwrap(rhsError as? Err, "\(String(describing: rhsError)) is not \(errorType)")
+                    XCTAssertEqual(lhsError, rhsError)
+                }
+                
             default:
                 XCTFail("states differ: \(self); \(other)")
         }
