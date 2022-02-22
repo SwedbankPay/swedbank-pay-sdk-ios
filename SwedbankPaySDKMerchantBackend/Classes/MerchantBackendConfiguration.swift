@@ -368,7 +368,7 @@ public extension SwedbankPaySDK {
                 return nil
             }
             
-            return getExpandPayer(configuration: self, paymentOrderId: paymentId, extraHeaders: nil) { (result: Result<EmptyJsonResponse, SwedbankPaySDK.MerchantBackendError>) in
+            return expandPayer(configuration: self, paymentOrderId: paymentId, extraHeaders: nil) { (result: Result<EmptyJsonResponse, SwedbankPaySDK.MerchantBackendError>) in
                 do {
                     
                     _ = try result.get()
@@ -384,20 +384,25 @@ public extension SwedbankPaySDK {
             }
         }
         
-        public func getExpandPayer<T:Decodable>(
+        private struct ExpandBody: Encodable {
+            let resource: String
+            let expand: String
+        }
+        
+        public func expandPayer<T:Decodable>(
             configuration: MerchantBackendConfiguration,
             paymentOrderId: String,
             extraHeaders: [String: String]? = nil,
             completion: @escaping (Result<T, SwedbankPaySDK.MerchantBackendError>) -> Void
         ) -> SwedbankPaySDKRequest? {
             var url = configuration.backendUrl
-            url.appendPathComponent("payer")
-            url.appendPathComponent(paymentOrderId)
-                        
+            url.appendPathComponent("expand")
+            
+            let body = ExpandBody(resource: paymentOrderId, expand: "payer")
             return configuration.api.request(
-                method: .get,
+                method: .post,
                 url: url,
-                body: nil as String?,
+                body: body,
                 decoratorCall: { _, request in
                     if let extraHeaders = extraHeaders {
                         for (key, value) in extraHeaders {
