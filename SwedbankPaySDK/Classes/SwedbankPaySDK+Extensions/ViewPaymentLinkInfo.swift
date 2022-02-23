@@ -16,18 +16,19 @@
 import Foundation
 
 
-extension SwedbankPaySDK.ViewPaymentLinkInfo {
+public extension SwedbankPaySDK.ViewPaymentLinkInfo {
     
     /// The `view-paymentorder` link from Swedbank Pay (v2) is now renamed to viewPaymentLink
-    @available(*, unavailable, renamed: "viewPaymentLink")
-    public var viewPaymentorder: URL {
-        fatalError("Unavailable::viewPaymentorder")
+    @available(*, deprecated, renamed: "viewPaymentLink")
+    var viewPaymentorder: URL {
+        //fatalError("Unavailable::viewPaymentorder")
+        viewPaymentLink
     }
 }
 
 public extension SwedbankPaySDK {
     
-    @available(*, unavailable, renamed: "ViewPaymentLinkInfo")
+    @available(*, deprecated, renamed: "ViewPaymentLinkInfo")
     typealias ViewPaymentOrderInfo = ViewPaymentLinkInfo
     
     /// Data required to show the payment menu.
