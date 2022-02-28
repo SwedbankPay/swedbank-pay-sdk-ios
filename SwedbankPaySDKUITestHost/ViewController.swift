@@ -23,8 +23,13 @@ class ViewController: UINavigationController {
         let isV3 = CommandLine.arguments.contains("-testV3")
         let withCheckin = CommandLine.arguments.contains("-testCheckin")
         
-        let payment = withCheckin ? testPaymentOrderCheckin : testPaymentOrder
-        viewController.startPayment(withCheckin: withCheckin, isV3: isV3, consumer: nil, paymentOrder: payment, userData: nil)
+        if isV3 {
+            viewController.startPayment(paymentOrder: testPaymentOrder)
+        } else {
+            let payment = withCheckin ? testPaymentOrderCheckin : testPaymentOrder
+            viewController.startPayment(withCheckin: withCheckin, consumer: nil, paymentOrder: payment, userData: nil)
+        }
+        
         return viewController
     }
     

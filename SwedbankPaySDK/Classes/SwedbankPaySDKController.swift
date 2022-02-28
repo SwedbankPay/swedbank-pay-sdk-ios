@@ -357,7 +357,6 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     /// - parameter userData: any additional data you may need for the identification and/or payment
     public func startPayment(
         withCheckin: Bool,
-        isV3: Bool = false,
         consumer: SwedbankPaySDK.Consumer?,
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any?
@@ -369,7 +368,27 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         if maybeViewModel == nil {
             self.viewModel = viewModel
         }
-        viewModel.start(useCheckin: withCheckin, isV3: isV3, configuration: configuration)
+        viewModel.start(useCheckin: withCheckin, isV3: false, configuration: configuration)
+    }
+    
+    /// Starts a new payment using V3 API.
+    ///
+    /// Calling this when a payment is already started has no effect.
+    ///
+    /// - parameter paymentOrder: the `PaymentOrder` to use to create the payment
+    /// - parameter userData: any additional data you may need for the identification and/or payment
+    public func startPayment(
+        paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        userData: Any? = nil
+    ) {
+        let maybeViewModel = self.viewModel
+        let viewModel = maybeViewModel ?? SwedbankPaySDKViewModel(
+            consumer: nil, paymentOrder: paymentOrder, userData: userData
+        )
+        if maybeViewModel == nil {
+            self.viewModel = viewModel
+        }
+        viewModel.start(useCheckin: false, isV3: true, configuration: configuration)
     }
     
     /// Performs an update on the current payment order.
@@ -753,43 +772,43 @@ private extension SwedbankPaySDKController {
     static var payerHasBeenIdentified = false
     func on(paymentEvent: SwedbankPayWebContent.PaymentEvent, argument: Any?) {
         switch paymentEvent {
-        case .onScriptLoaded:
-            initialLoadingIndicator.stopAnimating()
-        case .onScriptError:
-            let url = (argument as? String).flatMap(URL.init(string:))
-            paymentFailed(error: WebContentError.ScriptLoadingFailure(scriptUrl: url))
-        case .onError:
-            let failure = parseTerminalFailure(jsTerminalFailure: argument)
-            paymentFailed(error: WebContentError.ScriptError(failure))
-        case .payerIdentified:
-                SwedbankPaySDKController.payerHasBeenIdentified = true
-        case .generalEvent:
-            debugPrint("generalEvent from JS: \(argument ?? "no args")")
-            //to tell the delegate that the webView with paymentOrder has shown, we must listen to the first OnCheckoutResized after OnCheckoutLoaded?
-            if let argument = argument as? [String: Any],
-               let source = argument["sourceEvent"] as? String,
-               let viewModel = viewModel,
-               let versionOptions = viewModel.versionOptions,
-               versionOptions.contains(.isV3),
-               let info = viewModel.viewPaymentOrderInfo {
-                
-                if source == "OnCheckoutLoaded" {
-                    DispatchQueue.main.async {
-                        self.delegate?.paymentOrderDidShow(info: info)
-                    }
-                } else if SwedbankPaySDKController.payerHasBeenIdentified && source == "OnCheckoutResized" {
-                    SwedbankPaySDKController.payerHasBeenIdentified = false
+            case .onScriptLoaded:
+                initialLoadingIndicator.stopAnimating()
+            case .onScriptError:
+                let url = (argument as? String).flatMap(URL.init(string:))
+                paymentFailed(error: WebContentError.ScriptLoadingFailure(scriptUrl: url))
+            case .onError:
+                let failure = parseTerminalFailure(jsTerminalFailure: argument)
+                paymentFailed(error: WebContentError.ScriptError(failure))
+            case .payerIdentified:
+                    SwedbankPaySDKController.payerHasBeenIdentified = true
+            case .onPaid:
+                viewModel?.onComplete()
+            case .generalEvent:
+                debugPrint("generalEvent from JS: \(argument ?? "no args")")
+                //to tell the delegate that the webView with paymentOrder has shown, we must listen to the first OnCheckoutResized after OnCheckoutLoaded?
+                if let argument = argument as? [String: Any],
+                   let source = argument["sourceEvent"] as? String,
+                   let viewModel = viewModel,
+                   let versionOptions = viewModel.versionOptions,
+                   versionOptions.contains(.isV3),
+                   let info = viewModel.viewPaymentOrderInfo {
                     
-                    //unless specified the merchant (you) won't be expecting payer identification
-                    if versionOptions.contains(.useCheckin) {
-                        handlePayerIdentified(argument)
+                    if source == "OnCheckoutLoaded" {
+                        DispatchQueue.main.async {
+                            self.delegate?.paymentOrderDidShow(info: info)
+                        }
+                    } else if SwedbankPaySDKController.payerHasBeenIdentified && source == "OnCheckoutResized" {
+                        SwedbankPaySDKController.payerHasBeenIdentified = false
+                        
+                        //unless specified the merchant (you) won't be expecting payer identification
+                        if versionOptions.contains(.useCheckin) {
+                            handlePayerIdentified(argument)
+                        }
                     }
                 }
-                
-                
+                break
             }
-            break
-        }
     }
     
     /// Payer identified event received

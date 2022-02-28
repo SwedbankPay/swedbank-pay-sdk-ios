@@ -142,6 +142,8 @@ final class SwedbankPaySDKViewModel {
     
     func updatePaymentOrder(updateInfo: Any) {
         switch state {
+            case .payerIdentification(let viewPaymentOrderInfo, options: let options, state: _, error: _):
+                updatePaymentOrder(viewPaymentOrderInfo: viewPaymentOrderInfo, updateInfo: updateInfo, options: options)
             case .paying(let viewPaymentOrderInfo, let options, _):
                 updatePaymentOrder(viewPaymentOrderInfo: viewPaymentOrderInfo, updateInfo: updateInfo, options: options)
             case .updatingPaymentOrder(let viewPaymentOrderInfo, _, options: let options):

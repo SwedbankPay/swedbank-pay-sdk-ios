@@ -115,6 +115,7 @@ extension SwedbankPayWebContent {
         case onError
         case payerIdentified
         case generalEvent
+        case onPaid
     }
     
     static let paymentTemplate: HTMLTemplate<PaymentEvent> = """
@@ -200,6 +201,9 @@ extension SwedbankPayWebContent {
                         },
                         onError: function(error) {
                             \(PaymentEvent.onError, "error");
+                        },
+                        onPaid: function onPaid(eventNotification) {
+                            \(PaymentEvent.onPaid, "eventNotification");
                         }
                     }
                     var style = \(TemplateComponent.style);
@@ -213,9 +217,7 @@ extension SwedbankPayWebContent {
         </head>
         <body>
             <div id="checkout" />
-            <div id="checkin" />
-            <div id="payment-menu" />
-    
+            
             <script src="\(TemplateComponent.scriptUrl)"></script>
         </body>
     </html>

@@ -393,12 +393,14 @@ public extension SwedbankPaySDK {
         public init(
             requireConsumerInfo: Bool? = nil,
             digitalProducts: Bool? = nil,
-            shippingAddressRestrictedToCountryCodes: [String]? = nil
+            shippingAddressRestrictedToCountryCodes: [String]? = nil,
+            payerReference: String? = nil
         ) {
             self.consumerProfileRef = nil
             self.requireConsumerInfo = requireConsumerInfo
             self.digitalProducts = digitalProducts
             self.shippingAddressRestrictedToCountryCodes = shippingAddressRestrictedToCountryCodes
+            self.payerReference = payerReference
         }
     }
 
