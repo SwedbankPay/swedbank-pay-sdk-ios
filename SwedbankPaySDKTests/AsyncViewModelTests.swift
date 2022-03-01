@@ -20,8 +20,13 @@ class AsyncViewModelTests : XCTestCase {
     
     func testItShouldMoveToIdentifyingConsumerWhenStartedWithUseCheckinTrue() {
         expectState(viewModel: viewModel) {
-            if case .identifyingConsumer(let info) = $0 {
-                XCTAssertEqual(info.viewConsumerIdentification.absoluteString, TestConstants.viewConsumerSessionLink)
+            if case .identifyingConsumer(let infoOptions, options: _) = $0 {
+                if case .v2(let info) = infoOptions {
+                    XCTAssertEqual(info.viewConsumerIdentification.absoluteString, TestConstants.viewConsumerSessionLink)
+                } else {
+                    XCTFail("Using V3 in a V2 context")
+                }
+                
                 return true
             } else {
                 return false
@@ -34,8 +39,8 @@ class AsyncViewModelTests : XCTestCase {
     
     func testItShouldMoveToPayingWhenStartedWithUseCheckinFalse() {
         expectState(viewModel: viewModel) {
-            if case .paying(let info, _) = $0 {
-                XCTAssertEqual(info.viewPaymentorder.absoluteString, TestConstants.viewPaymentorderLink)
+            if case .paying(let info, _, _) = $0 {
+                XCTAssertEqual(info.viewPaymentLink.absoluteString, TestConstants.viewPaymentorderLink)
                 return true
             } else {
                 return false

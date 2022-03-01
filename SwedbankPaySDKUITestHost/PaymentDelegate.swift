@@ -25,4 +25,7 @@ class PaymentDelegate: SwedbankPaySDKDelegate {
     func paymentFailed(error: Error) {
         connection.send(message: .error(errorMessage: "\(error)"))
     }
+    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo) {
+        connection.send(message: .didShow)
+    }
 }

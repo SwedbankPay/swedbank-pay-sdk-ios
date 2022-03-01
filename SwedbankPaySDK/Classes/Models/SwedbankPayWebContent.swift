@@ -113,6 +113,9 @@ extension SwedbankPayWebContent {
         case onScriptLoaded
         case onScriptError
         case onError
+        case payerIdentified
+        case generalEvent
+        case onPaid
     }
     
     static let paymentTemplate: HTMLTemplate<PaymentEvent> = """
@@ -159,6 +162,63 @@ extension SwedbankPayWebContent {
         </head>
         <body>
             <div id="checkout" />
+        </body>
+    </html>
+    """
+    
+    static let paymentTemplateV3: HTMLTemplate<PaymentEvent> = """
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Swedbank Pay Checkout is Awesome!</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+            <script type="text/javascript">
+                
+                window.onerror = function(message, source, lineno, colno, error) {
+                    var url = '\(TemplateComponent.scriptUrl)';
+                    \(PaymentEvent.onScriptError, "url");
+                }
+                
+                window.onload = function () {
+    
+                    \(PaymentEvent.onScriptLoaded, "null");
+                    var parameters = {
+                        container: {
+                            checkinContainer: "checkin-container",
+                            paymentMenuContainer: "payment-menu-container",
+                            checkout: "checkout"
+                        },
+                        onPayerIdentified: function onPayerIdentified(payerIdentified) {
+                            console.log(payerIdentified);
+                            \(PaymentEvent.payerIdentified, "payerIdentified");
+                        },
+                        onEventNotification: function onEventNotification(eventNotification) {
+                            if (eventNotification.sourceEvent == "OnPayerIdentified") {
+                                \(PaymentEvent.payerIdentified, "eventNotification");
+                            } else {
+                                \(PaymentEvent.generalEvent, "eventNotification");
+                            }
+                        },
+                        onError: function(error) {
+                            \(PaymentEvent.onError, "error");
+                        },
+                        onPaid: function onPaid(eventNotification) {
+                            \(PaymentEvent.onPaid, "eventNotification");
+                        }
+                    }
+                    var style = \(TemplateComponent.style);
+                    if (style) {
+                        parameters.style = style;
+                    }
+                    window.payex.hostedView.checkout(parameters).open("checkin");
+                }
+
+            </script>
+        </head>
+        <body>
+            <div id="checkout" />
+            
+            <script src="\(TemplateComponent.scriptUrl)"></script>
         </body>
     </html>
     """

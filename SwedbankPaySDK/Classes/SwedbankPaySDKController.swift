@@ -18,9 +18,11 @@ import WebKit
 
 /// Swedbank Pay SDK protocol, conform to this to get the result of the payment process
 public protocol SwedbankPaySDKDelegate: AnyObject {
+    /// Called when the backend has confirmed address, you can now calculate shipping costs.
+    func shippingAddressIsKnown()
     /// Called whenever the payment order is shown in this
     /// view controller's view.
-    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentOrderInfo)
+    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo)
     /// Called when the payment order is no longer visible after being shown.
     /// Usually this happens because the payment order needed to redirect
     /// to a 3D-Secure page.
@@ -61,7 +63,8 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     func overrideTermsOfServiceTapped(url: URL) -> Bool
 }
 public extension SwedbankPaySDKDelegate {
-    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentOrderInfo) {}
+    func shippingAddressIsKnown() {}
+    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo) {}
     func paymentOrderDidHide() {}
     func updatePaymentOrderFailed(
         updateInfo: Any,
@@ -171,7 +174,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     /// Is value is always the most recent value returned from your
     /// `SwedbankPaySDKConfiguration` (currently from either
     /// `postPaymentorders` or `patchUpdatePaymentorderSetinstrument`.
-    public var currentPaymentOrder: SwedbankPaySDK.ViewPaymentOrderInfo? {
+    public var currentPaymentOrder: SwedbankPaySDK.ViewPaymentLinkInfo? {
         return viewModel?.viewPaymentOrderInfo
     }
     
@@ -365,7 +368,27 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         if maybeViewModel == nil {
             self.viewModel = viewModel
         }
-        viewModel.start(useCheckin: withCheckin, configuration: configuration)
+        viewModel.start(useCheckin: withCheckin, isV3: false, configuration: configuration)
+    }
+    
+    /// Starts a new payment using V3 API.
+    ///
+    /// Calling this when a payment is already started has no effect.
+    ///
+    /// - parameter paymentOrder: the `PaymentOrder` to use to create the payment
+    /// - parameter userData: any additional data you may need for the identification and/or payment
+    public func startPayment(
+        paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        userData: Any? = nil
+    ) {
+        let maybeViewModel = self.viewModel
+        let viewModel = maybeViewModel ?? SwedbankPaySDKViewModel(
+            consumer: nil, paymentOrder: paymentOrder, userData: userData
+        )
+        if maybeViewModel == nil {
+            self.viewModel = viewModel
+        }
+        viewModel.start(useCheckin: false, isV3: true, configuration: configuration)
     }
     
     /// Performs an update on the current payment order.
@@ -432,28 +455,51 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     private func updateUI() {
         if isViewLoaded, let viewModel = viewModel {
             switch viewModel.state {
-            case .idle:
-                break
-            case .initializingConsumerSession:
-                initialLoadingIndicator.startAnimating()
-            case .identifyingConsumer(let info):
-                showCheckin(info)
-            case .creatingPaymentOrder:
-                initialLoadingIndicator.startAnimating()
-            case .paying(let info, failedUpdate: let failedUpdate):
-                if failedUpdate == nil {
-                    showPaymentOrder(info: info, delay: false)
-                } else {
+                case .idle:
+                    break
+                case .initializingConsumerSession:
+                    initialLoadingIndicator.startAnimating()
+                case .identifyingConsumer(let info, let options):
+                    showCheckin(info, options: options)
+                case .creatingPaymentOrder:
+                    initialLoadingIndicator.startAnimating()
+                case .paying(let info, options: let options, failedUpdate: let failedUpdate):
+                    if failedUpdate == nil {
+                        showPaymentOrder(info: info, delay: false, options: options)
+                    } else {
+                        print("failed paying: \(String(describing: failedUpdate))")
+                        initialLoadingIndicator.stopAnimating()
+                    }
+                case .updatingPaymentOrder:
+                    initialLoadingIndicator.startAnimating()
+                case .complete:
+                    break
+                case .canceled:
+                    break
+                case .failed(let linkInfo, let error):
+                    if let linkInfo = linkInfo {
+                        print("failed with paymentInfo: \(linkInfo) error: \(error)")
+                    } else {
+                        print("failed with error: \(error)")
+                    }
                     initialLoadingIndicator.stopAnimating()
-                }
-            case .updatingPaymentOrder:
-                initialLoadingIndicator.startAnimating()
-            case .complete:
-                break
-            case .canceled:
-                break
-            case .failed:
-                break
+                    //Now the integrator (you) need to display the error to the user.
+                    
+                    break
+                case .payerIdentification(_, options: _, state: let identificationState, error: let error):
+                    //Now the integrator (you) need to update the payment order accordingly, with shipping options etc.
+                    switch identificationState {
+                        case .userInputConfirmed:
+                            debugPrint("Payer was identified!")
+                        case .addressIsKnown:
+                            debugPrint("addressIsKnown, update payment with shipping costs")
+                            delegate?.shippingAddressIsKnown()
+                    }
+                    if let error = error {
+                        debugPrint("Error accored during identification: \(error)")
+                    }
+                    
+                    break
             }
         }
     }
@@ -467,7 +513,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
                 delegate?.paymentCanceled()
             case .failed(_, let error):
                 delegate?.paymentFailed(error: error)
-            case .paying(_, failedUpdate: let failedUpdate?):
+            case .paying(_, options: _, failedUpdate: let failedUpdate?):
                 delegate?.updatePaymentOrderFailed(updateInfo: failedUpdate.updateInfo, error: failedUpdate.error)
             default:
                 break
@@ -477,6 +523,17 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     
     /// Creates consumer identification JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
     /// - parameter list: List of operations available; need to find correct type of operation from it
+    private func showCheckin(_ info: SwedbankPaySDK.IdentifyingVersion, options: SwedbankPaySDK.VersionOptions) {
+        //use isV3 to select template
+        switch info {
+            case .v2(let info):
+                showCheckin(info)
+            case .v3(let info):
+                showPaymentOrder(info: info, delay: false, options: options)
+        }
+    }
+    
+    /// Version 2 checkin
     private func showCheckin(_ info: SwedbankPaySDK.ViewConsumerIdentificationInfo) {
         loadPage(
             baseURL: info.webViewBaseURL,
@@ -487,22 +544,26 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         }
     }
     
-    private func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentOrderInfo, delay: Bool) {
+    private func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentLinkInfo, delay: Bool, options: SwedbankPaySDK.VersionOptions) {
+        //we use isV3 to select template
+        let template = info.isV3 ? SwedbankPayWebContent.paymentTemplateV3 : SwedbankPayWebContent.paymentTemplate
         loadPage(
             baseURL: info.webViewBaseURL,
-            template: SwedbankPayWebContent.paymentTemplate,
-            scriptUrl: info.viewPaymentorder,
+            template: template,
+            scriptUrl: info.viewPaymentLink,
             delay: delay
         ) { [weak self] (event, argument) in
             self?.on(paymentEvent: event, argument: argument)
         }
-        delegate?.paymentOrderDidShow(info: info)
+        if options.contains(.isV3) == false {
+            delegate?.paymentOrderDidShow(info: info)
+        }
     }
     
     private func reloadPaymentMenu(delay: Bool = false) {
-        if case .paying(let info, _) = viewModel?.state {
+        if case .paying(let info, options: let options, _) = viewModel?.state {
             dismissExtraWebViews()
-            showPaymentOrder(info: info, delay: delay)
+            showPaymentOrder(info: info, delay: delay, options: options)
         }
     }
     
@@ -707,17 +768,54 @@ private extension SwedbankPaySDKController {
         }
     }
     
+    /// Currently there is a bug on the payex side which sends the notifications too early - we have to wait for rezise events before triggering any calls... (this is reported and will probably be fixed very soon).
+    static var payerHasBeenIdentified = false
     func on(paymentEvent: SwedbankPayWebContent.PaymentEvent, argument: Any?) {
         switch paymentEvent {
-        case .onScriptLoaded:
-            initialLoadingIndicator.stopAnimating()
-        case .onScriptError:
-            let url = (argument as? String).flatMap(URL.init(string:))
-            paymentFailed(error: WebContentError.ScriptLoadingFailure(scriptUrl: url))
-        case .onError:
-            let failure = parseTerminalFailure(jsTerminalFailure: argument)
-            paymentFailed(error: WebContentError.ScriptError(failure))
-        }
+            case .onScriptLoaded:
+                initialLoadingIndicator.stopAnimating()
+            case .onScriptError:
+                let url = (argument as? String).flatMap(URL.init(string:))
+                paymentFailed(error: WebContentError.ScriptLoadingFailure(scriptUrl: url))
+            case .onError:
+                let failure = parseTerminalFailure(jsTerminalFailure: argument)
+                paymentFailed(error: WebContentError.ScriptError(failure))
+            case .payerIdentified:
+                    SwedbankPaySDKController.payerHasBeenIdentified = true
+            case .onPaid:
+                viewModel?.onComplete()
+            case .generalEvent:
+                debugPrint("generalEvent from JS: \(argument ?? "no args")")
+                //to tell the delegate that the webView with paymentOrder has shown, we must listen to the first OnCheckoutResized after OnCheckoutLoaded?
+                if let argument = argument as? [String: Any],
+                   let source = argument["sourceEvent"] as? String,
+                   let viewModel = viewModel,
+                   let versionOptions = viewModel.versionOptions,
+                   versionOptions.contains(.isV3),
+                   let info = viewModel.viewPaymentOrderInfo {
+                    
+                    if source == "OnCheckoutLoaded" {
+                        DispatchQueue.main.async {
+                            self.delegate?.paymentOrderDidShow(info: info)
+                        }
+                    } else if SwedbankPaySDKController.payerHasBeenIdentified && source == "OnCheckoutResized" {
+                        SwedbankPaySDKController.payerHasBeenIdentified = false
+                        
+                        //unless specified the merchant (you) won't be expecting payer identification
+                        if versionOptions.contains(.useCheckin) {
+                            handlePayerIdentified(argument)
+                        }
+                    }
+                }
+                break
+            }
+    }
+    
+    /// Payer identified event received
+    /// - parameter messageBody: JS object as returned from Payex
+    private func handlePayerIdentified(_ messageBody: Any?) {
+        debugPrint("SwedbankPaySDK: onPayerIdentified event received \(messageBody ?? "")")
+        viewModel?.handlePayerIdentified()
     }
     
     /// Consumer identified event received

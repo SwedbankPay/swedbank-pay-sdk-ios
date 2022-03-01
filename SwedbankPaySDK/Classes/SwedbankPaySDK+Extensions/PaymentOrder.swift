@@ -34,6 +34,22 @@ public extension SwedbankPaySDK {
         /// The operation to perform
         public var operation: PaymentOrderOperation
         
+        /// Whether to use v3 or v2, it must contain "Checkout3"
+        public var productName: String?
+        
+        /// Shortcut to know if this is v3 or not
+        public var isV3: Bool {
+            get {
+                return productName != PaymentOrder.checkout3
+            }
+            set (value) {
+                productName = value ? PaymentOrder.checkout3 : nil
+            }
+        }
+        
+        /// Constant for the productName when using version 3
+        static let checkout3 = "Checkout3"
+        
         /// Currency to use
         public var currency: String
         
@@ -124,6 +140,7 @@ public extension SwedbankPaySDK {
         
         public init(
             operation: PaymentOrderOperation = .Purchase,
+            isV3: Bool = false,
             currency: String,
             amount: Int64,
             vatAmount: Int64,
@@ -145,6 +162,7 @@ public extension SwedbankPaySDK {
             initiatingSystemUserAgent: String? = nil
         ) {
             self.operation = operation
+            self.productName = isV3 ? PaymentOrder.checkout3 : nil
             self.currency = currency
             self.amount = amount
             self.vatAmount = vatAmount
@@ -315,8 +333,20 @@ public extension SwedbankPaySDK {
     }
     
     /// Information about the payer of a payment order
+    /// V3: Bounds on the consumer profile we want to obtain through the Checkin flow.
     struct PaymentOrderPayer : Codable, Equatable {
-        /// A consumer profile reference obtained through the Checkin flow.
+        /// Set to true by merchants who want to receive profile information from Swedbank Pay. This applies both when the merchant needs email and/or msisdn for digital goods, and when full shipping address is needed. If set to false, Swedbank Pay will depend on the merchant to send the email and/or msisdn for digital products, and also the shipping address if the order is shipped.
+        public var requireConsumerInfo: Bool?
+        
+        /// Set to true for merchants who only sell digital goods and only require email and/or msisdn as shipping details. Set to false if the merchant also sells physical goods.
+        public var digitalProducts: Bool?
+        
+        /// List of supported shipping countries for merchant. Using [ISO-3166] standard, e.g: [ "NO", "US", "SE" ]
+        public var shippingAddressRestrictedToCountryCodes: [String]?
+        
+        // NOTE: All below is V2 only and will be removed
+        
+        /// A consumer profile reference obtained through the Checkin flow. Note that everything regarding V2 will be removed.
         ///
         /// If you have your `SwedbankPaySDKController` to do the Checkin flow, your
         /// `SwedbankPaySDKConfiguration.postPaymentorders` will be called with
@@ -357,6 +387,19 @@ public extension SwedbankPaySDK {
             self.consumerProfileRef = consumerProfileRef
             self.email = email
             self.msisdn = msisdn
+            self.payerReference = payerReference
+        }
+        
+        public init(
+            requireConsumerInfo: Bool? = nil,
+            digitalProducts: Bool? = nil,
+            shippingAddressRestrictedToCountryCodes: [String]? = nil,
+            payerReference: String? = nil
+        ) {
+            self.consumerProfileRef = nil
+            self.requireConsumerInfo = requireConsumerInfo
+            self.digitalProducts = digitalProducts
+            self.shippingAddressRestrictedToCountryCodes = shippingAddressRestrictedToCountryCodes
             self.payerReference = payerReference
         }
     }

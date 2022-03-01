@@ -14,6 +14,7 @@
 // limitations under the License.
 
 import SwedbankPaySDK
+import Foundation
 
 struct PaymentOrderIn: Decodable {
     var paymentOrder: PaymentOrder?
@@ -21,6 +22,8 @@ struct PaymentOrderIn: Decodable {
     var mobileSDK: MobileSDK?
     
     struct PaymentOrder: Decodable {
+        var id: String?
+        var payer: PayerIn?
         var instrument: SwedbankPaySDK.Instrument?
         var availableInstruments: [SwedbankPaySDK.Instrument]?
     }
@@ -28,4 +31,21 @@ struct PaymentOrderIn: Decodable {
     struct MobileSDK: Decodable {
         var setInstrument: SetInstrumentLink?
     }
+    
+    struct PayerIn: Decodable {
+        var id: URL
+        var name: String?
+        var email: String?
+        var msisdn: String?
+        var shippingAddress: ShippingAddress?
+    }
+}
+
+struct ShippingAddress: Decodable {
+    var addressee: String
+    var coAddress: String
+    var streetAddress: String
+    var zipCode: String
+    var city: String
+    var countryCode: String
 }

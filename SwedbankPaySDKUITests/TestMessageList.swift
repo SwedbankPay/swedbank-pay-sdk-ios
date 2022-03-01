@@ -1,4 +1,5 @@
 import Dispatch
+import Foundation
 
 class TestMessageList {
     private let queue = DispatchQueue(label: "TestMessageList", target: .global())
@@ -46,6 +47,24 @@ class TestMessageList {
             return message
         } else {
             return waitForNewMessage(after: messages, timeout: timeout).first
+        }
+    }
+    
+    func waitForMessage(timeout: Double, message: TestMessage) -> Bool {
+        let messages = getMessages()
+        if messages.contains(message) {
+            return true
+        } else {
+            let start = Date()
+            let newBatch = waitForNewMessage(after: messages, timeout: timeout)
+            if newBatch.contains(message) {
+                return true
+            }
+            let timeLeft = start.timeIntervalSinceNow + timeout
+            if timeLeft <= 0 {
+                return false
+            }
+            return waitForMessage(timeout: timeLeft, message: message)
         }
     }
 }

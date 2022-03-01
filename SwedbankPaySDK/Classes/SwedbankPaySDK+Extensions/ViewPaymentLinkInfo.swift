@@ -15,7 +15,22 @@
 
 import Foundation
 
+
+public extension SwedbankPaySDK.ViewPaymentLinkInfo {
+    
+    /// The `view-paymentorder` link from Swedbank Pay (v2) is now renamed to viewPaymentLink
+    @available(*, deprecated, renamed: "viewPaymentLink")
+    var viewPaymentorder: URL {
+        //fatalError("Unavailable::viewPaymentorder")
+        viewPaymentLink
+    }
+}
+
 public extension SwedbankPaySDK {
+    
+    @available(*, deprecated, renamed: "ViewPaymentLinkInfo")
+    typealias ViewPaymentOrderInfo = ViewPaymentLinkInfo
+    
     /// Data required to show the payment menu.
     ///
     /// If you provide a custom SwedbankPayConfiguration
@@ -23,15 +38,25 @@ public extension SwedbankPaySDK {
     /// and supply a ViewPaymentOrderInfo
     /// in your SwedbankPayConfiguration.postPaymentorders
     /// completion call.
-    struct ViewPaymentOrderInfo {
+    struct ViewPaymentLinkInfo {
+        
+        /// To refer to the payment and expand its properties we need to store its id.
+        public var paymentId: String?
+        
+        /// v3 does not have a viewPaymentorder link, but a view-checkout link - rename and refactor in steps
+        public var isV3: Bool
+        
+        /// link to use for identifying consumer
+        public var viewConsumerIdentification: URL?
+        
         /// The url to use as the WKWebView page url
         /// when showing the payment menu.
         ///
         /// This should match your payment order's `hostUrls`.
         public var webViewBaseURL: URL?
         
-        /// The `view-paymentorder` link from Swedbank Pay.
-        public var viewPaymentorder: URL
+        /// The `view-paymentorder` link from Swedbank Pay (v2), or the `view-checkout` link (v3).
+        public var viewPaymentLink: URL
         
         /// The `completeUrl` of the payment order
         ///
@@ -99,8 +124,6 @@ public extension SwedbankPaySDK {
         /// `SwedbankPaySDKDelegate`.
         public var termsOfServiceUrl: URL?
         
-        /// If the payment order is in instrument mode, the current instrument
-        ///
         /// The SDK does not use this property for anything, so you need not set
         /// a value even if you are using instrument mode. But if you are implementing
         /// instrument mode payments, it is probably helpful if you set
@@ -108,8 +131,6 @@ public extension SwedbankPaySDK {
         /// and `validInstruments` if the payment order it creates is in instrument mode.
         public var instrument: Instrument?
         
-        /// If the payment order is in instrument mode, all the valid instruments for it
-        ///
         /// The SDK does not use this property for anything, so you need not set
         /// a value even if you are using instrument mode. But if you are implementing
         /// instrument mode payments, it is probably helpful if you set
@@ -121,8 +142,10 @@ public extension SwedbankPaySDK {
         public var userInfo: Any?
 
         public init(
+            paymentId: String? = nil,
+            isV3: Bool,
             webViewBaseURL: URL?,
-            viewPaymentorder: URL,
+            viewPaymentLink: URL,
             completeUrl: URL,
             cancelUrl: URL?,
             paymentUrl: URL?,
@@ -131,8 +154,10 @@ public extension SwedbankPaySDK {
             availableInstruments: [Instrument]? = nil,
             userInfo: Any? = nil
         ) {
+            self.paymentId = paymentId
+            self.isV3 = isV3
             self.webViewBaseURL = webViewBaseURL
-            self.viewPaymentorder = viewPaymentorder
+            self.viewPaymentLink = viewPaymentLink
             self.completeUrl = completeUrl
             self.cancelUrl = cancelUrl
             self.paymentUrl = paymentUrl
@@ -144,10 +169,12 @@ public extension SwedbankPaySDK {
     }
 }
 
-extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
+extension SwedbankPaySDK.ViewPaymentLinkInfo: Codable {
     private enum CodingKeys: String, CodingKey {
+        case paymentId
+        case isV3
         case webViewBaseURL
-        case viewPaymentorder
+        case viewPaymentLink
         case completeUrl
         case cancelUrl
         case paymentUrl
@@ -161,8 +188,10 @@ extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         try self.init(
+            paymentId: container.decodeIfPresent(String.self, forKey: .paymentId),
+            isV3: container.decode(Bool.self, forKey: .isV3),
             webViewBaseURL: container.decodeIfPresent(URL.self, forKey: .webViewBaseURL),
-            viewPaymentorder: container.decode(URL.self, forKey: .viewPaymentorder),
+            viewPaymentLink: container.decode(URL.self, forKey: .viewPaymentLink),
             completeUrl: container.decode(URL.self, forKey: .completeUrl),
             cancelUrl: container.decodeIfPresent(URL.self, forKey: .cancelUrl),
             paymentUrl: container.decodeIfPresent(URL.self, forKey: .paymentUrl),
@@ -174,8 +203,10 @@ extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
     }
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(paymentId, forKey: .paymentId)
+        try container.encode(isV3, forKey: .isV3)
         try container.encodeIfPresent(webViewBaseURL, forKey: .webViewBaseURL)
-        try container.encode(viewPaymentorder, forKey: .viewPaymentorder)
+        try container.encode(viewPaymentLink, forKey: .viewPaymentLink)
         try container.encode(completeUrl, forKey: .completeUrl)
         try container.encodeIfPresent(cancelUrl, forKey: .cancelUrl)
         try container.encodeIfPresent(paymentUrl, forKey: .paymentUrl)

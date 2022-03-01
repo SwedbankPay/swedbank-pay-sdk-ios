@@ -14,10 +14,11 @@ class ViewModelStateCodingTests: XCTestCase {
         userInfo: ViewModelStateCodingTestsNSCodingUserInfo(payload: "payload")
     )
     
-    private static func makeViewPaymentOrderInfo(userInfo: Any?) -> SwedbankPaySDK.ViewPaymentOrderInfo {
-        return SwedbankPaySDK.ViewPaymentOrderInfo(
+    private static func makeViewPaymentOrderInfo(userInfo: Any?) -> SwedbankPaySDK.ViewPaymentLinkInfo {
+        return SwedbankPaySDK.ViewPaymentLinkInfo(
+            isV3: false,
             webViewBaseURL: URL(string: "about:blank")!,
-            viewPaymentorder: URL(string: TestConstants.viewPaymentorderLink)!,
+            viewPaymentLink: URL(string: TestConstants.viewPaymentorderLink)!,
             completeUrl: URL(string: "about:blank")!,
             cancelUrl: nil,
             paymentUrl: nil,
@@ -28,27 +29,36 @@ class ViewModelStateCodingTests: XCTestCase {
     
     func testSimpleCases() throws {
         try testCoding(state: .idle)
-        try testCoding(state: .initializingConsumerSession)
-        try testCoding(state: .identifyingConsumer(SwedbankPaySDK.ViewConsumerIdentificationInfo(
+        try testCoding(state: .initializingConsumerSession(options: .useCheckin))
+        
+        try testCoding(state: .identifyingConsumer(.v2(SwedbankPaySDK.ViewConsumerIdentificationInfo(
             webViewBaseURL: URL(string: "about:blank")!,
             viewConsumerIdentification: URL(string: TestConstants.viewConsumerSessionLink)!
-        )))
-        try testCoding(state: .creatingPaymentOrder(TestConstants.consumerProfileRef))
-        try testCoding(state: .paying(ViewModelStateCodingTests.viewPaymentOrderInfo))
+        )), options: []))
+        try testCoding(state: .creatingPaymentOrder(TestConstants.consumerProfileRef, options: .isV3))
+        try testCoding(state: .creatingPaymentOrder(TestConstants.consumerProfileRef, options: []))
+        try testCoding(state: .creatingPaymentOrder(TestConstants.consumerProfileRef, options: [.useCheckin]))
+        try testCoding(state: .creatingPaymentOrder(TestConstants.consumerProfileRef, options: [.useCheckin, .isV3]))
+        try testCoding(state: .paying(ViewModelStateCodingTests.viewPaymentOrderInfo, options: []))
+        try testCoding(state: .paying(ViewModelStateCodingTests.viewPaymentOrderInfo, options: [.isV3]))
+        try testCoding(state: .paying(ViewModelStateCodingTests.viewPaymentOrderInfo, options: [.isV3, .useCheckin]))
         try testCoding(state: .complete(ViewModelStateCodingTests.viewPaymentOrderInfo))
         try testCoding(state: .canceled(ViewModelStateCodingTests.viewPaymentOrderInfo))
+        
+        try testCoding(state: .payerIdentification(ViewModelStateCodingTests.viewPaymentOrderInfo, options: [.isV3, .useCheckin], state: .addressIsKnown, error: nil))
+        try testCoding(state: .payerIdentification(ViewModelStateCodingTests.viewPaymentOrderInfo, options: [.isV3, .useCheckin], state: .userInputConfirmed, error: nil))
     }
     
     func testCodableUserData() throws {
         SwedbankPaySDK.registerCodable(CodableUserInfo.self)
         try testCodingWithCodableUserInfo(
-            state: .paying(ViewModelStateCodingTests.viewPaymentOrderInfoWithCodableUserInfo)
+            state: .paying(ViewModelStateCodingTests.viewPaymentOrderInfoWithCodableUserInfo, options: [])
         )
     }
     
     func testNSCodingUserData() throws {
         try testCodingWithNSCodingUserInfo(
-            state: .paying(ViewModelStateCodingTests.viewPaymentOrderInfoWithNSCodingUserInfo)
+            state: .paying(ViewModelStateCodingTests.viewPaymentOrderInfoWithNSCodingUserInfo, options: [])
         )
     }
     

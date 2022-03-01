@@ -2,6 +2,7 @@ import UIKit
 import SwedbankPaySDK
 
 class ViewController: UINavigationController {
+    
     private var paymentDelegate: PaymentDelegate?
     
     override func viewDidLoad() {
@@ -19,7 +20,16 @@ class ViewController: UINavigationController {
         createPaymentDelegate()
         viewController.delegate = paymentDelegate
         
-        viewController.startPayment(withCheckin: false, consumer: nil, paymentOrder: testPaymentOrder, userData: nil)
+        let isV3 = CommandLine.arguments.contains("-testV3")
+        let withCheckin = CommandLine.arguments.contains("-testCheckin")
+        
+        if isV3 {
+            viewController.startPayment(paymentOrder: testPaymentOrder)
+        } else {
+            let payment = withCheckin ? testPaymentOrderCheckin : testPaymentOrder
+            viewController.startPayment(withCheckin: withCheckin, consumer: nil, paymentOrder: payment, userData: nil)
+        }
+        
         return viewController
     }
     
