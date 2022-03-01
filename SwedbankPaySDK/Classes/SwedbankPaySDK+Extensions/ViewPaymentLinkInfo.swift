@@ -124,9 +124,6 @@ public extension SwedbankPaySDK {
         /// `SwedbankPaySDKDelegate`.
         public var termsOfServiceUrl: URL?
         
-        
-        /// If the payment order is in instrument mode, the current instrument
-        ///
         /// The SDK does not use this property for anything, so you need not set
         /// a value even if you are using instrument mode. But if you are implementing
         /// instrument mode payments, it is probably helpful if you set
@@ -134,8 +131,6 @@ public extension SwedbankPaySDK {
         /// and `validInstruments` if the payment order it creates is in instrument mode.
         public var instrument: Instrument?
         
-        /// If the payment order is in instrument mode, all the valid instruments for it
-        ///
         /// The SDK does not use this property for anything, so you need not set
         /// a value even if you are using instrument mode. But if you are implementing
         /// instrument mode payments, it is probably helpful if you set

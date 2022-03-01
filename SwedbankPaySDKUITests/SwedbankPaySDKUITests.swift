@@ -349,6 +349,28 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
     }
     
+    /// Check that a regular payment without checkin works in V3
+    func testV3PaymentOnly() throws {
+        app.launchArguments.append("-testV3")
+        app.launch()
+        
+        defer {
+            waitForResultAndAssertComplete()
+        }
+        
+        try waitUntilShown()
+        
+        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
+        try waitAndAssertExists(
+            timeout: scaTimeout,
+            continueButton, "Continue button not found"
+        )
+        retryUntilTrue {
+            continueButton.tap()
+            return messageList.waitForFirst(timeout: resultTimeout) != nil
+        }
+    }
+    
     private func restartAndRestoreState() {
         XCUIDevice.shared.press(.home)
         Thread.sleep(forTimeInterval: stateSavingDelay)
