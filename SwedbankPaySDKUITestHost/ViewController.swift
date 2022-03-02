@@ -24,7 +24,22 @@ class ViewController: UINavigationController {
         let withCheckin = CommandLine.arguments.contains("-testCheckin")
         
         if isV3 {
-            viewController.startPayment(paymentOrder: testPaymentOrder)
+            var payment = testPaymentOrder
+            if CommandLine.arguments.contains("-testInstrument") {
+                payment.instrument = SwedbankPaySDK.Instrument.creditCard
+                let action = UIAction { action in
+                    print("perform test")
+                    let order = viewController.currentPaymentOrder!
+                    let instruments = order.availableInstruments!
+                    let instrument = instruments.first { order.instrument != $0 }   //select any that we havn't selected
+                    viewController.updatePaymentOrder(updateInfo: instrument!)
+                
+                }
+                let button = UIBarButtonItem(title: "Test change", image: nil, primaryAction: action)
+                button.accessibilityIdentifier = "testMenuButton"
+                viewController.navigationItem.rightBarButtonItem = button
+            }
+            viewController.startPayment(paymentOrder: payment)
         } else {
             let payment = withCheckin ? testPaymentOrderCheckin : testPaymentOrder
             viewController.startPayment(withCheckin: withCheckin, consumer: nil, paymentOrder: payment, userData: nil)

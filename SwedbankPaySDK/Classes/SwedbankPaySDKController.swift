@@ -20,6 +20,10 @@ import WebKit
 public protocol SwedbankPaySDKDelegate: AnyObject {
     /// Called when the backend has confirmed address, you can now calculate shipping costs.
     func shippingAddressIsKnown()
+    
+    /// Called when in instruments-mode and instruments change
+    func instrumentSelected()
+    
     /// Called whenever the payment order is shown in this
     /// view controller's view.
     func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo)
@@ -64,6 +68,7 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
 }
 public extension SwedbankPaySDKDelegate {
     func shippingAddressIsKnown() {}
+    func instrumentSelected() {}
     func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo) {}
     func paymentOrderDidHide() {}
     func updatePaymentOrderFailed(
@@ -804,6 +809,10 @@ private extension SwedbankPaySDKController {
                         //unless specified the merchant (you) won't be expecting payer identification
                         if versionOptions.contains(.useCheckin) {
                             handlePayerIdentified(argument)
+                        }
+                    } else if source == "OnInstrumentSelected" {
+                        DispatchQueue.main.async {
+                            self.delegate?.instrumentSelected()
                         }
                     }
                 }

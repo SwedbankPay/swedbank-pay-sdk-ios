@@ -56,6 +56,8 @@ struct MerchantBackendApi {
         body: B?,
         decoratorCall: @escaping DecoratorCall
     ) throws -> DataRequest {
+        
+        // we should never call out to anything other than the backend, since only our backend has the keys to authenticate with SwedbankPay it is pointless to do so (and likely a programming error)
         guard isDomainWhitelisted(url) else {
             throw SwedbankPaySDK.MerchantBackendError.nonWhitelistedDomain(
                 failingUrl: url

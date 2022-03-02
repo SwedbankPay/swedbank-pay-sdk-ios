@@ -87,6 +87,10 @@ class SwedbankPaySDKUITests: XCTestCase {
     private var cityInput: XCUIElement {
         webText(label: "City")
     }
+    private var testMenuButton: XCUIElement {
+        app.buttons.element(matching: .button, identifier: "testMenuButton")
+    }
+    
     
     // purchase
     private var cardOption: XCUIElement {
@@ -285,17 +289,8 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     func waitUntilShown() throws {
         
-        while (true) {
-            guard let message = messageList.waitForFirst(timeout: resultTimeout) else {
-                throw PaymentDidShowError(reason: "Could not show payment in time")
-            }
-            switch message {
-                case .didShow:
-                    print("Did show!")
-                    return
-                default:
-                    print("message: \(message)")
-            }
+        if messageList.waitForMessage(timeout: resultTimeout * 2, message: .didShow) == false {
+            XCTFail("Did not load HTML")
         }
     }
     
@@ -347,6 +342,21 @@ class SwedbankPaySDKUITests: XCTestCase {
             continueButton.tap()
             return messageList.waitForFirst(timeout: resultTimeout) != nil
         }
+    }
+    
+    /// Check that instrument-mode works in V3 and we can update payments with a new instrument
+    func testV3PaymentOnlyInstruments() throws {
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testInstrument")
+        app.launch()
+        
+        try waitUntilShown()
+        
+        //switch instrument
+        testMenuButton.tap()
+        
+        //just wait until instrument select-change
+        waitFor(.instrumentSelected, timeout: resultTimeout)
     }
     
     private func restartAndRestoreState() {

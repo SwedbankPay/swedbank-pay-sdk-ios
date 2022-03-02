@@ -364,6 +364,7 @@ private extension SwedbankPaySDKViewModel {
         state = .updatingPaymentOrder(viewPaymentOrderInfo, update, options: options)
         let request = configuration.updatePaymentOrder(
             paymentOrder: paymentOrder,
+            options: options,
             userData: userData,
             viewPaymentOrderInfo: viewPaymentOrderInfo,
             updateInfo: updateInfo

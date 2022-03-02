@@ -23,6 +23,7 @@ private enum OperationRel {
     static let viewConsumerIdentification = "view-consumer-identification"
     static let viewPaymentOrder = "view-paymentorder"
     static let viewPaymentLink = "view-checkout"
+    static let setInstrumentLink = "set-instrument"
 }
 
 private extension Array where Element == SwedbankPaySDK.Operation {
@@ -264,13 +265,31 @@ public extension SwedbankPaySDK {
                         let viewLink = try paymentOrderIn.operations.require(
                             rel: isV3 ? OperationRel.viewPaymentLink : OperationRel.viewPaymentOrder
                         )
-                        let setInstrument = paymentOrderIn.mobileSDK?.setInstrument
-                        let availableInstruments = setInstrument != nil
-                            ? paymentOrderIn.paymentOrder?.availableInstruments
-                            : nil
-                        let instrument = availableInstruments != nil
-                            ? paymentOrderIn.paymentOrder?.instrument
-                            : nil
+                        
+                        //set instrument is a link that we need, how is it constructed?
+                        let instrument: Instrument?
+                        let availableInstruments: [Instrument]?
+                        let setInstrument: SetInstrumentLink?
+                        if isV3 {
+                            // show selected instrument, and populate the user info with the set instrument.
+                            availableInstruments = paymentOrderIn.paymentOrder?.availableInstruments
+                            if let instrumentURL = paymentOrderIn.operations.find(rel: OperationRel.setInstrumentLink) {
+                                setInstrument = SetInstrumentLink(href: instrumentURL)
+                                instrument = paymentOrder.instrument
+                            } else {
+                                setInstrument = nil
+                                instrument = nil
+                            }
+                        } else {
+                            //In v2 it was a special feature only available to some
+                            setInstrument = paymentOrderIn.mobileSDK?.setInstrument
+                            availableInstruments = setInstrument != nil
+                                ? paymentOrderIn.paymentOrder?.availableInstruments
+                                : nil
+                            instrument = availableInstruments != nil
+                                ? paymentOrderIn.paymentOrder?.instrument
+                                : nil
+                        }
                         
                         let info = ViewPaymentLinkInfo(
                             paymentId: paymentOrderIn.paymentOrder?.id,
@@ -296,8 +315,9 @@ public extension SwedbankPaySDK {
         
         public func updatePaymentOrder(
             paymentOrder: SwedbankPaySDK.PaymentOrder?,
+            options: VersionOptions,
             userData: Any?,
-            viewPaymenLinkInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+            viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
             updateInfo: Any,
             completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>
             ) -> Void
@@ -306,24 +326,26 @@ public extension SwedbankPaySDK {
                 fatalError("Invalid updateInfo: \(updateInfo) (expected SwedbankPaySDK.Instrument)")
             }
             
-            guard let link = viewPaymenLinkInfo.userInfo as? SetInstrumentLink else {
+            guard let link = viewPaymentOrderInfo.userInfo as? SetInstrumentLink else {
                 completion(.failure(SwedbankPaySDK.MerchantBackendError.paymentNotInInstrumentMode))
                 return nil
             }
             
-            let request = link.patch(api: self.api, instrument: instrument, userData: userData) {
+            // override url when using v3
+            let url = options.contains(.isV3) ? self.backendUrl : nil
+            let request = link.patch(api: self.api, instrument: instrument, backendURL: url, userData: userData) {
                 do {
                     let paymentOrderIn = try $0.get()
                     
-                    var newInfo = viewPaymenLinkInfo
+                    var newInfo = viewPaymentOrderInfo
                     
                     // supporting v2
-                    if viewPaymenLinkInfo.isV3 == false, let viewPaymentorder = paymentOrderIn.operations.find(
+                    if viewPaymentOrderInfo.isV3 == false, let viewPaymentorder = paymentOrderIn.operations.find(
                         rel: OperationRel.viewPaymentOrder
                     ) {
                         newInfo.viewPaymentLink = viewPaymentorder
                     }
-                    else if viewPaymenLinkInfo.isV3, let viewPaymentLink = paymentOrderIn.operations.find(
+                    else if viewPaymentOrderInfo.isV3, let viewPaymentLink = paymentOrderIn.operations.find(
                         rel: OperationRel.viewPaymentLink
                     ) {
                         // regular v3
@@ -336,8 +358,11 @@ public extension SwedbankPaySDK {
                     
                     newInfo.instrument = paymentOrderIn.paymentOrder?.instrument ?? instrument
                     
+                    //V2 uses a mobileSDK property, but in V3 we get the instrument link from the operation array.
                     if let setInstrument = paymentOrderIn.mobileSDK?.setInstrument {
                         newInfo.userInfo = setInstrument
+                    } else if let instrumentURL = paymentOrderIn.operations.find(rel: OperationRel.setInstrumentLink) {
+                        newInfo.userInfo = SetInstrumentLink(href: instrumentURL)
                     }
                     
                     completion(.success(newInfo))

@@ -106,6 +106,7 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
     /// - returns: updated SwedbankPaySDK.ViewPaymentOrderInfo for the payment
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
         viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any
@@ -140,6 +141,7 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
 public extension SwedbankPaySDKConfigurationAsync {
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
         viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any
@@ -220,13 +222,14 @@ public extension SwedbankPaySDKConfigurationAsync {
     
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
         viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any,
         completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest {
         return bridge(completion) {
-            try await updatePaymentOrder(paymentOrder: paymentOrder, userData: userData, viewPaymentOrderInfo: viewPaymentOrderInfo, updateInfo: updateInfo)
+            try await updatePaymentOrder(paymentOrder: paymentOrder, options: options, userData: userData, viewPaymentOrderInfo: viewPaymentOrderInfo, updateInfo: updateInfo)
         }
     }
     

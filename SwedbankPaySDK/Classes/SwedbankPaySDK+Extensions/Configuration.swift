@@ -77,6 +77,7 @@ public protocol SwedbankPaySDKConfiguration {
     /// - returns: a cancellation handle to the request started by this call
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
         viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any,
@@ -169,6 +170,7 @@ public protocol SwedbankPaySDKConfiguration {
 public extension SwedbankPaySDKConfiguration {
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
         viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any,
