@@ -21,7 +21,6 @@ struct SetInstrumentLink: Link {
     
     let href: URL
     
-    /// V3 uses a slightly different way to relay all patches, since we need authentication - we cannot (should not) call SwedbankPay directly from the app.
     /// - returns: function that cancels this operation
     func patch(
         api: MerchantBackendApi,
@@ -48,13 +47,12 @@ struct SetInstrumentLink: Link {
     }
 }
 
-
 struct SetInstrumentOperation {
     
     /// the relayed URL to call from the backend.
     let href: URL
     
-    /// V3 uses a slightly different way to relay all patches, since we need authentication - we cannot (should not) call SwedbankPay directly from the app.
+    /// V3 connects to a backend-URL but sends the href as a parameter. Since we need authentication - we cannot (should not) call SwedbankPay directly from the app.
     /// - returns: function that cancels this operation
     func patch(
         api: MerchantBackendApi,
