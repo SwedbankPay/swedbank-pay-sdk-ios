@@ -269,20 +269,19 @@ public extension SwedbankPaySDK {
                         //set instrument is a link that we need, how is it constructed?
                         let instrument: Instrument?
                         let availableInstruments: [Instrument]?
-                        let setInstrument: SetInstrumentLink?
+                        //setInstrument is always nil in V3
+                        let setInstrument: SetInstrumentLink? = paymentOrderIn.mobileSDK?.setInstrument
                         if isV3 {
-                            // show selected instrument, and populate the user info with the set instrument.
+                            // Instead of building all operations individually, bring them into the linkInfo and build what we need
+                            // but we need instrument, and populate the user info with the set instrument.
                             availableInstruments = paymentOrderIn.paymentOrder?.availableInstruments
-                            if let instrumentURL = paymentOrderIn.operations.find(rel: OperationRel.setInstrumentLink) {
-                                setInstrument = SetInstrumentLink(href: instrumentURL)
-                                instrument = paymentOrder.instrument
+                            if let currentInstrument = paymentOrder.instrument, availableInstruments?.contains(currentInstrument) ?? false {
+                                instrument = currentInstrument
                             } else {
-                                setInstrument = nil
                                 instrument = nil
                             }
                         } else {
                             //In v2 it was a special feature only available to some
-                            setInstrument = paymentOrderIn.mobileSDK?.setInstrument
                             availableInstruments = setInstrument != nil
                                 ? paymentOrderIn.paymentOrder?.availableInstruments
                                 : nil
@@ -302,7 +301,8 @@ public extension SwedbankPaySDK {
                             termsOfServiceUrl: paymentOrder.urls.termsOfServiceUrl,
                             instrument: instrument,
                             availableInstruments: availableInstruments,
-                            userInfo: setInstrument
+                            userInfo: setInstrument,
+                            operations: paymentOrderIn.operations
                         )
                         completion(.success(info))
                     } catch let error {
@@ -322,18 +322,62 @@ public extension SwedbankPaySDK {
             completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>
             ) -> Void
         ) -> SwedbankPaySDKRequest? {
-            guard let instrument = updateInfo as? SwedbankPaySDK.Instrument else {
+            
+            if let instrument = updateInfo as? SwedbankPaySDK.Instrument {
+                return updatePayment(with: instrument, paymentOrder: paymentOrder, options: options, userData: userData, viewPaymentOrderInfo: viewPaymentOrderInfo, completion: completion)
+            }
+            else {
                 fatalError("Invalid updateInfo: \(updateInfo) (expected SwedbankPaySDK.Instrument)")
             }
+        }
+        
+        public func updatePayment(with instrument: SwedbankPaySDK.Instrument,
+            paymentOrder: SwedbankPaySDK.PaymentOrder?,
+            options: VersionOptions,
+            userData: Any?,
+            viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>
+            ) -> Void
+        ) -> SwedbankPaySDKRequest? {
             
+            // when using v3 we have setInstrumentLink inside the operations array
+            if options.contains(.isV3),
+                let operation = viewPaymentOrderInfo.operations?.findOperation(rel: .setInstrumentLink),
+                let href = operation.url {
+                
+                return SetInstrumentOperation(href: href).patch(api: api, url: backendUrl.appendingPathComponent("patch"), instrument: instrument, userData: userData) {
+                    do {
+                        let paymentOrderIn = try $0.get()
+                        var newInfo = viewPaymentOrderInfo
+                        if let viewPaymentLink = paymentOrderIn.operations.findOperation(rel: .viewPaymentLink)?.url {
+                            newInfo.viewPaymentLink = viewPaymentLink
+                        }
+                        
+                        if let availableInstruments = paymentOrderIn.paymentOrder?.availableInstruments {
+                            newInfo.availableInstruments = availableInstruments
+                        }
+                        
+                        newInfo.instrument = paymentOrderIn.paymentOrder?.instrument ?? instrument
+                        newInfo.operations = paymentOrderIn.operations
+                        
+                        completion(.success(newInfo))
+                    } catch let error {
+                        if case MerchantBackendError.networkError(AFError.explicitlyCancelled) = error {
+                            // no callback after cancellation
+                        } else {
+                            completion(.failure(error))
+                        }
+                    }
+                }
+            }
+            
+            //in V2 we used userInfo to store the instrumentLink
             guard let link = viewPaymentOrderInfo.userInfo as? SetInstrumentLink else {
                 completion(.failure(SwedbankPaySDK.MerchantBackendError.paymentNotInInstrumentMode))
                 return nil
             }
             
-            // override url when using v3
-            let url = options.contains(.isV3) ? self.backendUrl : nil
-            let request = link.patch(api: self.api, instrument: instrument, backendURL: url, userData: userData) {
+            let request = link.patch(api: self.api, instrument: instrument, userData: userData) {
                 do {
                     let paymentOrderIn = try $0.get()
                     

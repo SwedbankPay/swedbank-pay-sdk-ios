@@ -14,7 +14,9 @@
 
 import Foundation
 import SwedbankPaySDK
+import Alamofire
 
+/// V2 uses SetInstrumentLink, while V3 uses the more general SetInstrumentOperation
 struct SetInstrumentLink: Link {
     
     let href: URL
@@ -24,29 +26,53 @@ struct SetInstrumentLink: Link {
     func patch(
         api: MerchantBackendApi,
         instrument: SwedbankPaySDK.Instrument,
-        backendURL: URL?,
         userData: Any?,
         completion: @escaping (Result<PaymentOrderIn, SwedbankPaySDK.MerchantBackendError>) -> Void
     ) -> SwedbankPaySDKRequest? {
-        let body: Body
-        if let backendURL = backendURL {
-            
-            //use a new link in version 3 since its href is bound by swedbank pay callsite.
-            body = Body(instrument: instrument, href: href)
-            let link = SetInstrumentLink(href: backendURL.appendingPathComponent("patch"))
-            return link.request(api: api, method: .patch, body: body, completion: completion) { decorator, request in
-                decorator.decoratePaymentOrderSetInstrument(request: &request, instrument: instrument, userData: userData)
-            }
-        }
-        
-        body = Body(instrument: instrument)
+        let body = Body(instrument: instrument)
         return request(api: api, method: .patch, body: body, completion: completion) { decorator, request in
             decorator.decoratePaymentOrderSetInstrument(request: &request, instrument: instrument, userData: userData)
         }
     }
     
     private struct Body: Encodable {
-        init(instrument: SwedbankPaySDK.Instrument, href: URL? = nil) {
+        init(instrument: SwedbankPaySDK.Instrument) {
+            paymentorder = PaymentOrder(instrument: instrument)
+        }
+        
+        private let paymentorder: PaymentOrder
+        private struct PaymentOrder: Encodable {
+            let operation = "SetInstrument"
+            let instrument: SwedbankPaySDK.Instrument
+        }
+    }
+}
+
+
+struct SetInstrumentOperation {
+    
+    /// the relayed URL to call from the backend.
+    let href: URL
+    
+    /// V3 uses a slightly different way to relay all patches, since we need authentication - we cannot (should not) call SwedbankPay directly from the app.
+    /// - returns: function that cancels this operation
+    func patch(
+        api: MerchantBackendApi,
+        url: URL,
+        instrument: SwedbankPaySDK.Instrument,
+        userData: Any?,
+        completion: @escaping (Result<PaymentOrderIn, SwedbankPaySDK.MerchantBackendError>) -> Void
+    ) -> SwedbankPaySDKRequest? {
+        
+        let body = Body(instrument: instrument, href: href)
+        return request(api: api, url: url, method: .patch, body: body, completion: completion) { decorator, request in
+            decorator.decoratePaymentOrderSetInstrument(request: &request, instrument: instrument, userData: userData)
+        }
+    }
+    
+    private struct Body: Encodable {
+        init(instrument: SwedbankPaySDK.Instrument, href: URL) {
+            
             self.href = href
             paymentorder = PaymentOrder(instrument: instrument)
         }
@@ -57,5 +83,22 @@ struct SetInstrumentLink: Link {
             let operation = "SetInstrument"
             let instrument: SwedbankPaySDK.Instrument
         }
+    }
+    
+    func request<B: Encodable, T: Decodable>(
+        api: MerchantBackendApi,
+        url: URL,
+        method: HTTPMethod,
+        body: B,
+        completion: @escaping (Result<T, SwedbankPaySDK.MerchantBackendError>) -> Void,
+        decoratorCall: @escaping MerchantBackendApi.DecoratorCall
+    ) -> SwedbankPaySDKRequest? {
+        return api.request(
+            method: method,
+            url: url,
+            body: body,
+            decoratorCall: decoratorCall,
+            completion: completion
+        )
     }
 }
