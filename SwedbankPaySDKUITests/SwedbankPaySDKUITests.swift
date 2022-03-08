@@ -352,11 +352,25 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         try waitUntilShown()
         
-        //switch instrument
+        //switch instrument, this calls viewController.updatePaymentOrder(updateInfo: instrument!)
         testMenuButton.tap()
         
         //just wait until instrument select-change
         waitFor(.instrumentSelected, timeout: resultTimeout)
+    }
+    
+    func testAbortPayment() throws {
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testAbortPayment")
+        app.launch()
+        
+        try waitUntilShown()
+        
+        //switch instrument, this calls viewController.abortPayment()
+        testMenuButton.tap()
+        
+        //just wait until instrument select-change
+        waitFor(.canceled, timeout: resultTimeout)
     }
     
     private func restartAndRestoreState() {

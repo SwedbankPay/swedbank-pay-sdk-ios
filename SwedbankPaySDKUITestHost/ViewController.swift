@@ -27,18 +27,20 @@ class ViewController: UINavigationController {
             var payment = testPaymentOrder
             if CommandLine.arguments.contains("-testInstrument") {
                 payment.instrument = SwedbankPaySDK.Instrument.creditCard
-                let action = UIAction { action in
+                createTestButton(viewController) {
                     print("perform test")
                     let order = viewController.currentPaymentOrder!
                     let instruments = order.availableInstruments!
                     let instrument = instruments.first { order.instrument != $0 }   //select any that we havn't selected
                     viewController.updatePaymentOrder(updateInfo: instrument!)
-                
                 }
-                let button = UIBarButtonItem(title: "Test change", image: nil, primaryAction: action)
-                button.accessibilityIdentifier = "testMenuButton"
-                viewController.navigationItem.rightBarButtonItem = button
+                
+            } else if CommandLine.arguments.contains("-testAbortPayment") {
+                createTestButton(viewController) {
+                    viewController.abortPayment()
+                }
             }
+            
             viewController.startPayment(paymentOrder: payment)
         } else {
             let payment = withCheckin ? testPaymentOrderCheckin : testPaymentOrder
@@ -46,6 +48,13 @@ class ViewController: UINavigationController {
         }
         
         return viewController
+    }
+    
+    private func createTestButton(_ viewController: UIViewController, _ action: @escaping () -> Void) {
+        let action = UIAction { _ in action() }
+        let button = UIBarButtonItem(title: "Test change", image: nil, primaryAction: action)
+        button.accessibilityIdentifier = "testMenuButton"
+        viewController.navigationItem.rightBarButtonItem = button
     }
     
     private func createPaymentDelegate() {

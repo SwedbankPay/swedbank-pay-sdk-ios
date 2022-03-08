@@ -113,6 +113,8 @@
 		C585AF2D237066EE006C2E16 /* SwedbankPaySDKViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */; };
 		C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */; };
 		D50CA69B27D23EE000FC6007 /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50CA69A27D23EE000FC6007 /* Operation.swift */; };
+		D50CA69D27D74F1400FC6007 /* BackendOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50CA69C27D74F1400FC6007 /* BackendOperation.swift */; };
+		D50CA69F27D74F6000FC6007 /* AbortPaymentOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50CA69E27D74F6000FC6007 /* AbortPaymentOperation.swift */; };
 		D581EFDF27A92A56001B85A7 /* VersionOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D581EFDE27A92A56001B85A7 /* VersionOptions.swift */; };
 /* End PBXBuildFile section */
 
@@ -275,6 +277,8 @@
 		C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKController.swift; sourceTree = "<group>"; };
 		C585AF30237066FB006C2E16 /* SwedbankPaySDK.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SwedbankPaySDK.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		D50CA69A27D23EE000FC6007 /* Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
+		D50CA69C27D74F1400FC6007 /* BackendOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendOperation.swift; sourceTree = "<group>"; };
+		D50CA69E27D74F6000FC6007 /* AbortPaymentOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbortPaymentOperation.swift; sourceTree = "<group>"; };
 		D581EFDE27A92A56001B85A7 /* VersionOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionOptions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -333,12 +337,14 @@
 				A502C37925430D90004FBFCB /* Link.swift */,
 				A502C37A25430D90004FBFCB /* PaymentOrderIn.swift */,
 				A502C37B25430D90004FBFCB /* SetInstrumentLink.swift */,
+				D50CA69C27D74F1400FC6007 /* BackendOperation.swift */,
 				A502C37C25430D90004FBFCB /* TopLevelResources.swift */,
 				A502C37D25430D90004FBFCB /* ConsumersLink.swift */,
 				A5BE1E2E2576986F00336A79 /* PayerOwnedPaymentTokensResponse.swift */,
 				A5BE1E3225769ACC00336A79 /* PayerOwnedPaymentTokens.swift */,
 				A5BE1E3625769B5900336A79 /* PaymentTokenInfo.swift */,
 				A5F7FE05258B9ECD008AA2F7 /* EmptyJsonResponse.swift */,
+				D50CA69E27D74F6000FC6007 /* AbortPaymentOperation.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -837,11 +843,13 @@
 				A515A70326C4057C001E7F30 /* PaymentTokenInfo.swift in Sources */,
 				A515A70526C4057C001E7F30 /* MerchantBackendConfiguration.swift in Sources */,
 				A515A70626C4057C001E7F30 /* ConsumersLink.swift in Sources */,
+				D50CA69F27D74F6000FC6007 /* AbortPaymentOperation.swift in Sources */,
 				A515A70826C4057C001E7F30 /* Problem.swift in Sources */,
 				A515A70926C4057C001E7F30 /* PayerOwnedPaymentTokensResponse.swift in Sources */,
 				A515A70B26C4057C001E7F30 /* PaymentOrdersLink.swift in Sources */,
 				A515A70C26C4057C001E7F30 /* PayerOwnedPaymentTokens.swift in Sources */,
 				A515A70D26C4057C001E7F30 /* DeletePaymentTokenLink.swift in Sources */,
+				D50CA69D27D74F1400FC6007 /* BackendOperation.swift in Sources */,
 				A515A70F26C4057C001E7F30 /* ConsumerSession.swift in Sources */,
 				A515A71026C4057C001E7F30 /* RequestDecorator.swift in Sources */,
 				A515A71326C4057C001E7F30 /* EmptyJsonResponse.swift in Sources */,

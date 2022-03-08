@@ -164,6 +164,24 @@ final class SwedbankPaySDKViewModel {
         }
     }
     
+    func abortPayment() {
+        cancelUpdate()
+        guard let paymentInfo = viewPaymentOrderInfo else {
+            print("Error, missing paymentInfo - cannot cancel nothing")
+            return
+        }
+        
+        configuration.abortPayment(paymentInfo: paymentInfo, userData: userData, completion: { result in
+            DispatchQueue.main.async { [self] in
+                if case .failure(let err) = result {
+                    state = .failed(paymentInfo, err)
+                } else {
+                    state = .canceled(paymentInfo)
+                }
+            }
+        })
+    }
+    
     func onComplete() {
         state = .complete(viewPaymentOrderInfo)
     }

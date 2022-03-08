@@ -118,6 +118,11 @@ struct MerchantBackendApi {
         completion: @escaping (Result<T, SwedbankPaySDK.MerchantBackendError>) -> Void
     ) {
         request.responseData(queue: .global(qos: .userInitiated)) { response in
+            
+            //if let data = response.data {
+            //    print("response: \(String(data: data, encoding: .utf8)) from: \(response.response?.url)")
+            //}
+            
             let result: Result<T, SwedbankPaySDK.MerchantBackendError>
             do {
                 try self.checkError(response: response)

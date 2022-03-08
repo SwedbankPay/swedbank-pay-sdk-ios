@@ -84,6 +84,14 @@ public protocol SwedbankPaySDKConfiguration {
         completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest?
     
+    /// Abort payment in response to user actions, to permamently close a payment session.
+    ///
+    func abortPayment(
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        userData: Any?,
+        completion: @escaping (Result<Void, Error>) -> Void
+    )
+    
     /// Expand the payer info from a payment after being identified, to allow for calculating shipping costs.
     /// Note that the default implementation only listens to
     /// - Parameters:
@@ -168,6 +176,8 @@ public protocol SwedbankPaySDKConfiguration {
 }
 
 public extension SwedbankPaySDKConfiguration {
+    
+    // default functions for optional methods
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         options: SwedbankPaySDK.VersionOptions,
@@ -177,6 +187,28 @@ public extension SwedbankPaySDKConfiguration {
         completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest? {
         completion(.success(viewPaymentOrderInfo))
+        return nil
+    }
+    
+    func abortPayment(
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        userData: Any?,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        completion(.success(()))
+    }
+    
+    /// Expand the payer info from a payment after being identified, to allow for calculating shipping costs.
+    /// Note that the default implementation only listens to
+    /// - Parameters:
+    ///   - paymentInfo: The payment order to expand
+    ///   - completion: Supply your own type depending on your backend implementation.
+    /// - Returns: a cancellation handle to the request started by this call
+    func expandPayerAfterIdentified (
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) -> SwedbankPaySDKRequest? {
+        completion(.success(()))
         return nil
     }
 }

@@ -46,6 +46,7 @@ public extension SwedbankPaySDK {
         public static let viewPaymentOrder = OperationRelation(rawValue: "view-paymentorder")
         public static let viewPaymentLink = OperationRelation(rawValue: "view-checkout")
         public static let setInstrumentLink = OperationRelation(rawValue: "set-instrument")
+        public static let abort = OperationRelation(rawValue: "abort")
     }
 }
 

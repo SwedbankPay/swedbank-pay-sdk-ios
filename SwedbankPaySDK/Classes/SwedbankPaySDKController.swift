@@ -414,6 +414,10 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         viewModel?.updatePaymentOrder(updateInfo: updateInfo)
     }
     
+    public func abortPayment() {
+        viewModel?.abortPayment()
+    }
+    
     private func createRootWebViewController() -> SwedbankPayWebViewController {
         let config = WKWebViewConfiguration()
         config.userContentController = userContentController

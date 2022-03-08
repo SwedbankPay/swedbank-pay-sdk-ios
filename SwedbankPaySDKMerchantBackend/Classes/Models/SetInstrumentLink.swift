@@ -14,7 +14,6 @@
 
 import Foundation
 import SwedbankPaySDK
-import Alamofire
 
 /// V2 uses SetInstrumentLink, while V3 uses the more general SetInstrumentOperation
 struct SetInstrumentLink: Link {
@@ -47,7 +46,8 @@ struct SetInstrumentLink: Link {
     }
 }
 
-struct SetInstrumentOperation {
+/// Used by V3
+struct SetInstrumentOperation: BackendOperation {
     
     /// the relayed URL to call from the backend.
     let href: URL
@@ -82,21 +82,5 @@ struct SetInstrumentOperation {
             let instrument: SwedbankPaySDK.Instrument
         }
     }
-    
-    func request<B: Encodable, T: Decodable>(
-        api: MerchantBackendApi,
-        url: URL,
-        method: HTTPMethod,
-        body: B,
-        completion: @escaping (Result<T, SwedbankPaySDK.MerchantBackendError>) -> Void,
-        decoratorCall: @escaping MerchantBackendApi.DecoratorCall
-    ) -> SwedbankPaySDKRequest? {
-        return api.request(
-            method: method,
-            url: url,
-            body: body,
-            decoratorCall: decoratorCall,
-            completion: completion
-        )
-    }
 }
+

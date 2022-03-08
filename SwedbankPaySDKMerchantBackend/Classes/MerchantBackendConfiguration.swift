@@ -421,6 +421,31 @@ public extension SwedbankPaySDK {
             return request
         }
         
+        public func abortPayment(
+            paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+            userData: Any?,
+            completion: @escaping (Result<Void, Error>) -> Void
+        ) {
+            guard let operation = AbortPaymentOperation.create(paymentInfo: paymentInfo) else {
+                completion(.failure(MerchantBackendError.missingRequiredOperation("abort operation is missing from paymentInfo")))
+                return
+            }
+            _ = operation.patch(api: api, url: backendUrl.appendingPathComponent("patch"), userData: userData) { result in
+                do {
+                    
+                    _ = try result.get()
+                    completion(.success(()))
+                } catch let error {
+                    
+                    if case MerchantBackendError.networkError(AFError.explicitlyCancelled) = error {
+                        // no callback after cancellation
+                    } else {
+                        completion(.failure(error))
+                    }
+                }
+            }
+        }
+        
         /// The configuration can handle any Codable type (you are free to expand it), the basic
         /// implementation just require any result. Then its up to you to present
         /// shipping options and update the paymentOrder accordingly.
