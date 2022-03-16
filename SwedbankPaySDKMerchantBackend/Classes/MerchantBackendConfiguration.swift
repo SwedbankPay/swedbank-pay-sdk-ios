@@ -480,7 +480,7 @@ public extension SwedbankPaySDK {
         
         private struct ExpandBody: Encodable {
             let resource: String
-            let expand: String
+            let expand: [ExpandResource]
         }
         
         public func expandPayer<T:Decodable>(
@@ -492,7 +492,7 @@ public extension SwedbankPaySDK {
             var url = configuration.backendUrl
             url.appendPathComponent("expand")
             
-            let body = ExpandBody(resource: paymentOrderId, expand: "payer")
+            let body = ExpandBody(resource: paymentOrderId, expand: [.payer])
             return configuration.api.request(
                 method: .post,
                 url: url,
@@ -509,5 +509,30 @@ public extension SwedbankPaySDK {
                 }
             )
         }
+        
+        public func expandOperation<ResultJSON:Decodable>(
+            paymentId: String,
+            expand: [SwedbankPaySDK.ExpandResource],
+            endpoint: String = "expand",
+            completion: @escaping (Result<ResultJSON, Error>) -> Void
+        ) -> SwedbankPaySDKRequest? {
+            
+            var url = backendUrl
+            url.appendPathComponent(endpoint)
+            
+            let body = ExpandBody(resource: paymentId, expand: expand)
+            return api.request(
+                method: .post,
+                url: url,
+                body: body,
+                decoratorCall: { decorator, request in
+                    // here you can modify the request, add authentication headers, etc.
+                },
+                completion: { result in
+                    completion(result.mapError { $0 as SwedbankPaySDK.MerchantBackendError })
+                }
+            )
+        }
+        
     }
 }

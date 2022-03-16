@@ -1,6 +1,11 @@
 import UIKit
 import SwedbankPaySDK
 
+//Quick errors by using strings
+extension String: LocalizedError {
+    public var errorDescription: String? { return self }
+}
+
 class ViewController: UINavigationController {
     
     private var paymentDelegate: PaymentDelegate?
@@ -22,13 +27,15 @@ class ViewController: UINavigationController {
         
         let isV3 = CommandLine.arguments.contains("-testV3")
         let withCheckin = CommandLine.arguments.contains("-testCheckin")
+        createTestButton(viewController) {
+            print("no commands")
+        }
         
         if isV3 {
             var payment = testPaymentOrder
             if CommandLine.arguments.contains("-testInstrument") {
                 payment.instrument = SwedbankPaySDK.Instrument.creditCard
                 createTestButton(viewController) {
-                    print("perform test")
                     let order = viewController.currentPaymentOrder!
                     let instruments = order.availableInstruments!
                     let instrument = instruments.first { order.instrument != $0 }   //select any that we havn't selected
@@ -39,6 +46,15 @@ class ViewController: UINavigationController {
                 createTestButton(viewController) {
                     viewController.abortPayment()
                 }
+            } else if CommandLine.arguments.contains("-testVerifyUnscheduledToken") {
+                
+                payment.operation = .Verify
+                payment.generateRecurrenceToken = true
+                payment.generateUnscheduledToken = true
+                createTestButton(viewController) {
+                    
+                    self.testExpandTokens(viewController)
+                }
             }
             
             viewController.startPayment(paymentOrder: payment)
@@ -48,6 +64,36 @@ class ViewController: UINavigationController {
         }
         
         return viewController
+    }
+    
+    // MARK: - test helpers
+    
+    private func testExpandTokens(_ viewController: SwedbankPaySDKController) {
+        
+        guard let paymentId = viewController.currentPaymentOrder?.paymentId else {
+            paymentDelegate?.paymentFailed(error: "No payment id found: \(String(describing: viewController.currentPaymentOrder))")
+            return
+        }
+        
+        _ = viewController.configuration.expandOperation(paymentId: paymentId, expand: [.paid], endpoint: "tokens") { [self] (result: Result<PaymentTokenResponse, Error>) in
+            switch result {
+                case .success(let success):
+                    if success.recurrence == nil {
+                        paymentDelegate?.paymentFailed(error: "No recurrence token created")
+                    } else if success.unscheduled == nil {
+                        paymentDelegate?.paymentFailed(error: "No unscheduled token created")
+                    } else {
+                        paymentDelegate?.paymentComplete()
+                    }
+                case .failure(let failure):
+                    paymentDelegate?.paymentFailed(error: failure)
+            }
+        }
+    }
+    
+    struct PaymentTokenResponse: Codable {
+        var recurrence: Bool?
+        var unscheduled: Bool?
     }
     
     private func createTestButton(_ viewController: UIViewController, _ action: @escaping () -> Void) {

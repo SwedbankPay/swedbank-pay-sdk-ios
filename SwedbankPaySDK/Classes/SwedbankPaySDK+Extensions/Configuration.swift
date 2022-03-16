@@ -101,7 +101,21 @@ public protocol SwedbankPaySDKConfiguration {
     func expandPayerAfterIdentified (
         paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         completion: @escaping (Result<Void, Error>) -> Void
-    ) -> SwedbankPaySDKRequest? 
+    ) -> SwedbankPaySDKRequest?
+    
+    /// Route a general get request towards one of the resources, like /psp/paymentorders<id>/paid
+    /// Implement this to create tests or verify statuses with your backend
+    /// - Parameters:
+    ///   - paymentID: the id of to expand, in this case full path: /psp/paymentorders<id>
+    ///   - expand: the expanded resource to ask for, in this case paid
+    ///   - endpoint: the specialized endpoint to use, in our Merchant Backend example implementation, "expand" is used.
+    /// - Returns: a cancellation handle to the request started by this call
+    func expandOperation<ResultJSON:Decodable>(
+        paymentId: String,
+        expand: [SwedbankPaySDK.ExpandResource],
+        endpoint: String,
+        completion: @escaping (Result<ResultJSON, Error>) -> Void
+    ) -> SwedbankPaySDKRequest?
     
     /// Called by SwedbankPaySDKController when the payment menu is about to navigate
     /// to a different page.
@@ -175,7 +189,16 @@ public protocol SwedbankPaySDKConfiguration {
     func url(_ url: URL, matchesPaymentUrl paymentUrl: URL) -> Bool
 }
 
+public struct NotImplementedError: Error {
+    
+    var description: String {
+        "Not implemented default functions should not be called."
+    }
+}
+
 public extension SwedbankPaySDKConfiguration {
+    
+    
     
     // default functions for optional methods
     func updatePaymentOrder(
@@ -195,7 +218,7 @@ public extension SwedbankPaySDKConfiguration {
         userData: Any?,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
-        completion(.success(()))
+        completion(.failure(NotImplementedError()))
     }
     
     /// Expand the payer info from a payment after being identified, to allow for calculating shipping costs.
@@ -208,7 +231,18 @@ public extension SwedbankPaySDKConfiguration {
         paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         completion: @escaping (Result<Void, Error>) -> Void
     ) -> SwedbankPaySDKRequest? {
-        completion(.success(()))
+        completion(.failure(NotImplementedError()))
+        return nil
+    }
+    
+    func expandOperation<ResultJSON:Decodable>(
+        paymentId: String,
+        expand: [SwedbankPaySDK.ExpandResource],
+        endpoint: String = "expand",
+        completion: @escaping (Result<ResultJSON, Error>) -> Void
+    ) -> SwedbankPaySDKRequest? {
+        
+        completion(.failure(NotImplementedError()))
         return nil
     }
 }

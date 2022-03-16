@@ -116,6 +116,7 @@
 		D50CA69D27D74F1400FC6007 /* BackendOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50CA69C27D74F1400FC6007 /* BackendOperation.swift */; };
 		D50CA69F27D74F6000FC6007 /* AbortPaymentOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50CA69E27D74F6000FC6007 /* AbortPaymentOperation.swift */; };
 		D581EFDF27A92A56001B85A7 /* VersionOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D581EFDE27A92A56001B85A7 /* VersionOptions.swift */; };
+		D5AE5DA027E0D4DA00BE5468 /* ExpandResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5AE5D9F27E0D4DA00BE5468 /* ExpandResource.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -280,6 +281,7 @@
 		D50CA69C27D74F1400FC6007 /* BackendOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendOperation.swift; sourceTree = "<group>"; };
 		D50CA69E27D74F6000FC6007 /* AbortPaymentOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbortPaymentOperation.swift; sourceTree = "<group>"; };
 		D581EFDE27A92A56001B85A7 /* VersionOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionOptions.swift; sourceTree = "<group>"; };
+		D5AE5D9F27E0D4DA00BE5468 /* ExpandResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandResource.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -508,6 +510,7 @@
 				63F5D69E26F0B23600C1F207 /* ConfigurationAsync.swift */,
 				63EECFCF270730C800C37B69 /* CodableUserData.swift */,
 				D581EFDE27A92A56001B85A7 /* VersionOptions.swift */,
+				D5AE5D9F27E0D4DA00BE5468 /* ExpandResource.swift */,
 			);
 			path = "SwedbankPaySDK+Extensions";
 			sourceTree = "<group>";
@@ -917,6 +920,7 @@
 				A5808B05261C942A00FF7EC1 /* SwedbankPayWebViewControllerBase.swift in Sources */,
 				A560BE432420C7CE00C1D023 /* TerminalFailure.swift in Sources */,
 				A5F3416923FD9293005D65BA /* PaymentOrder.swift in Sources */,
+				D5AE5DA027E0D4DA00BE5468 /* ExpandResource.swift in Sources */,
 				C585AF2D237066EE006C2E16 /* SwedbankPaySDKViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

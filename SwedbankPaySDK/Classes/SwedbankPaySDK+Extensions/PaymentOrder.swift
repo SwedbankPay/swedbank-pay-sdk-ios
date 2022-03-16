@@ -79,11 +79,17 @@ public extension SwedbankPaySDK {
         /// The payment instrument to use in instrument mode.
         public var instrument: Instrument?
         
-        /// If `true`, the a recurrence token will be created from this payment order
+        /// If `true`, a recurrence token will be created from this payment order
         ///
         /// The recurrence token should be retrieved by your server from Swedbank Pay.
         /// Your server can then use the token for recurring server-to-server payments.
         public var generateRecurrenceToken: Bool
+        
+        /// If `true`, a unscheduled token will be created from this payment order
+        ///
+        /// The unscheduled token should be retrieved by your server from Swedbank Pay.
+        /// Your server can then use the token for unscheduled server-to-server payments.
+        public var generateUnscheduledToken: Bool
         
         /// If `true`, a payment token will be created from this payment order
         ///
@@ -149,6 +155,7 @@ public extension SwedbankPaySDK {
             language: Language = .English,
             instrument: Instrument? = nil,
             generateRecurrenceToken: Bool = false,
+            generateUnscheduledToken: Bool = false,
             generatePaymentToken: Bool = false,
             disableStoredPaymentDetails: Bool = false,
             restrictedToInstruments: [String]? = nil,
@@ -171,6 +178,7 @@ public extension SwedbankPaySDK {
             self.language = language
             self.instrument = instrument
             self.generateRecurrenceToken = generateRecurrenceToken
+            self.generateUnscheduledToken = generateUnscheduledToken
             self.generatePaymentToken = generatePaymentToken
             self.disableStoredPaymentDetails = disableStoredPaymentDetails
             self.restrictedToInstruments = restrictedToInstruments
@@ -193,7 +201,7 @@ public extension SwedbankPaySDK {
         /// Pre-verification of a payment method. This operation will not charge the payment method,
         /// but it can create a token for future payments.
         ///
-        /// See `PaymentOrder.generateRecurrenceToken`, `PaymentOrder.generatePaymentToken`
+        /// See `PaymentOrder.generateRecurrenceToken`, `PaymentOrder.generateUnscheduledToken`, `PaymentOrder.generatePaymentToken`
         case Verify
     }
     

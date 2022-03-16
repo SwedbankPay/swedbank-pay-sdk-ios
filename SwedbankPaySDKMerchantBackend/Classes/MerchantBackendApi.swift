@@ -119,15 +119,12 @@ struct MerchantBackendApi {
     ) {
         request.responseData(queue: .global(qos: .userInitiated)) { response in
             
-            //if let data = response.data {
-            //    print("response: \(String(data: data, encoding: .utf8)) from: \(response.response?.url)")
-            //}
-            
             let result: Result<T, SwedbankPaySDK.MerchantBackendError>
             do {
                 try self.checkError(response: response)
                 result = .success(try self.parse(response: response))
             } catch let error {
+                
                 let merchantBackendError = error as? SwedbankPaySDK.MerchantBackendError
                     ?? .networkError(error)
                 result = .failure(merchantBackendError)
