@@ -112,6 +112,7 @@
 		C585AF2C237066EE006C2E16 /* SwedbankPaySDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = C585AF27237066EE006C2E16 /* SwedbankPaySDK.swift */; };
 		C585AF2D237066EE006C2E16 /* SwedbankPaySDKViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */; };
 		C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */; };
+		D50C9B4D27E36EBB00FCE33D /* VersionReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50C9B4C27E36EBB00FCE33D /* VersionReporter.swift */; };
 		D50CA69B27D23EE000FC6007 /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50CA69A27D23EE000FC6007 /* Operation.swift */; };
 		D50CA69D27D74F1400FC6007 /* BackendOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50CA69C27D74F1400FC6007 /* BackendOperation.swift */; };
 		D50CA69F27D74F6000FC6007 /* AbortPaymentOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50CA69E27D74F6000FC6007 /* AbortPaymentOperation.swift */; };
@@ -277,6 +278,7 @@
 		C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKViewModel.swift; sourceTree = "<group>"; };
 		C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKController.swift; sourceTree = "<group>"; };
 		C585AF30237066FB006C2E16 /* SwedbankPaySDK.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SwedbankPaySDK.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		D50C9B4C27E36EBB00FCE33D /* VersionReporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VersionReporter.swift; sourceTree = "<group>"; };
 		D50CA69A27D23EE000FC6007 /* Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		D50CA69C27D74F1400FC6007 /* BackendOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendOperation.swift; sourceTree = "<group>"; };
 		D50CA69E27D74F6000FC6007 /* AbortPaymentOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbortPaymentOperation.swift; sourceTree = "<group>"; };
@@ -519,6 +521,7 @@
 			isa = PBXGroup;
 			children = (
 				A504895023C8A2FD00201DEC /* SwedbankPayWebContent.swift */,
+				D50C9B4C27E36EBB00FCE33D /* VersionReporter.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -900,6 +903,7 @@
 				63EECFD0270730C800C37B69 /* CodableUserData.swift in Sources */,
 				A59AEE9D25372C9A00255A3A /* Instrument.swift in Sources */,
 				C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */,
+				D50C9B4D27E36EBB00FCE33D /* VersionReporter.swift in Sources */,
 				63F5D69F26F0B23600C1F207 /* ConfigurationAsync.swift in Sources */,
 				637E94AE2733F5E300879C71 /* SwedbankPaySDKResources.swift in Sources */,
 				C50CF68D237AA3B0003F79DF /* TypeAliases.swift in Sources */,

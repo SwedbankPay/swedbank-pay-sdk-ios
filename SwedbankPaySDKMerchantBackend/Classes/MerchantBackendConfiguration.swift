@@ -141,8 +141,12 @@ public extension SwedbankPaySDK {
                         validateHost: true
                     )
                 }
+                // It's important to tell the backend what SDK-version we are using
+                let configuration = URLSessionConfiguration.default
+                configuration.headers.add(.userAgent(VersionReporter.userAgent))
+                
                 return Session(
-                    configuration: URLSessionConfiguration.default,
+                    configuration: configuration,
                     serverTrustManager: ServerTrustManager(
                         evaluators: pinEvaluators
                     )

@@ -16,11 +16,6 @@
 import Foundation
 
 public extension SwedbankPaySDK {
-    static var defaultUserAgent: String = {
-        let bundle = Bundle(for: SwedbankPaySDK.self)
-        let version = bundle.infoDictionary?["CFBundleShortVersionString"] as? String
-        return "SwedbankPaySDK-iOS/\(version ?? "Unknown")"
-    }()
     
     /// Description of a payment order to be created
     ///
@@ -142,6 +137,7 @@ public extension SwedbankPaySDK {
         /// was generated.
         public var paymentToken: String?
         
+        @available(*, unavailable, message: "Only part of the responce, this can not be set by the client")
         public var initiatingSystemUserAgent: String?
         
         public init(
@@ -151,7 +147,7 @@ public extension SwedbankPaySDK {
             amount: Int64,
             vatAmount: Int64,
             description: String,
-            userAgent: String = defaultUserAgent,
+            userAgent: String = VersionReporter.userAgent,
             language: Language = .English,
             instrument: Instrument? = nil,
             generateRecurrenceToken: Bool = false,
@@ -165,8 +161,7 @@ public extension SwedbankPaySDK {
             orderItems: [OrderItem]? = nil,
             riskIndicator: RiskIndicator? = nil,
             disablePaymentMenu: Bool = false,
-            paymentToken: String? = nil,
-            initiatingSystemUserAgent: String? = nil
+            paymentToken: String? = nil
         ) {
             self.operation = operation
             self.productName = isV3 ? PaymentOrder.checkout3 : nil
@@ -189,7 +184,6 @@ public extension SwedbankPaySDK {
             self.riskIndicator = riskIndicator
             self.disablePaymentMenu = disablePaymentMenu
             self.paymentToken = paymentToken
-            self.initiatingSystemUserAgent = initiatingSystemUserAgent
         }
     }
     
