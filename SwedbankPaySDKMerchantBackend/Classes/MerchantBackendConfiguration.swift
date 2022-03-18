@@ -132,6 +132,11 @@ public extension SwedbankPaySDK {
         }
         
         private static func makeSession(pinPublicKeys: [PinPublicKeys]?) -> Session {
+            
+            // It's important to tell the backend what SDK-version we are using
+            let configuration = URLSessionConfiguration.default
+            configuration.headers.add(.userAgent(VersionReporter.userAgent))
+            
             if let pinPublicKeys = pinPublicKeys, !pinPublicKeys.isEmpty {
                 var pinEvaluators: [String: PublicKeysTrustEvaluator] = [:]
                 for certificate in pinPublicKeys {
@@ -141,9 +146,6 @@ public extension SwedbankPaySDK {
                         validateHost: true
                     )
                 }
-                // It's important to tell the backend what SDK-version we are using
-                let configuration = URLSessionConfiguration.default
-                configuration.headers.add(.userAgent(VersionReporter.userAgent))
                 
                 return Session(
                     configuration: configuration,
@@ -152,7 +154,7 @@ public extension SwedbankPaySDK {
                     )
                 )
             } else {
-                return Session()
+                return Session(configuration: configuration)
             }
         }
         
