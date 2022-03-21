@@ -120,6 +120,19 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
         paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo
     ) async throws
     
+    func expandOperation<ResultJSON:Decodable>(
+        paymentId: String,
+        expand: [SwedbankPaySDK.ExpandResource],
+        endpoint: String
+    ) async throws -> ResultJSON
+    
+    /// Abort payment in response to user actions, to permamently close a payment session.
+    ///
+    func abortPayment(
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        userData: Any?
+    ) async throws
+    
     /// Called by SwedbankPaySDKController when the payment menu is about to navigate
     /// to a different page. Testing has shown that some pages are incompatible with
     /// WKWebView. The SDK contains a list of redirects tested to be working, but you
@@ -153,6 +166,24 @@ public extension SwedbankPaySDKConfigurationAsync {
         paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo
     ) async throws {
         
+        throw NotImplementedError()
+    }
+    
+    func expandOperation<ResultJSON:Decodable>(
+        paymentId: String,
+        expand: [SwedbankPaySDK.ExpandResource],
+        endpoint: String
+    ) async throws -> ResultJSON {
+        
+        throw NotImplementedError()
+    }
+    
+    func abortPayment(
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        userData: Any?
+    ) async throws {
+        
+        throw NotImplementedError()
     }
 }
 
@@ -240,6 +271,26 @@ public extension SwedbankPaySDKConfigurationAsync {
         return bridge(completion) {
             try await expandPayerAfterIdentified(paymentInfo: paymentInfo)
         }
+    }
+    
+    func expandOperation<ResultJSON:Decodable>(
+        paymentId: String,
+        expand: [SwedbankPaySDK.ExpandResource],
+        endpoint: String = "expand",
+        completion: @escaping (Result<ResultJSON, Error>) -> Void
+    ) -> SwedbankPaySDKRequest? {
+        
+        return bridge(completion) {
+            try await expandOperation(paymentId: paymentId, expand: expand, endpoint: endpoint)
+        }
+    }
+    
+    func abortPayment(
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        userData: Any?,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        
     }
     
     func decidePolicyForPaymentMenuRedirect(
