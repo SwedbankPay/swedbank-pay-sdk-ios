@@ -336,7 +336,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         defer {
             waitForResultAndAssertComplete()
         }
-        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
+        try beginPayment(cardNumber: oldScaCardNumber, cvv: scaCvv)
         
         try waitAndAssertExists(
             timeout: scaTimeout,
@@ -359,7 +359,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         try waitUntilShown()
         
-        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
+        try beginPayment(cardNumber: oldScaCardNumber, cvv: scaCvv)
         try waitAndAssertExists(
             timeout: scaTimeout,
             continueButton, "Continue button not found"
