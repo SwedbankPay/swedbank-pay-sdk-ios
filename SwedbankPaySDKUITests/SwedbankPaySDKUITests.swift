@@ -4,7 +4,7 @@ import XCTest
 private let defaultTimeout = 30.0
 private let initialTimeout = 60.0
 private let tapCardOptionTimeout = 10.0
-private let scaTimeout = 120.0
+private let scaTimeout = 30.0
 private let resultTimeout = 180.0
 private let errorResultTimeout = 10.0
 
@@ -13,7 +13,11 @@ private let stateSavingDelay = 5.0
 private let retryableActionMaxAttempts = 5
 
 private let noScaCardNumber = "4581097032723517"
-private let scaCardNumber = "4761739001010416"  // old: "5226612199533406", 3ds2: 4000008000000153, 3ds1: 4547781087013329
+private let scaCardNumber = "4547781087013329"
+private let oldScaCardNumber = "5226612199533406"
+private let scaCardNumber3DS2 = "4000008000000153"
+private let badCardNumber = "4761739001010416"
+
 private let expiryDate = "1233"
 private let noScaCvv = "111"
 private let scaCvv = "123" //268
@@ -396,26 +400,41 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     // allow the compiler to use hard coded values
-    var useSCA: Bool { true }
+    var cardToUse = oldScaCardNumber
     
-    func testGenerateUncheduledToken() throws {
+    func repeatGenerateUncheduledToken() throws {
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testVerifyUnscheduledToken")
         app.launch()
         
         try waitUntilShown()
-        if useSCA {
-            try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
-            try waitAndAssertExists(
-                timeout: scaTimeout,
-                continueButton, "Continue button not found"
-            )
-            retryUntilTrue {
-                continueButton.tap()
-                return messageList.waitForFirst(timeout: resultTimeout) != nil
+        try beginPayment(cardNumber: cardToUse, cvv: scaCvv)
+        try waitAndAssertExists(
+            timeout: scaTimeout,
+            continueButton, "Continue button not found"
+        )
+        retryUntilTrue {
+            continueButton.tap()
+            return messageList.waitForFirst(timeout: resultTimeout) != nil
+        }
+    }
+    
+    func testGenerateUncheduledToken() throws {
+        
+        var success = false
+        for _ in 0...3 {
+            do {
+                try repeatGenerateUncheduledToken()
+                success = true
+                break
+            } catch {
+                print("May be service error, let's try again")
+                //switch card number on the next attempt
+                cardToUse = cardToUse == oldScaCardNumber ? scaCardNumber : oldScaCardNumber
             }
-        } else {
-            try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
+        }
+        if !success {
+            try repeatGenerateUncheduledToken()
         }
         
         //just wait until payment is verified
