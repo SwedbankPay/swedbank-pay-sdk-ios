@@ -132,9 +132,8 @@ final class SwedbankPaySDKViewModel {
     
     /// Payer identified event received
     func handlePayerIdentified() {
-        if let options = versionOptions,
+        if let options = versionOptions, options.contains(.isV3),
             let info = viewPaymentOrderInfo {
-            //Do we need an additional state here?
             //make a call to the SwedbankPaySDKConfiguration to allow it to update the payment order if needed.
             refreshPaymentOrderAfterIdentification(paymentInfo: info, options: options)
         }

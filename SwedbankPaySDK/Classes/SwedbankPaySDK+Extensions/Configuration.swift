@@ -92,17 +92,6 @@ public protocol SwedbankPaySDKConfiguration {
         completion: @escaping (Result<Void, Error>) -> Void
     )
     
-    /// Expand the payer info from a payment after being identified, to allow for calculating shipping costs.
-    /// Note that the default implementation only listens to
-    /// - Parameters:
-    ///   - paymentInfo: The payment order to expand
-    ///   - completion: Supply your own type depending on your backend implementation.
-    /// - Returns: a cancellation handle to the request started by this call
-    func expandPayerAfterIdentified (
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
-        completion: @escaping (Result<Void, Error>) -> Void
-    ) -> SwedbankPaySDKRequest?
-    
     /// Route a general get request towards one of the resources, like /psp/paymentorders<id>/paid
     /// Implement this to create tests or verify statuses with your backend
     /// - Parameters:
@@ -222,11 +211,12 @@ public extension SwedbankPaySDKConfiguration {
     }
     
     /// Expand the payer info from a payment after being identified, to allow for calculating shipping costs.
-    /// Note that the default implementation only listens to
+    /// NOTE: This is not used in PaymentsOnly, and thus kept here only for future reference and not for actual usage (yet).
+    ///
     /// - Parameters:
     ///   - paymentInfo: The payment order to expand
     ///   - completion: Supply your own type depending on your backend implementation.
-    /// - Returns: a cancellation handle to the request started by this call
+    /// - Returns: a cancellation handle to the request started by this
     func expandPayerAfterIdentified (
         paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         completion: @escaping (Result<Void, Error>) -> Void
