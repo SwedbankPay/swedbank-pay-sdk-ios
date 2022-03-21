@@ -8,20 +8,26 @@
 
 import Foundation
 
-extension SwedbankPaySDK {
-public enum ExpandResource: String, Encodable {
-    
-    case orderItems
-    case urls
-    case payeeInfo
-    case payer
-    case history
-    case failed
-    case aborted
-    case paid
-    case cancelled
-    case financialTransactions
-    case failedAttempts
-    case metadata
-}
+public extension SwedbankPaySDK {
+    struct ExpandResource: RawRepresentable, Encodable {
+        public typealias RawValue = String
+        public var rawValue: String
+        
+        public init(rawValue: RawValue) {
+            self.rawValue = rawValue
+        }
+        
+        public static let orderItems = ExpandResource(rawValue: "orderItems")
+        public static let urls = ExpandResource(rawValue: "urls")
+        public static let payeeInfo = ExpandResource(rawValue: "payeeInfo")
+        public static let payer = ExpandResource(rawValue: "payer")
+        public static let history = ExpandResource(rawValue: "history")
+        public static let failed = ExpandResource(rawValue: "failed")
+        public static let aborted = ExpandResource(rawValue: "aborted")
+        public static let paid = ExpandResource(rawValue: "paid")
+        public static let cancelled = ExpandResource(rawValue: "cancelled")
+        public static let financialTransactions = ExpandResource(rawValue: "financialTransactions")
+        public static let failedAttempts = ExpandResource(rawValue: "failedAttempts")
+        public static let metadata = ExpandResource(rawValue: "metadata")
+    }
 }
