@@ -52,6 +52,13 @@ public protocol SwedbankPaySDKRequestDecorator {
         instrument: SwedbankPaySDK.Instrument,
         userData: Any?
     )
+    
+    /// A general method for decorating requests
+    func decorateOperation(
+        request: inout URLRequest,
+        operation: SwedbankPaySDK.OperationRelation,
+        userData: Any?
+    )
 }
 
 public extension SwedbankPaySDKRequestDecorator {
@@ -74,6 +81,12 @@ public extension SwedbankPaySDKRequestDecorator {
     func decoratePaymentOrderSetInstrument(
         request: inout URLRequest,
         instrument: SwedbankPaySDK.Instrument,
+        userData: Any?
+    ) {}
+    
+    func decorateOperation(
+        request: inout URLRequest,
+        operation: SwedbankPaySDK.OperationRelation,
         userData: Any?
     ) {}
 }

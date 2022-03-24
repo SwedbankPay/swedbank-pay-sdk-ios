@@ -19,14 +19,18 @@ class TestMessageList {
     
     func getMessages() -> [TestMessage] {
         return queue.sync {
-            messages
+            let msg = messages
+            messages.removeAll()
+            return msg
         }
     }
     
     func waitForNewMessage(after messages: [TestMessage], timeout: Double) -> [TestMessage] {
         let messages: [TestMessage]? = queue.sync {
             if self.messages != messages {
-                return self.messages
+                let msg = self.messages
+                self.messages.removeAll()
+                return msg
             } else {
                 waiterGroup.enter()
                 waiters += 1

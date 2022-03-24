@@ -23,6 +23,7 @@ private enum OperationRel {
     static let viewConsumerIdentification = "view-consumer-identification"
     static let viewPaymentOrder = "view-paymentorder"
     static let viewPaymentLink = "view-checkout"
+    static let setInstrumentLink = "set-instrument"
 }
 
 private extension Array where Element == SwedbankPaySDK.Operation {
@@ -131,6 +132,11 @@ public extension SwedbankPaySDK {
         }
         
         private static func makeSession(pinPublicKeys: [PinPublicKeys]?) -> Session {
+            
+            // It's important to tell the backend what SDK-version we are using
+            let configuration = URLSessionConfiguration.default
+            configuration.headers.add(.userAgent(VersionReporter.userAgent))
+            
             if let pinPublicKeys = pinPublicKeys, !pinPublicKeys.isEmpty {
                 var pinEvaluators: [String: PublicKeysTrustEvaluator] = [:]
                 for certificate in pinPublicKeys {
@@ -140,14 +146,15 @@ public extension SwedbankPaySDK {
                         validateHost: true
                     )
                 }
+                
                 return Session(
-                    configuration: URLSessionConfiguration.default,
+                    configuration: configuration,
                     serverTrustManager: ServerTrustManager(
                         evaluators: pinEvaluators
                     )
                 )
             } else {
-                return Session()
+                return Session(configuration: configuration)
             }
         }
         
@@ -264,13 +271,30 @@ public extension SwedbankPaySDK {
                         let viewLink = try paymentOrderIn.operations.require(
                             rel: isV3 ? OperationRel.viewPaymentLink : OperationRel.viewPaymentOrder
                         )
-                        let setInstrument = paymentOrderIn.mobileSDK?.setInstrument
-                        let availableInstruments = setInstrument != nil
-                            ? paymentOrderIn.paymentOrder?.availableInstruments
-                            : nil
-                        let instrument = availableInstruments != nil
-                            ? paymentOrderIn.paymentOrder?.instrument
-                            : nil
+                        
+                        //set instrument is a link that we need, how is it constructed?
+                        let instrument: Instrument?
+                        let availableInstruments: [Instrument]?
+                        //setInstrument is always nil in V3
+                        let setInstrument: SetInstrumentLink? = paymentOrderIn.mobileSDK?.setInstrument
+                        if isV3 {
+                            // Instead of building all operations individually, bring them into the linkInfo and build what we need
+                            // but we need instrument, and populate the user info with the set instrument.
+                            availableInstruments = paymentOrderIn.paymentOrder?.availableInstruments
+                            if let currentInstrument = paymentOrder.instrument, availableInstruments?.contains(currentInstrument) ?? false {
+                                instrument = currentInstrument
+                            } else {
+                                instrument = nil
+                            }
+                        } else {
+                            //In v2 it was a special feature only available to some
+                            availableInstruments = setInstrument != nil
+                                ? paymentOrderIn.paymentOrder?.availableInstruments
+                                : nil
+                            instrument = availableInstruments != nil
+                                ? paymentOrderIn.paymentOrder?.instrument
+                                : nil
+                        }
                         
                         let info = ViewPaymentLinkInfo(
                             paymentId: paymentOrderIn.paymentOrder?.id,
@@ -283,7 +307,8 @@ public extension SwedbankPaySDK {
                             termsOfServiceUrl: paymentOrder.urls.termsOfServiceUrl,
                             instrument: instrument,
                             availableInstruments: availableInstruments,
-                            userInfo: setInstrument
+                            userInfo: setInstrument,
+                            operations: paymentOrderIn.operations
                         )
                         completion(.success(info))
                     } catch let error {
@@ -296,17 +321,64 @@ public extension SwedbankPaySDK {
         
         public func updatePaymentOrder(
             paymentOrder: SwedbankPaySDK.PaymentOrder?,
+            options: VersionOptions,
             userData: Any?,
-            viewPaymenLinkInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+            viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
             updateInfo: Any,
             completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>
             ) -> Void
         ) -> SwedbankPaySDKRequest? {
-            guard let instrument = updateInfo as? SwedbankPaySDK.Instrument else {
+            
+            if let instrument = updateInfo as? SwedbankPaySDK.Instrument {
+                return updatePayment(with: instrument, paymentOrder: paymentOrder, options: options, userData: userData, viewPaymentOrderInfo: viewPaymentOrderInfo, completion: completion)
+            }
+            else {
                 fatalError("Invalid updateInfo: \(updateInfo) (expected SwedbankPaySDK.Instrument)")
             }
+        }
+        
+        public func updatePayment(with instrument: SwedbankPaySDK.Instrument,
+            paymentOrder: SwedbankPaySDK.PaymentOrder?,
+            options: VersionOptions,
+            userData: Any?,
+            viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>
+            ) -> Void
+        ) -> SwedbankPaySDKRequest? {
             
-            guard let link = viewPaymenLinkInfo.userInfo as? SetInstrumentLink else {
+            // when using v3 we have setInstrumentLink inside the operations array
+            if options.contains(.isV3),
+                let operation = viewPaymentOrderInfo.operations?.findOperation(rel: .setInstrumentLink),
+                let href = operation.url {
+                
+                return SetInstrumentOperation(href: href).patch(api: api, url: backendUrl.appendingPathComponent("patch"), instrument: instrument, userData: userData) {
+                    do {
+                        let paymentOrderIn = try $0.get()
+                        var newInfo = viewPaymentOrderInfo
+                        if let viewPaymentLink = paymentOrderIn.operations.findOperation(rel: .viewPaymentLink)?.url {
+                            newInfo.viewPaymentLink = viewPaymentLink
+                        }
+                        
+                        if let availableInstruments = paymentOrderIn.paymentOrder?.availableInstruments {
+                            newInfo.availableInstruments = availableInstruments
+                        }
+                        
+                        newInfo.instrument = paymentOrderIn.paymentOrder?.instrument ?? instrument
+                        newInfo.operations = paymentOrderIn.operations
+                        
+                        completion(.success(newInfo))
+                    } catch let error {
+                        if case MerchantBackendError.networkError(AFError.explicitlyCancelled) = error {
+                            // no callback after cancellation
+                        } else {
+                            completion(.failure(error))
+                        }
+                    }
+                }
+            }
+            
+            //in V2 we used userInfo to store the instrumentLink
+            guard let link = viewPaymentOrderInfo.userInfo as? SetInstrumentLink else {
                 completion(.failure(SwedbankPaySDK.MerchantBackendError.paymentNotInInstrumentMode))
                 return nil
             }
@@ -315,15 +387,15 @@ public extension SwedbankPaySDK {
                 do {
                     let paymentOrderIn = try $0.get()
                     
-                    var newInfo = viewPaymenLinkInfo
+                    var newInfo = viewPaymentOrderInfo
                     
                     // supporting v2
-                    if viewPaymenLinkInfo.isV3 == false, let viewPaymentorder = paymentOrderIn.operations.find(
+                    if viewPaymentOrderInfo.isV3 == false, let viewPaymentorder = paymentOrderIn.operations.find(
                         rel: OperationRel.viewPaymentOrder
                     ) {
                         newInfo.viewPaymentLink = viewPaymentorder
                     }
-                    else if viewPaymenLinkInfo.isV3, let viewPaymentLink = paymentOrderIn.operations.find(
+                    else if viewPaymentOrderInfo.isV3, let viewPaymentLink = paymentOrderIn.operations.find(
                         rel: OperationRel.viewPaymentLink
                     ) {
                         // regular v3
@@ -336,8 +408,11 @@ public extension SwedbankPaySDK {
                     
                     newInfo.instrument = paymentOrderIn.paymentOrder?.instrument ?? instrument
                     
+                    //V2 uses a mobileSDK property, but in V3 we get the instrument link from the operation array.
                     if let setInstrument = paymentOrderIn.mobileSDK?.setInstrument {
                         newInfo.userInfo = setInstrument
+                    } else if let instrumentURL = paymentOrderIn.operations.find(rel: OperationRel.setInstrumentLink) {
+                        newInfo.userInfo = SetInstrumentLink(href: instrumentURL)
                     }
                     
                     completion(.success(newInfo))
@@ -350,6 +425,31 @@ public extension SwedbankPaySDK {
                 }
             }
             return request
+        }
+        
+        public func abortPayment(
+            paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+            userData: Any?,
+            completion: @escaping (Result<Void, Error>) -> Void
+        ) {
+            guard let operation = AbortPaymentOperation.create(paymentInfo: paymentInfo) else {
+                completion(.failure(MerchantBackendError.missingRequiredOperation("abort operation is missing from paymentInfo")))
+                return
+            }
+            _ = operation.patch(api: api, url: backendUrl.appendingPathComponent("patch"), userData: userData) { result in
+                do {
+                    
+                    _ = try result.get()
+                    completion(.success(()))
+                } catch let error {
+                    
+                    if case MerchantBackendError.networkError(AFError.explicitlyCancelled) = error {
+                        // no callback after cancellation
+                    } else {
+                        completion(.failure(error))
+                    }
+                }
+            }
         }
         
         /// The configuration can handle any Codable type (you are free to expand it), the basic
@@ -386,7 +486,7 @@ public extension SwedbankPaySDK {
         
         private struct ExpandBody: Encodable {
             let resource: String
-            let expand: String
+            let expand: [ExpandResource]
         }
         
         public func expandPayer<T:Decodable>(
@@ -398,7 +498,7 @@ public extension SwedbankPaySDK {
             var url = configuration.backendUrl
             url.appendPathComponent("expand")
             
-            let body = ExpandBody(resource: paymentOrderId, expand: "payer")
+            let body = ExpandBody(resource: paymentOrderId, expand: [.payer])
             return configuration.api.request(
                 method: .post,
                 url: url,
@@ -415,5 +515,30 @@ public extension SwedbankPaySDK {
                 }
             )
         }
+        
+        public func expandOperation<ResultJSON:Decodable>(
+            paymentId: String,
+            expand: [SwedbankPaySDK.ExpandResource],
+            endpoint: String = "expand",
+            completion: @escaping (Result<ResultJSON, Error>) -> Void
+        ) -> SwedbankPaySDKRequest? {
+            
+            var url = backendUrl
+            url.appendPathComponent(endpoint)
+            
+            let body = ExpandBody(resource: paymentId, expand: expand)
+            return api.request(
+                method: .post,
+                url: url,
+                body: body,
+                decoratorCall: { decorator, request in
+                    // here you can modify the request, add authentication headers, etc.
+                },
+                completion: { result in
+                    completion(result.mapError { $0 as SwedbankPaySDK.MerchantBackendError })
+                }
+            )
+        }
+        
     }
 }

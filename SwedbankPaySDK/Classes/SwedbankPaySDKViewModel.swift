@@ -132,9 +132,8 @@ final class SwedbankPaySDKViewModel {
     
     /// Payer identified event received
     func handlePayerIdentified() {
-        if let options = versionOptions,
+        if let options = versionOptions, options.contains(.isV3),
             let info = viewPaymentOrderInfo {
-            //Do we need an additional state here?
             //make a call to the SwedbankPaySDKConfiguration to allow it to update the payment order if needed.
             refreshPaymentOrderAfterIdentification(paymentInfo: info, options: options)
         }
@@ -162,6 +161,24 @@ final class SwedbankPaySDKViewModel {
             update.state = .canceled
             state = .paying(data, options: options)
         }
+    }
+    
+    func abortPayment() {
+        cancelUpdate()
+        guard let paymentInfo = viewPaymentOrderInfo else {
+            print("Error, missing paymentInfo - cannot cancel nothing")
+            return
+        }
+        
+        configuration.abortPayment(paymentInfo: paymentInfo, userData: userData, completion: { result in
+            DispatchQueue.main.async { [self] in
+                if case .failure(let err) = result {
+                    state = .failed(paymentInfo, err)
+                } else {
+                    state = .canceled(paymentInfo)
+                }
+            }
+        })
     }
     
     func onComplete() {
@@ -364,6 +381,7 @@ private extension SwedbankPaySDKViewModel {
         state = .updatingPaymentOrder(viewPaymentOrderInfo, update, options: options)
         let request = configuration.updatePaymentOrder(
             paymentOrder: paymentOrder,
+            options: options,
             userData: userData,
             viewPaymentOrderInfo: viewPaymentOrderInfo,
             updateInfo: updateInfo

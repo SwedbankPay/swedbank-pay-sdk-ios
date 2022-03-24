@@ -140,6 +140,9 @@ public extension SwedbankPaySDK {
         
         /// Any data you need for the proper functioning of your `SwedbankPaySDKConfiguration`.
         public var userInfo: Any?
+        
+        /// Currently available operations
+        public var operations: [Operation]?
 
         public init(
             paymentId: String? = nil,
@@ -152,7 +155,8 @@ public extension SwedbankPaySDK {
             termsOfServiceUrl: URL?,
             instrument: Instrument? = nil,
             availableInstruments: [Instrument]? = nil,
-            userInfo: Any? = nil
+            userInfo: Any? = nil,
+            operations: [Operation]? = nil
         ) {
             self.paymentId = paymentId
             self.isV3 = isV3
@@ -165,6 +169,7 @@ public extension SwedbankPaySDK {
             self.instrument = instrument
             self.availableInstruments = availableInstruments
             self.userInfo = userInfo
+            self.operations = operations
         }
     }
 }
@@ -183,6 +188,7 @@ extension SwedbankPaySDK.ViewPaymentLinkInfo: Codable {
         case availableInstruments
         case codableUserInfoType
         case userInfo
+        case operations
     }
     
     public init(from decoder: Decoder) throws {
@@ -198,7 +204,8 @@ extension SwedbankPaySDK.ViewPaymentLinkInfo: Codable {
             termsOfServiceUrl: container.decodeIfPresent(URL.self, forKey: .termsOfServiceUrl),
             instrument: container.decodeIfPresent(SwedbankPaySDK.Instrument.self, forKey: .instrument),
             availableInstruments: container.decodeIfPresent([SwedbankPaySDK.Instrument].self, forKey: .availableInstruments),
-            userInfo: container.decodeUserDataIfPresent(codableTypeKey: .codableUserInfoType, valueKey: .userInfo)
+            userInfo: container.decodeUserDataIfPresent(codableTypeKey: .codableUserInfoType, valueKey: .userInfo),
+            operations: container.decodeIfPresent([SwedbankPaySDK.Operation].self, forKey: .operations)
         )
     }
     public func encode(to encoder: Encoder) throws {
@@ -214,5 +221,6 @@ extension SwedbankPaySDK.ViewPaymentLinkInfo: Codable {
         try container.encodeIfPresent(instrument, forKey: .instrument)
         try container.encodeIfPresent(availableInstruments, forKey: .availableInstruments)
         try container.encodeIfPresent(userData: userInfo, codableTypeKey: .codableUserInfoType, valueKey: .userInfo)
+        try container.encodeIfPresent(operations, forKey: .operations)
     }
 }

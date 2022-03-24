@@ -77,22 +77,34 @@ public protocol SwedbankPaySDKConfiguration {
     /// - returns: a cancellation handle to the request started by this call
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
         viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any,
         completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest?
     
-    /// Expand the payer info from a payment after being identified, to allow for calculating shipping costs.
-    /// Note that the default implementation only listens to
-    /// - Parameters:
-    ///   - paymentInfo: The payment order to expand
-    ///   - completion: Supply your own type depending on your backend implementation.
-    /// - Returns: a cancellation handle to the request started by this call
-    func expandPayerAfterIdentified (
+    /// Abort payment in response to user actions, to permamently close a payment session.
+    ///
+    func abortPayment(
         paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        userData: Any?,
         completion: @escaping (Result<Void, Error>) -> Void
-    ) -> SwedbankPaySDKRequest? 
+    )
+    
+    /// Route a general get request towards one of the resources, like /psp/paymentorders<id>/paid
+    /// Implement this to create tests or verify statuses with your backend
+    /// - Parameters:
+    ///   - paymentID: the id of to expand, in this case full path: /psp/paymentorders<id>
+    ///   - expand: the expanded resource to ask for, in this case paid
+    ///   - endpoint: the specialized endpoint to use, in our Merchant Backend example implementation, "expand" is used.
+    /// - Returns: a cancellation handle to the request started by this call
+    func expandOperation<ResultJSON:Decodable>(
+        paymentId: String,
+        expand: [SwedbankPaySDK.ExpandResource],
+        endpoint: String,
+        completion: @escaping (Result<ResultJSON, Error>) -> Void
+    ) -> SwedbankPaySDKRequest?
     
     /// Called by SwedbankPaySDKController when the payment menu is about to navigate
     /// to a different page.
@@ -166,15 +178,61 @@ public protocol SwedbankPaySDKConfiguration {
     func url(_ url: URL, matchesPaymentUrl paymentUrl: URL) -> Bool
 }
 
+public struct NotImplementedError: Error {
+    
+    var description: String {
+        "Not implemented default functions should not be called."
+    }
+}
+
 public extension SwedbankPaySDKConfiguration {
+    
+    
+    
+    // default functions for optional methods
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
+        options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
         viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
         updateInfo: Any,
         completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest? {
         completion(.success(viewPaymentOrderInfo))
+        return nil
+    }
+    
+    func abortPayment(
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        userData: Any?,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        completion(.failure(NotImplementedError()))
+    }
+    
+    /// Expand the payer info from a payment after being identified, to allow for calculating shipping costs.
+    /// NOTE: This is not used in PaymentsOnly, and thus kept here only for future reference and not for actual usage (yet).
+    ///
+    /// - Parameters:
+    ///   - paymentInfo: The payment order to expand
+    ///   - completion: Supply your own type depending on your backend implementation.
+    /// - Returns: a cancellation handle to the request started by this
+    func expandPayerAfterIdentified (
+        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) -> SwedbankPaySDKRequest? {
+        completion(.failure(NotImplementedError()))
+        return nil
+    }
+    
+    func expandOperation<ResultJSON:Decodable>(
+        paymentId: String,
+        expand: [SwedbankPaySDK.ExpandResource],
+        endpoint: String = "expand",
+        completion: @escaping (Result<ResultJSON, Error>) -> Void
+    ) -> SwedbankPaySDKRequest? {
+        
+        completion(.failure(NotImplementedError()))
         return nil
     }
 }

@@ -56,6 +56,8 @@ struct MerchantBackendApi {
         body: B?,
         decoratorCall: @escaping DecoratorCall
     ) throws -> DataRequest {
+        
+        // we should never call out to anything other than the backend, since only our backend has the keys to authenticate with SwedbankPay it is pointless to do so (and likely a programming error)
         guard isDomainWhitelisted(url) else {
             throw SwedbankPaySDK.MerchantBackendError.nonWhitelistedDomain(
                 failingUrl: url
@@ -116,11 +118,13 @@ struct MerchantBackendApi {
         completion: @escaping (Result<T, SwedbankPaySDK.MerchantBackendError>) -> Void
     ) {
         request.responseData(queue: .global(qos: .userInitiated)) { response in
+            
             let result: Result<T, SwedbankPaySDK.MerchantBackendError>
             do {
                 try self.checkError(response: response)
                 result = .success(try self.parse(response: response))
             } catch let error {
+                
                 let merchantBackendError = error as? SwedbankPaySDK.MerchantBackendError
                     ?? .networkError(error)
                 result = .failure(merchantBackendError)

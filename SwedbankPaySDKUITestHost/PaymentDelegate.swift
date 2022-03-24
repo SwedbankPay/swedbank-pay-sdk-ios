@@ -28,4 +28,7 @@ class PaymentDelegate: SwedbankPaySDKDelegate {
     func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo) {
         connection.send(message: .didShow)
     }
+    func instrumentSelected() {
+        connection.send(message: .instrumentSelected)
+    }
 }
