@@ -14,8 +14,8 @@ class ViewModelStateCodingTests: XCTestCase {
         userInfo: ViewModelStateCodingTestsNSCodingUserInfo(payload: "payload")
     )
     
-    private static func makeViewPaymentOrderInfo(userInfo: Any?) -> SwedbankPaySDK.ViewPaymentLinkInfo {
-        return SwedbankPaySDK.ViewPaymentLinkInfo(
+    private static func makeViewPaymentOrderInfo(userInfo: Any?) -> SwedbankPaySDK.ViewPaymentOrderInfo {
+        return SwedbankPaySDK.ViewPaymentOrderInfo(
             isV3: false,
             webViewBaseURL: URL(string: "about:blank")!,
             viewPaymentLink: URL(string: TestConstants.viewPaymentorderLink)!,

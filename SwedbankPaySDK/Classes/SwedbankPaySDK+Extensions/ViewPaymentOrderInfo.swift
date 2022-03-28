@@ -16,7 +16,7 @@
 import Foundation
 
 
-public extension SwedbankPaySDK.ViewPaymentLinkInfo {
+public extension SwedbankPaySDK.ViewPaymentOrderInfo {
     
     /// The `view-paymentorder` link from Swedbank Pay (v2) is now renamed to viewPaymentLink
     @available(*, deprecated, renamed: "viewPaymentLink")
@@ -28,9 +28,6 @@ public extension SwedbankPaySDK.ViewPaymentLinkInfo {
 
 public extension SwedbankPaySDK {
     
-    @available(*, deprecated, renamed: "ViewPaymentLinkInfo")
-    typealias ViewPaymentOrderInfo = ViewPaymentLinkInfo
-    
     /// Data required to show the payment menu.
     ///
     /// If you provide a custom SwedbankPayConfiguration
@@ -38,7 +35,7 @@ public extension SwedbankPaySDK {
     /// and supply a ViewPaymentOrderInfo
     /// in your SwedbankPayConfiguration.postPaymentorders
     /// completion call.
-    struct ViewPaymentLinkInfo {
+    struct ViewPaymentOrderInfo {
         
         /// To refer to the payment and expand its properties we need to store its id.
         public var paymentId: String?
@@ -174,7 +171,7 @@ public extension SwedbankPaySDK {
     }
 }
 
-extension SwedbankPaySDK.ViewPaymentLinkInfo: Codable {
+extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
     private enum CodingKeys: String, CodingKey {
         case paymentId
         case isV3

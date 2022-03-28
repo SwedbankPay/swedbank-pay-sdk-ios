@@ -88,7 +88,7 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
         userData: Any?,
         consumerProfileRef: String?,
         options: SwedbankPaySDK.VersionOptions
-    ) async throws -> SwedbankPaySDK.ViewPaymentLinkInfo
+    ) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo
     
     /// Called by SwedbankPaySDKController when it needs to update the
     /// ongoing payment order.
@@ -108,16 +108,16 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         updateInfo: Any
-    ) async throws -> SwedbankPaySDK.ViewPaymentLinkInfo
+    ) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo
     
     /// Called by SwedbankPaySDKController when it needs to get payer information
     ///
     /// - parameter paymentInfo: the current SwedbankPaySDK.ViewPaymentLinkInfo show to the user
     /// - throws if error, otherwise success
     func expandPayerAfterIdentified(
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo
     ) async throws
     
     func expandOperation<ResultJSON:Decodable>(
@@ -129,7 +129,7 @@ public protocol SwedbankPaySDKConfigurationAsync: SwedbankPaySDKConfiguration {
     /// Abort payment in response to user actions, to permamently close a payment session.
     ///
     func abortPayment(
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         userData: Any?
     ) async throws
     
@@ -156,14 +156,14 @@ public extension SwedbankPaySDKConfigurationAsync {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         updateInfo: Any
-    ) async throws -> SwedbankPaySDK.ViewPaymentLinkInfo {
+    ) async throws -> SwedbankPaySDK.ViewPaymentOrderInfo {
         return viewPaymentOrderInfo
     }
     
     func expandPayerAfterIdentified(
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo
     ) async throws {
         
         throw NotImplementedError()
@@ -179,7 +179,7 @@ public extension SwedbankPaySDKConfigurationAsync {
     }
     
     func abortPayment(
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         userData: Any?
     ) async throws {
         
@@ -244,7 +244,7 @@ public extension SwedbankPaySDKConfigurationAsync {
         userData: Any?,
         consumerProfileRef: String?,
         options: SwedbankPaySDK.VersionOptions,
-        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
     ) {
         bridge(completion) {
             try await postPaymentorders(paymentOrder: paymentOrder, userData: userData, consumerProfileRef: consumerProfileRef, options: options)
@@ -255,9 +255,9 @@ public extension SwedbankPaySDKConfigurationAsync {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         updateInfo: Any,
-        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest {
         return bridge(completion) {
             try await updatePaymentOrder(paymentOrder: paymentOrder, options: options, userData: userData, viewPaymentOrderInfo: viewPaymentOrderInfo, updateInfo: updateInfo)
@@ -265,7 +265,7 @@ public extension SwedbankPaySDKConfigurationAsync {
     }
     
     func expandPayerAfterIdentified(
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         completion: @escaping (Result<Void, Error>) -> Void
     ) -> SwedbankPaySDKRequest? {
         return bridge(completion) {
@@ -286,7 +286,7 @@ public extension SwedbankPaySDKConfigurationAsync {
     }
     
     func abortPayment(
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         userData: Any?,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {

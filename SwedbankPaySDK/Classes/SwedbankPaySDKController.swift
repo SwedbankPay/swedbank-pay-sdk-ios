@@ -26,7 +26,7 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     
     /// Called whenever the payment order is shown in this
     /// view controller's view.
-    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo)
+    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentOrderInfo)
     /// Called when the payment order is no longer visible after being shown.
     /// Usually this happens because the payment order needed to redirect
     /// to a 3D-Secure page.
@@ -69,7 +69,7 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
 public extension SwedbankPaySDKDelegate {
     func shippingAddressIsKnown() {}
     func instrumentSelected() {}
-    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo) {}
+    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentOrderInfo) {}
     func paymentOrderDidHide() {}
     func updatePaymentOrderFailed(
         updateInfo: Any,
@@ -179,7 +179,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     /// Is value is always the most recent value returned from your
     /// `SwedbankPaySDKConfiguration` (currently from either
     /// `postPaymentorders` or `patchUpdatePaymentorderSetinstrument`.
-    public var currentPaymentOrder: SwedbankPaySDK.ViewPaymentLinkInfo? {
+    public var currentPaymentOrder: SwedbankPaySDK.ViewPaymentOrderInfo? {
         return viewModel?.viewPaymentOrderInfo
     }
     
@@ -553,7 +553,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         }
     }
     
-    private func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentLinkInfo, delay: Bool, options: SwedbankPaySDK.VersionOptions) {
+    private func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentOrderInfo, delay: Bool, options: SwedbankPaySDK.VersionOptions) {
         //we use isV3 to select template
         let template = info.isV3 ? SwedbankPayWebContent.paymentTemplateV3 : SwedbankPayWebContent.paymentTemplate
         loadPage(

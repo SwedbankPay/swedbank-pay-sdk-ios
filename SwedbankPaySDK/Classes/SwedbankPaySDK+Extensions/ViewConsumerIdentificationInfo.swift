@@ -20,7 +20,7 @@ public extension SwedbankPaySDK {
     /// To allow switching between v2 and v3 we use an enum to describe how to behave when identifyingConsumer
     enum IdentifyingVersion: Codable {
         case v2(SwedbankPaySDK.ViewConsumerIdentificationInfo)
-        case v3(SwedbankPaySDK.ViewPaymentLinkInfo)
+        case v3(SwedbankPaySDK.ViewPaymentOrderInfo)
     }
     
     /// Data required to show the checkin view.

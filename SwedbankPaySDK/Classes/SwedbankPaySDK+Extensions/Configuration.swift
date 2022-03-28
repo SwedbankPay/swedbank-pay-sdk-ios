@@ -56,7 +56,7 @@ public protocol SwedbankPaySDKConfiguration {
         userData: Any?,
         consumerProfileRef: String?,
         options: SwedbankPaySDK.VersionOptions,
-        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
     )
     
     /// Called by SwedbankPaySDKController when it needs to update the
@@ -79,15 +79,15 @@ public protocol SwedbankPaySDKConfiguration {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         updateInfo: Any,
-        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest?
     
     /// Abort payment in response to user actions, to permamently close a payment session.
     ///
     func abortPayment(
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         userData: Any?,
         completion: @escaping (Result<Void, Error>) -> Void
     )
@@ -194,16 +194,16 @@ public extension SwedbankPaySDKConfiguration {
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         options: SwedbankPaySDK.VersionOptions,
         userData: Any?,
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         updateInfo: Any,
-        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
+        completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
     ) -> SwedbankPaySDKRequest? {
         completion(.success(viewPaymentOrderInfo))
         return nil
     }
     
     func abortPayment(
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         userData: Any?,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
@@ -218,7 +218,7 @@ public extension SwedbankPaySDKConfiguration {
     ///   - completion: Supply your own type depending on your backend implementation.
     /// - Returns: a cancellation handle to the request started by this
     func expandPayerAfterIdentified (
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         completion: @escaping (Result<Void, Error>) -> Void
     ) -> SwedbankPaySDKRequest? {
         completion(.failure(NotImplementedError()))

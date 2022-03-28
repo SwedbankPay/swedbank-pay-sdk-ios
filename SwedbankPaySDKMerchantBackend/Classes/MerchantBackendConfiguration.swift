@@ -239,7 +239,7 @@ public extension SwedbankPaySDK {
             userData: Any?,
             consumerProfileRef: String?,
             options: SwedbankPaySDK.VersionOptions,
-            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>) -> Void
+            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>) -> Void
         ) {
             guard var paymentOrder = paymentOrder else {
                 fatalError("MerchantBackendConfiguration requires use of PaymentOrder")
@@ -296,7 +296,7 @@ public extension SwedbankPaySDK {
                                 : nil
                         }
                         
-                        let info = ViewPaymentLinkInfo(
+                        let info = ViewPaymentOrderInfo(
                             paymentId: paymentOrderIn.paymentOrder?.id,
                             isV3: isV3,
                             webViewBaseURL: paymentOrder.urls.hostUrls.first ?? self.backendUrl,
@@ -323,9 +323,9 @@ public extension SwedbankPaySDK {
             paymentOrder: SwedbankPaySDK.PaymentOrder?,
             options: VersionOptions,
             userData: Any?,
-            viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+            viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
             updateInfo: Any,
-            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>
+            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>
             ) -> Void
         ) -> SwedbankPaySDKRequest? {
             
@@ -341,8 +341,8 @@ public extension SwedbankPaySDK {
             paymentOrder: SwedbankPaySDK.PaymentOrder?,
             options: VersionOptions,
             userData: Any?,
-            viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
-            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>
+            viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
+            completion: @escaping (Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>
             ) -> Void
         ) -> SwedbankPaySDKRequest? {
             
@@ -428,7 +428,7 @@ public extension SwedbankPaySDK {
         }
         
         public func abortPayment(
-            paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+            paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
             userData: Any?,
             completion: @escaping (Result<Void, Error>) -> Void
         ) {
@@ -459,7 +459,7 @@ public extension SwedbankPaySDK {
         /// As you are in control of both the configuration and the update call, you can
         /// coordinate the actual type used here.
         public func expandPayerAfterIdentified(
-            paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+            paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
             completion: @escaping (Result<Void, Error>) -> Void
         ) -> SwedbankPaySDKRequest? {
             

@@ -4,7 +4,8 @@ import XCTest
 private let defaultTimeout = 30.0
 private let initialTimeout = 60.0
 private let tapCardOptionTimeout = 10.0
-private let scaTimeout = 30.0
+private let scaTimeout = 120.0
+private let scaTimeoutShort = 40.0
 private let resultTimeout = 180.0
 private let errorResultTimeout = 10.0
 
@@ -410,7 +411,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitUntilShown()
         try beginPayment(cardNumber: cardToUse, cvv: scaCvv)
         try waitAndAssertExists(
-            timeout: scaTimeout,
+            timeout: scaTimeoutShort,
             continueButton, "Continue button not found"
         )
         retryUntilTrue {

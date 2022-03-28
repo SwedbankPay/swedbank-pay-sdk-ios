@@ -189,7 +189,6 @@ extension SwedbankPayWebContent {
                             checkout: "checkout"
                         },
                         onPayerIdentified: function onPayerIdentified(payerIdentified) {
-                            console.log(payerIdentified);
                             \(PaymentEvent.payerIdentified, "payerIdentified");
                         },
                         onEventNotification: function onEventNotification(eventNotification) {
