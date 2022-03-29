@@ -360,7 +360,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         try waitUntilShown()
         
-        try beginPayment(cardNumber: oldScaCardNumber, cvv: scaCvv)
+        // try this again with oldScaCardNumber if failing? No, if service is down it doesn't matter what we do.
+        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
         try waitAndAssertExists(
             timeout: scaTimeout,
             continueButton, "Continue button not found"
