@@ -4,7 +4,8 @@ import XCTest
 private let defaultTimeout = 30.0
 private let initialTimeout = 60.0
 private let tapCardOptionTimeout = 10.0
-private let scaTimeout = 30.0
+private let scaTimeout = 120.0
+private let scaTimeoutShort = 40.0
 private let resultTimeout = 180.0
 private let errorResultTimeout = 10.0
 
@@ -359,7 +360,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         try waitUntilShown()
         
-        try beginPayment(cardNumber: oldScaCardNumber, cvv: scaCvv)
+        // try this again with oldScaCardNumber if failing? No, if service is down it doesn't matter what we do.
+        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
         try waitAndAssertExists(
             timeout: scaTimeout,
             continueButton, "Continue button not found"
@@ -410,7 +412,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitUntilShown()
         try beginPayment(cardNumber: cardToUse, cvv: scaCvv)
         try waitAndAssertExists(
-            timeout: scaTimeout,
+            timeout: scaTimeoutShort,
             continueButton, "Continue button not found"
         )
         retryUntilTrue {

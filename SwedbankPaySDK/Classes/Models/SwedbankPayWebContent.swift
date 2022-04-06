@@ -184,12 +184,9 @@ extension SwedbankPayWebContent {
                     \(PaymentEvent.onScriptLoaded, "null");
                     var parameters = {
                         container: {
-                            checkinContainer: "checkin-container",
-                            paymentMenuContainer: "payment-menu-container",
                             checkout: "checkout"
                         },
                         onPayerIdentified: function onPayerIdentified(payerIdentified) {
-                            console.log(payerIdentified);
                             \(PaymentEvent.payerIdentified, "payerIdentified");
                         },
                         onEventNotification: function onEventNotification(eventNotification) {
@@ -210,14 +207,13 @@ extension SwedbankPayWebContent {
                     if (style) {
                         parameters.style = style;
                     }
-                    window.payex.hostedView.checkout(parameters).open("checkin");
+                    window.payex.hostedView.checkout(parameters).open("checkout");
                 }
 
             </script>
         </head>
         <body>
             <div id="checkout" />
-            
             <script src="\(TemplateComponent.scriptUrl)"></script>
         </body>
     </html>

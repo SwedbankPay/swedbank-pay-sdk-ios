@@ -30,7 +30,7 @@ final class SwedbankPaySDKViewModel {
     let paymentOrder: SwedbankPaySDK.PaymentOrder?
     let userData: Any?
     
-    var viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo? {
+    var viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo? {
         switch state {
             case .idle:
                 return nil
@@ -214,12 +214,12 @@ final class SwedbankPaySDKViewModel {
         case initializingConsumerSession(options: SwedbankPaySDK.VersionOptions)
         case identifyingConsumer(SwedbankPaySDK.IdentifyingVersion, options: SwedbankPaySDK.VersionOptions)
         case creatingPaymentOrder(String?, options: SwedbankPaySDK.VersionOptions)
-        case paying(SwedbankPaySDK.ViewPaymentLinkInfo, options: SwedbankPaySDK.VersionOptions, failedUpdate: (updateInfo: Any, error: Error)? = nil)
-        case payerIdentification(SwedbankPaySDK.ViewPaymentLinkInfo, options: SwedbankPaySDK.VersionOptions, state: IdentificationState, error: Error? = nil)
-        case updatingPaymentOrder(SwedbankPaySDK.ViewPaymentLinkInfo, Update, options: SwedbankPaySDK.VersionOptions)
-        case complete(SwedbankPaySDK.ViewPaymentLinkInfo?)
-        case canceled(SwedbankPaySDK.ViewPaymentLinkInfo?)
-        case failed(SwedbankPaySDK.ViewPaymentLinkInfo?, Error)
+        case paying(SwedbankPaySDK.ViewPaymentOrderInfo, options: SwedbankPaySDK.VersionOptions, failedUpdate: (updateInfo: Any, error: Error)? = nil)
+        case payerIdentification(SwedbankPaySDK.ViewPaymentOrderInfo, options: SwedbankPaySDK.VersionOptions, state: IdentificationState, error: Error? = nil)
+        case updatingPaymentOrder(SwedbankPaySDK.ViewPaymentOrderInfo, Update, options: SwedbankPaySDK.VersionOptions)
+        case complete(SwedbankPaySDK.ViewPaymentOrderInfo?)
+        case canceled(SwedbankPaySDK.ViewPaymentOrderInfo?)
+        case failed(SwedbankPaySDK.ViewPaymentOrderInfo?, Error)
     }
 }
 
@@ -292,7 +292,7 @@ private extension SwedbankPaySDKViewModel {
     }
     
     private func handlePostPaymentOrdersResult(
-        result: Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>
+        result: Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>
     ) {
         if case .creatingPaymentOrder(_, options: let options) = state {
             switch result {
@@ -319,7 +319,7 @@ private extension SwedbankPaySDKViewModel {
 private extension SwedbankPaySDKViewModel {
     
     private func refreshPaymentOrderAfterIdentification(
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         options: SwedbankPaySDK.VersionOptions,
         fromAwakeAfterDecode: Bool = false
     ) {
@@ -345,7 +345,7 @@ private extension SwedbankPaySDKViewModel {
     }
     
     private func handleExpandPayer(
-        info: SwedbankPaySDK.ViewPaymentLinkInfo,
+        info: SwedbankPaySDK.ViewPaymentOrderInfo,
         options: SwedbankPaySDK.VersionOptions,
         result: Result<Void, Error>
     ) {
@@ -366,7 +366,7 @@ private extension SwedbankPaySDKViewModel {
     }
     
     private func updatePaymentOrder(
-        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentLinkInfo,
+        viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         updateInfo: Any,
         options: SwedbankPaySDK.VersionOptions
     ) {
@@ -403,7 +403,7 @@ private extension SwedbankPaySDKViewModel {
     private func handleUpdatePaymentOrderResult(
         update: Update,
         updateInfo: Any,
-        result: Result<SwedbankPaySDK.ViewPaymentLinkInfo, Error>
+        result: Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>
     ) {
         if case .active = update.state {
             switch state {
@@ -464,23 +464,23 @@ extension SwedbankPaySDKViewModel.State: Codable {
                 let options = try container.decode(SwedbankPaySDK.VersionOptions.self, forKey: .options)
                 self = .creatingPaymentOrder(consumerProfileRef, options: options)
             case .paying:
-                let info = try container.decode(SwedbankPaySDK.ViewPaymentLinkInfo.self, forKey: .info)
+                let info = try container.decode(SwedbankPaySDK.ViewPaymentOrderInfo.self, forKey: .info)
                 let options = try container.decode(SwedbankPaySDK.VersionOptions.self, forKey: .options)
                 self = .paying(info, options: options)
             case .payerIdentification:
-                let info = try container.decode(SwedbankPaySDK.ViewPaymentLinkInfo.self, forKey: .info)
+                let info = try container.decode(SwedbankPaySDK.ViewPaymentOrderInfo.self, forKey: .info)
                 let options = try container.decode(SwedbankPaySDK.VersionOptions.self, forKey: .options)
                 let state = try container.decode(SwedbankPaySDKViewModel.IdentificationState.self, forKey: .identificationState)
                 let error = try container.decodeErrorIfPresent(codableTypeKey: .codableErrorType, valueKey: .error)
                 self = .payerIdentification(info, options: options, state: state, error: error)
             case .complete:
-                let info = try container.decodeIfPresent(SwedbankPaySDK.ViewPaymentLinkInfo.self, forKey: .info)
+                let info = try container.decodeIfPresent(SwedbankPaySDK.ViewPaymentOrderInfo.self, forKey: .info)
                 self = .complete(info)
             case .canceled:
-                let info = try container.decodeIfPresent(SwedbankPaySDK.ViewPaymentLinkInfo.self, forKey: .info)
+                let info = try container.decodeIfPresent(SwedbankPaySDK.ViewPaymentOrderInfo.self, forKey: .info)
                 self = .canceled(info)
             case .failed:
-                let info = try container.decodeIfPresent(SwedbankPaySDK.ViewPaymentLinkInfo.self, forKey: .info)
+                let info = try container.decodeIfPresent(SwedbankPaySDK.ViewPaymentOrderInfo.self, forKey: .info)
                 let error = try container.decodeErrorIfPresent(codableTypeKey: .codableErrorType, valueKey: .error)
                 self = .failed(info, error ?? SwedbankPaySDKController.StateRestorationError.unknown)
         }

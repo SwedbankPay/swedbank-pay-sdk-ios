@@ -29,7 +29,7 @@ public extension SwedbankPaySDK {
         /// The operation to perform
         public var operation: PaymentOrderOperation
         
-        /// Whether to use v3 or v2, it must contain "Checkout3"
+        /// To use v3 instead of v2, it must contain "Checkout3"
         public var productName: String?
         
         /// Shortcut to know if this is v3 or not

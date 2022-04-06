@@ -15,7 +15,7 @@ struct AbortPaymentOperation: BackendOperation {
     let href: URL
     
     static func create(
-        paymentInfo: SwedbankPaySDK.ViewPaymentLinkInfo
+        paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo
     ) -> AbortPaymentOperation? {
         
         guard let operation = paymentInfo.operations?.findOperation(rel: .abort),

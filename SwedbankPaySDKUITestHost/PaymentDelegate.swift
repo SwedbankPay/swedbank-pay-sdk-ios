@@ -25,7 +25,7 @@ class PaymentDelegate: SwedbankPaySDKDelegate {
     func paymentFailed(error: Error) {
         connection.send(message: .error(errorMessage: "\(error)"))
     }
-    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentLinkInfo) {
+    func paymentOrderDidShow(info: SwedbankPaySDK.ViewPaymentOrderInfo) {
         connection.send(message: .didShow)
     }
     func instrumentSelected() {
