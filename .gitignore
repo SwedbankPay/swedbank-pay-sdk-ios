@@ -5,6 +5,7 @@
 **/*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 **/*.xcworkspace/xcshareddata/*.xccheckout
 **/*.xcworkspace/xcshareddata/*.xcscmblueprint
+Package.resolved
 .idea/
 
 # Xcode Injection
