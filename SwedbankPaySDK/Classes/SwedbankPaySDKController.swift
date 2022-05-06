@@ -555,7 +555,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     
     private func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentOrderInfo, delay: Bool, options: SwedbankPaySDK.VersionOptions) {
         //we use isV3 to select template
-        let template = info.isV3 ? SwedbankPayWebContent.paymentTemplateV3 : SwedbankPayWebContent.paymentTemplate
+        let template = info.isV3 == true ? SwedbankPayWebContent.paymentTemplateV3 : SwedbankPayWebContent.paymentTemplate
         loadPage(
             baseURL: info.webViewBaseURL,
             template: template,

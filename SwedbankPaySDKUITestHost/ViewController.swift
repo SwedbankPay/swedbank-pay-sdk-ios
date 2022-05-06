@@ -55,6 +55,21 @@ class ViewController: UINavigationController {
                     
                     self.testExpandTokens(viewController)
                 }
+            } else if CommandLine.arguments.contains("-testOneClickPayments") {
+                
+                print("starting with unique ref: \(payerRef)")  //971C77AD-BFF2-4137-8929-0DFB223832B3
+                
+                payment.operation = .Verify
+                payment.generatePaymentToken = true
+                payment.payer = .init(consumerProfileRef: nil, payerReference: payerRef)
+                createTestButton(viewController) {
+                    
+                    self.testExpandOneClickTokens(viewController)
+                }
+            } else if CommandLine.arguments.contains("-debugOneClick") {
+                
+                payerRef = "A3EB2265-A6EF-4E44-BED8-50E5D6B764AC"
+                expandOneClick("/psp/paymentorders/fd1b96f0-07ff-4b96-5c8e-08da2771f05d", viewController.configuration)
             }
             
             viewController.startPayment(paymentOrder: payment)
@@ -67,6 +82,11 @@ class ViewController: UINavigationController {
     }
     
     // MARK: - test helpers
+    
+    struct PaymentTokenResponse: Codable {
+        var recurrence: Bool?
+        var unscheduled: Bool?
+    }
     
     private func testExpandTokens(_ viewController: SwedbankPaySDKController) {
         
@@ -91,11 +111,70 @@ class ViewController: UINavigationController {
         }
     }
     
-    struct PaymentTokenResponse: Codable {
-        var recurrence: Bool?
-        var unscheduled: Bool?
+    // MARK: one-click tokens
+    
+    var payerRef = UUID.init().uuidString
+    struct ExpandResponse: Codable {
+        var paymentOrder: ExpandPaymentOrder
+    }
+    struct ExpandPaymentOrder: Codable {
+        var paid: ExpandPaid?
+    }
+    struct ExpandPaid: Codable {
+        var payeeReference: String
+        var tokens: [ExpandTokens]
+    }
+    struct ExpandTokens: Codable {
+        var token: String
     }
     
+    private func testExpandOneClickTokens(_ viewController: SwedbankPaySDKController) {
+        
+        guard let order = viewController.currentPaymentOrder, let paymentId = order.paymentId else {
+            paymentDelegate?.paymentFailed(error: "No payment id found: \(String(describing: viewController.currentPaymentOrder))")
+            return
+        }
+        expandOneClick(paymentId, viewController.configuration)
+    }
+    
+    private func expandOneClick(_ paymentId: String, _ configuration: SwedbankPaySDKConfiguration) {
+        _ = configuration.expandOperation(paymentId: paymentId, expand: [.paid], endpoint: "expand") { [self] (result: Result<ExpandResponse, Error>) in
+            switch result {
+                case .success(let success):
+                    if let token = success.paymentOrder.paid?.tokens.first?.token {
+                        
+                        //now redo the purchase with this token!
+                        var payment = testPaymentOrder
+                        payment.paymentToken = token
+                        payment.payer = .init(consumerProfileRef: nil, payerReference: payerRef)
+                        redoPurchaseFlow(payment)
+                        
+                    } else {
+                        paymentDelegate?.paymentFailed(error: "No token created, \(String(describing: success))")
+                    }
+                case .failure(let failure):
+                    print(failure)
+                    
+                    if case SwedbankPaySDK.MerchantBackendError.problem(.server(.unexpectedContent(_, _, let body))) = failure, let body = body {
+                        
+                        //JSON format miss-match
+                        print("could not build data of JSON: \(String(data: body, encoding: .utf8)!)")
+                    }
+                
+                    paymentDelegate?.paymentFailed(error: failure)
+            }
+        }
+    }
+    
+    private func redoPurchaseFlow(_ payment: SwedbankPaySDK.PaymentOrder) {
+        let viewController = SwedbankPaySDKController()
+        DispatchQueue.main.async {
+            self.pushViewController(viewController, animated: true)
+        }
+        viewController.delegate = paymentDelegate
+        viewController.startPayment(paymentOrder: payment)
+    }
+
     private func createTestButton(_ viewController: UIViewController, _ action: @escaping () -> Void) {
         let action = UIAction { _ in action() }
         let button = UIBarButtonItem(title: "Test change", image: nil, primaryAction: action)
