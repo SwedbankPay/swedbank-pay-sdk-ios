@@ -10,7 +10,7 @@ Before diving into advanced features you should have a working app and backend, 
 
 Returning customers are the best customers, and it is really easy to improve the experience by auto-filling the payment details. All you have to do is to supply a unique identifier in the payerReference property of the payer, and set generatePaymentToken to true. Supply these in the paymentOrder when starting a new payment. 
 
-```
+``` JSON
 {
   "paymentorder": {
     "generatePaymentToken": true,
@@ -32,7 +32,7 @@ Read more on [expanding properties here][expanding_properties].
 
 Create the next payment order with the token like this:
 
-```
+``` JSON
 {
   "paymentorder": {
     "paymentToken": token-string-value
@@ -91,10 +91,11 @@ Then, to make an unscheduled purchase you simply add the unscheduledToken, or th
 
 More info on [unscheduled purchases][unscheduled].
 
-More info on[recurring purchases][recur].
+More info on [recurring purchases][recur].
 
 
 [readme]: ./README.md
+[opengraph-image]:      https://repository-images.githubusercontent.com/209730241/aa264700-6d3d-11eb-99e1-0b40a9bb19be
 [example-app]: https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app
 [one-click-payments]: https://developer.swedbankpay.com/checkout-v3/payments-only/features/optional/one-click-payments
 [expanding_properties]: https://developer.swedbankpay.com/introduction#expansion
