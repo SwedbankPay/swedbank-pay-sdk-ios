@@ -456,6 +456,60 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
     }
     
+    // rebuild every test to re-try them a few times
+    func testOneClickPaymentsV3() throws {
+        for _ in 0..<2 {
+            do {
+                try runOneClickPaymentsV3()
+                print("it worked!")
+                return
+            } catch {
+                print("did not work \(error.localizedDescription)")
+            }
+        }
+        //if we are still here
+        try runOneClickPaymentsV3()
+    }
+    
+    func runOneClickPaymentsV3() throws {
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testOneClickPayments")
+        
+        app.launch()
+        
+        try waitUntilShown()
+        try beginPayment(cardNumber: cardToUse, cvv: scaCvv)
+        try waitAndAssertExists(
+            timeout: scaTimeoutShort,
+            continueButton, "Continue button not found"
+        )
+        retryUntilTrue {
+            continueButton.tap()
+            return messageList.waitForFirst(timeout: resultTimeout) != nil
+        }
+        
+        print("Now wait for the next payment")
+        //just wait until payment is verified
+        waitFor(.complete, timeout: resultTimeout)
+        //complete-message comes before transmission is done...
+        sleep(1)
+        
+        testMenuButton.tap()
+        
+        //wait until we have a token and have started a new purchase flow
+        try waitUntilShown()
+        
+        //now it should only show us the purchase button and card-info snippet.
+        try waitAndAssertExists(timeout: resultTimeout, payButton, "payButton not found")
+        payButton.tap()
+        try waitAndAssertExists(timeout: defaultTimeout, continueButton, "Can't find continue button")
+        
+        retryUntilTrue {
+            continueButton.tap()
+            return messageList.waitForFirst(timeout: resultTimeout) != nil
+        }
+    }
+    
     private func restartAndRestoreState() {
         XCUIDevice.shared.press(.home)
         Thread.sleep(forTimeInterval: stateSavingDelay)
@@ -586,6 +640,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         restartAndRestoreState()
     }
+    
+    
     /* V3 has no checkin - so wait with this
     /// Check that a V3 payment with the new checkin gets the info
     func testV3PaymentWithCheckin() throws {

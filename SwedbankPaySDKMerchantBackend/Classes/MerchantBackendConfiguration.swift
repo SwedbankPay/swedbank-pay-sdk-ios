@@ -395,7 +395,7 @@ public extension SwedbankPaySDK {
                     ) {
                         newInfo.viewPaymentLink = viewPaymentorder
                     }
-                    else if viewPaymentOrderInfo.isV3, let viewPaymentLink = paymentOrderIn.operations.find(
+                    else if viewPaymentOrderInfo.isV3 == true, let viewPaymentLink = paymentOrderIn.operations.find(
                         rel: OperationRel.viewPaymentLink
                     ) {
                         // regular v3
