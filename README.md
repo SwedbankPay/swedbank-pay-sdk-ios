@@ -68,24 +68,24 @@ Instead of just talking about it we have provided you with an example app, showi
 
 [iOS Example app][example-app]
 
-### SwedbankPaySDKConfiguration details
+### 1. SwedbankPaySDKConfiguration details
 
 Using the MerchantBackendConfiguration you only need to provide the URL for your backend and header values for api key and an access token. Have a look at the configuration variable in [PaymentViewModel.swift][PaymentViewModelConfig] in the example app for a reference.
 
-The SDK will then communicate with your backend, expecting the same API as our example backends. You don't have to provide all of them, making payments only require /paymentorders, but you will want to support /tokens and /patch soon as well. To get started you can look at our [backend example implementations][merchant_backend] which provides a complete set of functionality and describes in a very clear and easy manner how requests can be handled.
+The SDK will then communicate with your backend, expecting the same API as our example backends. You don't have to provide all of the API, making payments only require /paymentorders, but you will want to support /tokens and /patch soon as well. To get started you can look at our [backend example implementations][merchant_backend] which provides a complete set of functionality and describes in a very clear and easy manner how requests can be handled.
 
 Using the [Merchant example backend][merchant_backend] you can setup (for example) a Node.js backend and have it serve a client in debug-mode while integrating the app. Remember to supply your api-key and other values in the appconfig.json file in order for requests to work properly.
 
-### PaymentOrder details
+### 2. PaymentOrder details
 
 In PaymentViewModel.swift there is a [paymentOrder property][PaymentViewModelOrderVar] that describes how we create it. PaymentOrders have default values for properties that can, so that you only need to supply values for what the customer intends to purchase, or for to access advanced functionality.
 
-### Presenting the payment menu
+### 3. Presenting the payment menu
 
 The last step is to just create an instance of the SwedbankPaySDKController and present it to the user. In the example app we add it as a sub view controller, but it could be managed in any other way, see [PaymentViewController.swift][PaymentViewControllerDidLoad] for details.
 
 
-### SwedbankPaySDKDelegate
+### 4. SwedbankPaySDKDelegate
 
 The delegate pattern is well known and widely used in the iOS community. Implement the delegate callbacks you are interested in to get notified of the state of the purchase. Typically you would need at least to know when payments succeed, is canceled or fail, but there are a few more callbacks to your disposal. See [the SwedbankPaySDKDelegate protocol][SwedbankPaySDKDelegate], or [the example app implementation][SwedbankPaySDKDelegateExampleApp] for more details.
 
