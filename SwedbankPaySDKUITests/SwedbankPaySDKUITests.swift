@@ -456,8 +456,22 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
     }
     
-    
+    // rebuild every test to re-try them a few times
     func testOneClickPaymentsV3() throws {
+        for _ in 0..<2 {
+            do {
+                try runOneClickPaymentsV3()
+                print("it worked!")
+                return
+            } catch {
+                print("did not work \(error.localizedDescription)")
+            }
+        }
+        //if we are still here
+        try runOneClickPaymentsV3()
+    }
+    
+    func runOneClickPaymentsV3() throws {
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testOneClickPayments")
         
@@ -486,8 +500,9 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitUntilShown()
         
         //now it should only show us the purchase button and card-info snippet.
-        try waitAndAssertExists(timeout: initialTimeout, payButton, "payButton not found")
+        try waitAndAssertExists(timeout: resultTimeout, payButton, "payButton not found")
         payButton.tap()
+        try waitAndAssertExists(timeout: defaultTimeout, continueButton, "Can't find continue button")
         
         retryUntilTrue {
             continueButton.tap()
