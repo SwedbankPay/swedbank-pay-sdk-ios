@@ -7,7 +7,6 @@
 [![Cocoapods platforms][pod-platforms-badge]][pod]
 [![CLA assistant][cla-badge]][cla]
 [![License][license-badge]][license]
-[![Dependabot Status][dependabot-badge]][dependabot]
 [![Contributor Covenant][coc-badge]][coc]
 
 The Swedbank Pay iOS SDK facilitates the implementation of the
@@ -44,10 +43,10 @@ pods for the two components, named  `SwedbankPaySDK` and
 Add the relevant dependencies in your `Podfile`:
 
 ```ruby
-pod 'SwedbankPaySDK', '~> 2.1'
+pod 'SwedbankPaySDK', '~> 3.0'
 ```
 ```ruby
-pod 'SwedbankPaySDKMerchantBackend', '~> 2.1'
+pod 'SwedbankPaySDKMerchantBackend', '~> 3.0'
 ```
 
 ## Usage
@@ -55,6 +54,48 @@ pod 'SwedbankPaySDKMerchantBackend', '~> 2.1'
 Please refer to the [Developer Portal][dev-portal-sdk] for usage instructions.
 
 To explore a working app using the SDK, see the [Example Project][example-app].
+
+## Walkthrough / integration into an existing app
+
+To start making payments you need four things:
+
+1. A SwedbankPaySDKConfiguration object that describes how to communicate with your backend. To get started quickly a default implementation is provided, called MerchantBackendConfiguration.
+2. A paymentOrder that describes what to purchase, the cost, currency and similar information.
+3. Give that paymentOrder to an instance of a SwedbankPaySDKController and present it in your view hierarchy.
+4. Implement the SwedbankPaySDKDelegate callbacks and wait for payment to succeed or fail.
+
+Instead of just talking about it we have provided you with an example app, showing you in detail how integration can be done. Use that as a reference when building your own solution:
+
+[iOS Example app][example-app]
+
+### SwedbankPaySDKConfiguration details
+
+Using the MerchantBackendConfiguration you only need to provide the URL for your backend and header values for api key and an access token. Have a look at the configuration variable in [PaymentViewModel.swift][PaymentViewModelConfig] in the example app for a reference.
+
+The SDK will then communicate with your backend, expecting the same API as our example backends. You don't have to provide all of them, making payments only require /paymentorders, but you will want to support /tokens and /patch soon as well. To get started you can look at our [backend example implementations][merchant_backend] which provides a complete set of functionality and describes in a very clear and easy manner how requests can be handled.
+
+Using the [Merchant example backend][merchant_backend] you can setup (for example) a Node.js backend and have it serve a client in debug-mode while integrating the app. Remember to supply your api-key and other values in the appconfig.json file in order for requests to work properly.
+
+### PaymentOrder details
+
+In PaymentViewModel.swift there is a [paymentOrder property][PaymentViewModelOrderVar] that describes how we create it. PaymentOrders have default values for properties that can, so that you only need to supply values for what the customer intends to purchase, or for to access advanced functionality.
+
+### Presenting the payment menu
+
+The last step is to just create an instance of the SwedbankPaySDKController and present it to the user. In the example app we add it as a sub view controller, but it could be managed in any other way, see [PaymentViewController.swift][PaymentViewControllerDidLoad] for details.
+
+
+### SwedbankPaySDKDelegate
+
+The delegate pattern is well known and widely used in the iOS community. Implement the delegate callbacks you are interested in to get notified of the state of the purchase. Typically you would need at least to know when payments succeed, is canceled or fail, but there are a few more callbacks to your disposal. See [the SwedbankPaySDKDelegate protocol][SwedbankPaySDKDelegate], or [the example app implementation][SwedbankPaySDKDelegateExampleApp] for more details.
+
+
+### Integration conclusions
+
+This is all you need to get started and accepting payments, the next step is to let your customers save their card details, or to create purchase tokens for subscriptions or tokens for charges at a later stage. Depending on your specific use case.
+
+Continue reading the [integrate tokens walkthrough][integrateTokens] for a continued discussion on payment tokens. These features are also well documented in [swedbank pay's developer portal][optionalFeatures].
+
 
 ## Contributing
 
@@ -89,3 +130,12 @@ agreement][cla].
 [pod-platforms-badge]:  https://img.shields.io/cocoapods/p/SwedbankPaySDK
 [pod]:                  https://cocoapods.org/pods/SwedbankPaySDK
 [test-badge]:           https://github.com/SwedbankPay/swedbank-pay-sdk-ios/workflows/Test/badge.svg
+
+[merchant_backend]: https://github.com/SwedbankPay/swedbank-pay-sdk-mobile-example-merchant
+[PaymentViewModelConfig]: https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app/blob/main/Example-app/ViewModels/PaymentViewModel.swift#:~:text=var%20configuration:
+[PaymentViewModelOrderVar]: https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app/blob/main/Example-app/ViewModels/PaymentViewModel.swift#:~:text=var%20paymentOrder:
+[PaymentViewControllerDidLoad]: https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app/blob/main/Example-app/ViewControllers/PaymentViewController.swift#:~:text=func%20viewDidAppear
+[SwedbankPaySDKDelegate]: https://github.com/SwedbankPay/swedbank-pay-sdk-ios/blob/main/SwedbankPaySDK/Classes/SwedbankPaySDKController.swift#:~:text=protocol%20SwedbankPaySDKDelegate
+[SwedbankPaySDKDelegateExampleApp]: https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app/blob/main/Example-app/ViewControllers/PaymentViewController.swift#:~:text=extension%20PaymentViewController:%20SwedbankPaySDKDelegate
+[integrateTokens]: ./integrateTokens.md
+[optionalFeatures]: https://developer.swedbankpay.com/checkout-v3/payments-only/features/optional
