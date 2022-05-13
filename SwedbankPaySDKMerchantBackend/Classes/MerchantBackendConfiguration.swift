@@ -29,7 +29,8 @@ private enum OperationRel {
 private extension Array where Element == SwedbankPaySDK.Operation {
     func find(rel: String) -> URL? {
         let operation = first { $0.rel == rel }
-        let href = (operation?.href).flatMap(URL.init(string:))
+        let href = (operation?.href?.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed)).flatMap(URL.init(string:))
+        
         return href
     }
     
