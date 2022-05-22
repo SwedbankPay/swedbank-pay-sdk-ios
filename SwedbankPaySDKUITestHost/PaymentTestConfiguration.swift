@@ -20,8 +20,14 @@ let paymentTestConfigurationEnterprise = SwedbankPaySDK.MerchantBackendConfigura
     ]
 )
 
-let paymentTestConfigurations = [paymentTestConfigurationEnterprise, paymentTestConfigurationPaymentsOnly]
-var currentConfig = paymentTestConfigurations[0]
+enum TestConfigurations: String {
+    case enterprise
+    case paymentsOnly
+}
+var activeConfig: TestConfigurations = .paymentsOnly
+
+let paymentTestConfigurations: [TestConfigurations: SwedbankPaySDK.MerchantBackendConfiguration] = [.enterprise: paymentTestConfigurationEnterprise, .paymentsOnly: paymentTestConfigurationPaymentsOnly]
+var currentConfig = paymentTestConfigurationPaymentsOnly
 
 let testPaymentOrder = SwedbankPaySDK.PaymentOrder(
     currency: "SEK",

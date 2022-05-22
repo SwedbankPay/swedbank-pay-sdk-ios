@@ -343,12 +343,13 @@ public extension SwedbankPaySDK {
         /// Set to true for merchants who only sell digital goods and only require email and/or msisdn as shipping details. Set to false if the merchant also sells physical goods.
         public var digitalProducts: Bool?
         
+        /// Using the enterprise implementation a merchant can supply SSN to identify a payer which will allow a more frictionless payment process.
+        public var nationalIdentifier: PayerNationalIdentifier?
+        
         /// List of supported shipping countries for merchant. Using [ISO-3166] standard, e.g: [ "NO", "US", "SE" ]
         public var shippingAddressRestrictedToCountryCodes: [String]?
         
-        // NOTE: All below is V2 only and will be removed
-        
-        /// A consumer profile reference obtained through the Checkin flow. Note that everything regarding V2 will be removed.
+        /// A consumer profile reference obtained through the Checkin flow. Used only for V2 and will be removed.
         ///
         /// If you have your `SwedbankPaySDKController` to do the Checkin flow, your
         /// `SwedbankPaySDKConfiguration.postPaymentorders` will be called with
@@ -390,6 +391,18 @@ public extension SwedbankPaySDK {
             self.email = email
             self.msisdn = msisdn
             self.payerReference = payerReference
+            nationalIdentifier = nil
+        }
+        
+        public init(
+            nationalIdentifier: PayerNationalIdentifier,
+            payerReference: String? = nil
+        ) {
+            self.consumerProfileRef = nil
+            self.email = nil
+            self.msisdn = nil
+            self.payerReference = payerReference
+            self.nationalIdentifier = nationalIdentifier
         }
         
         public init(
@@ -402,8 +415,22 @@ public extension SwedbankPaySDK {
             self.requireConsumerInfo = requireConsumerInfo
             self.digitalProducts = digitalProducts
             self.shippingAddressRestrictedToCountryCodes = shippingAddressRestrictedToCountryCodes
+            nationalIdentifier = nil
             self.payerReference = payerReference
         }
+    }
+    
+    /// National specific identifiers for the payer element of a `PaymentOrder`.
+    struct PayerNationalIdentifier: Codable, Equatable {
+        public init(socialSecurityNumber: String, countryCode: String) {
+            self.socialSecurityNumber = socialSecurityNumber
+            self.countryCode = countryCode
+        }
+        
+        /// The unique identifier of a person in a country
+        public var socialSecurityNumber: String
+        /// The 2 letter country code of the country
+        public var countryCode: String
     }
 
     /// An item being paid for, part of a `PaymentOrder`.

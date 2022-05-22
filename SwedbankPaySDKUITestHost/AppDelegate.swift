@@ -3,15 +3,22 @@ import SwedbankPaySDK
 
 let shouldRestoreState = CommandLine.arguments.contains("-restore")
 //we need a different config for each merchant to test
-let configIndex = CommandLine.arguments.first { $0.contains("-configIndex")}?.split(separator: " ").last
-    .flatMap { Int(String($0)) } ?? 0
+let configName = CommandLine.arguments.first { $0.contains("-configName")}?.split(separator: " ").last
+    .flatMap { String($0) }
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
         
     func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        currentConfig = paymentTestConfigurations[configIndex]
+        
+        if let configName = configName {
+            guard let config = TestConfigurations(rawValue: configName) else {
+                fatalError("You have supplied a non-existing config: \(configName)")
+            }
+            currentConfig = paymentTestConfigurations[config]!
+        }
+        
         SwedbankPaySDKController.defaultConfiguration = currentConfig
         return true
     }

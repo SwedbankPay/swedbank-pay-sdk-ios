@@ -23,6 +23,9 @@ private let expiryDate = "1233"
 private let noScaCvv = "111"
 private let scaCvv = "123" //268
 
+//how many configurations can be tested
+let paymentTestConfigurations = ["enterprise", "paymentsOnly"]
+
 private struct NonExistentElementError: Error {
     var element: XCUIElement
 }
@@ -173,20 +176,24 @@ class SwedbankPaySDKUITests: XCTestCase {
         print("Waiting \(timeout)s for payment result")
         return messageList.waitForFirst(timeout: timeout)
     }
-    private func waitForComplete(timeout: Double = initialTimeout) -> Bool {
+    
+    private func waitForComplete(timeout: Double = initialTimeout) throws -> Bool {
         print("Waiting \(timeout)s for payment result")
-        return messageList.waitForMessage(timeout: timeout, message: .complete)
+        return try messageList.waitForMessage(timeout: timeout, message: .complete)
     }
+    
     private func waitFor(_ message: TestMessage, timeout: Double = initialTimeout) {
         print("Waiting \(timeout)s for message: \(message)")
-        if !messageList.waitForMessage(timeout: timeout, message: message) {
+        
+        if let result = try? messageList.waitForMessage(timeout: timeout, message: message),
+            !result {
             XCTFail("Did not get \"\(message)\" in time")
         }
     }
     
     private func waitForResultAndAssertComplete() {
         
-        XCTAssertTrue(waitForComplete(timeout: resultTimeout), "Did not get complete-message in time")
+        XCTAssertTrue(try waitForComplete(timeout: resultTimeout), "Did not get complete-message in time")
     }
     
     private func waitForResultAndAssertNil() {
@@ -315,7 +322,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     func waitUntilShown() throws {
         
-        if messageList.waitForMessage(timeout: resultTimeout * 2, message: .didShow) == false {
+        if try messageList.waitForMessage(timeout: resultTimeout * 2, message: .didShow) == false {
             XCTFail("Did not load HTML")
         }
     }
@@ -350,55 +357,73 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     /// Check that a regular payment without checkin works in V3
-    func testV3PaymentOnlySca() throws {
-        app.launchArguments.append("-testV3")
-        app.launch()
+    func testV3ScaPayment() throws {
         
-        defer {
+        for config in paymentTestConfigurations {
+            app.launchArguments.append("-configName \(config)")
+            
+            app.launchArguments.append("-testV3")
+            app.launch()
+            
+            try waitUntilShown()
+            
+            // try this again with oldScaCardNumber if failing? No, if service is down it doesn't matter what we do.
+            try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
+            try waitAndAssertExists(
+                timeout: scaTimeout,
+                continueButton, "Continue button not found"
+            )
+            retryUntilTrue {
+                continueButton.tap()
+                return messageList.waitForFirst(timeout: resultTimeout) != nil
+            }
             waitForResultAndAssertComplete()
-        }
-        
-        try waitUntilShown()
-        
-        // try this again with oldScaCardNumber if failing? No, if service is down it doesn't matter what we do.
-        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
-        try waitAndAssertExists(
-            timeout: scaTimeout,
-            continueButton, "Continue button not found"
-        )
-        retryUntilTrue {
-            continueButton.tap()
-            return messageList.waitForFirst(timeout: resultTimeout) != nil
+            
+            app.terminate()
         }
     }
     
     /// Check that instrument-mode works in V3 and we can update payments with a new instrument
-    func testV3PaymentOnlyInstruments() throws {
-        app.launchArguments.append("-testV3")
-        app.launchArguments.append("-testInstrument")
-        app.launch()
+    func testV3Instruments() throws {
         
-        try waitUntilShown()
-        
-        //switch instrument, this calls viewController.updatePaymentOrder(updateInfo: instrument!)
-        testMenuButton.tap()
-        
-        //just wait until instrument select-change
-        waitFor(.instrumentSelected, timeout: resultTimeout)
+        //for config in paymentTestConfigurations {
+            let config = "paymentsOnly" //currently our test-enterprise does not have the permission to restrict instruments
+            app.launchArguments.append("-configName \(config)")
+            app.launchArguments.append("-testV3")
+            app.launchArguments.append("-testInstrument")
+            app.launch()
+            
+            try waitUntilShown()
+            
+            //switch instrument, this calls viewController.updatePaymentOrder(updateInfo: instrument!)
+            testMenuButton.tap()
+            
+            //just wait until instrument select-change
+            waitFor(.instrumentSelected, timeout: resultTimeout)
+            
+            //start over with next merchant
+            app.terminate()
+        //}
     }
     
     func testAbortPayment() throws {
-        app.launchArguments.append("-testV3")
-        app.launchArguments.append("-testAbortPayment")
-        app.launch()
-        
-        try waitUntilShown()
-        
-        //switch instrument, this calls viewController.abortPayment()
-        testMenuButton.tap()
-        
-        //just wait until instrument select-change
-        waitFor(.canceled, timeout: resultTimeout)
+        for config in paymentTestConfigurations {
+            app.launchArguments.append("-configName \(config)")
+            app.launchArguments.append("-testV3")
+            app.launchArguments.append("-testAbortPayment")
+            app.launch()
+            
+            try waitUntilShown()
+            
+            //switch instrument, this calls viewController.abortPayment()
+            testMenuButton.tap()
+            
+            //just wait until instrument select-change
+            waitFor(.canceled, timeout: resultTimeout)
+            
+            //start over with next merchant
+            app.terminate()
+        }
     }
     
     // allow the compiler to use hard coded values
@@ -423,58 +448,70 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     func testGenerateUncheduledToken() throws {
         
-        var success = false
-        for _ in 0...3 {
-            do {
+        for config in paymentTestConfigurations {
+            app.launchArguments.append("-configName \(config)")
+            var success = false
+            for _ in 0...3 {
+                do {
+                    try repeatGenerateUncheduledToken()
+                    success = true
+                    break
+                } catch {
+                    print("May be service error, let's try again")
+                    app.terminate()
+                    //switch card number on the next attempt
+                    cardToUse = cardToUse == oldScaCardNumber ? scaCardNumber : oldScaCardNumber
+                }
+            }
+            if !success {
                 try repeatGenerateUncheduledToken()
-                success = true
-                break
-            } catch {
-                print("May be service error, let's try again")
-                //switch card number on the next attempt
-                cardToUse = cardToUse == oldScaCardNumber ? scaCardNumber : oldScaCardNumber
             }
-        }
-        if !success {
-            try repeatGenerateUncheduledToken()
-        }
-        
-        //just wait until payment is verified
-        waitFor(.complete, timeout: resultTimeout)
-        
-        testMenuButton.tap()
-        
-        let result = messageList.waitForFirst(timeout: resultTimeout)
-        if case .error(errorMessage: let message) = result {
-            print("got error message that should be a paymentOrder")
-            XCTFail(message)
-        } else if case .complete = result {
-            print("we did it!")
-        }
-        else {
-            XCTFail("Unknown message after token-tap")
+            
+            //just wait until payment is verified
+            waitFor(.complete, timeout: resultTimeout)
+            
+            testMenuButton.tap()
+            
+            let result = messageList.waitForFirst(timeout: resultTimeout)
+            if case .error(errorMessage: let message) = result {
+                print("got error message that should be a paymentOrder")
+                XCTFail(message)
+            } else if case .complete = result {
+                print("we did it!")
+            }
+            else {
+                XCTFail("Unknown message after token-tap")
+            }
+            app.terminate()
         }
     }
     
-    // rebuild every test to re-try them a few times
-    func testOneClickPaymentsV3() throws {
-        for _ in 0..<2 {
-            do {
-                try runOneClickPaymentsV3()
-                print("it worked!")
-                return
-            } catch {
-                print("did not work \(error.localizedDescription)")
-            }
-        }
-        //if we are still here
-        try runOneClickPaymentsV3()
-    }
-    
-    func runOneClickPaymentsV3() throws {
+    func testOneClickEnterprise() throws {
+        app.launchArguments.append("-configName enterprise")
+        
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testOneClickPayments")
+        app.launch()
         
+        try waitUntilShown()
+        waitFor(.complete, timeout: resultTimeout * 9098098)
+        try waitAndAssertExists(timeout: defaultTimeout, cardOption, "Card option was not shown")
+        cardOption.tap()
+        
+        try waitAndAssertExists(confirmButton, "Confirm button not found")
+        
+        //waitFor(.complete, timeout: resultTimeout * 9098098)
+        
+        retryUntilTrue {
+            confirmButton.tap()
+            return messageList.waitForFirst(timeout: resultTimeout) != nil
+        }
+    }
+    
+    func testOneClickPaymentsOnly() throws {
+        
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testOneClickPayments")
         app.launch()
         
         try waitUntilShown()
@@ -488,7 +525,6 @@ class SwedbankPaySDKUITests: XCTestCase {
             return messageList.waitForFirst(timeout: resultTimeout) != nil
         }
         
-        print("Now wait for the next payment")
         //just wait until payment is verified
         waitFor(.complete, timeout: resultTimeout)
         //complete-message comes before transmission is done...
