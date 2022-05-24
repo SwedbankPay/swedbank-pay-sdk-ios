@@ -2,9 +2,9 @@
 
 ![Swedbank Pay SDK for iOS][opengraph-image]
 
-# Payments Only
+# Enterprise
 
-This document only concerns merchants using the PaymentsOnly integration, Enterprise handles this differently. [Read more on enterprise tokens][enterprise-tokens]
+This document only concerns merchants using the Enterprise integration, PaymentsOnly handles this differently. [Read more on tokens for PaymentsOnly][PaymentsOnly-tokens]
 
 ## Prerequisites 
 
@@ -12,44 +12,21 @@ Before diving into advanced features you should have a working app and backend, 
 
 ## Remembering the payer
 
-Returning customers are the best customers, and it is really easy to improve the experience by auto-filling the payment details. All you have to do is to supply a unique identifier in the payerReference property of the payer, and set generatePaymentToken to true. Supply these in the paymentOrder when starting a new payment. 
+Returning customers are the best customers, and it is really easy to improve the experience by auto-filling the payment details. You can supply email and phone number to let the customer store the payment information and have SwedbankPay auto-fill it the next time. Just supply a unique reference along with these values when starting a new payment:
 
-``` JSON
-{
-  "paymentorder": {
-    "generatePaymentToken": true,
-    "payer": {
-    	"payerReference": unique-identifier
-    }
-    ...
-  }
-}
+``` Swift
+var paymentOrder = ... //create the paymentOrder as usual by calculating price, etc
+payment.payer = .init(
+	consumerProfileRef: nil, 
+	email: "leia.ahlstrom@payex.com", 
+	msisdn: "+46739000001", 
+	payerReference: unique-identifier
+)
+
 ```
 
-Just this tiny addition will make the SDK do most of the heavy lifting for you, and the customer can have the card details stored in a safe manner without sensitive information ever even touching your servers. More details in the [one-click payments documentation][one-click-payments].
+Now the customer has the option to store card numbers or select one of the previously stored cards. More info in [the documentation][enterprise-payer-ref].
 
-After successful purchase (or verification), you can retrieve the token and reuse it in the future. Then payments will automatically start with the previous payment method, and all the information filled in. Just a button to press to accept the payment.
-
-Retrieve the token by expanding the "paid" property of a previous successful payment, preferably you do this only on the backend, and then supply this token for the next purchase. To see this in action, the merchant backend has an endpoint called "/expand" that takes a "resource" (in this case the paymentId), and an array of properties to expand. You get a payment order back, and in the expanded paid property there is a "tokens" array (if the customer agreed to let you store the information). 
-
-Read more on [expanding properties here][expanding_properties].
-
-Create the next payment order with the token like this:
-
-``` JSON
-{
-  "paymentorder": {
-    "paymentToken": token-string-value
-    "payer": {
-    	"payerReference": unique-identifier
-    }
-    ...
-  }
-}
-```
-
-Now the payment menu will just show a purchase button and the payment method.
-![Prefilled payment option image][one-click-image]
 
 ## Payment tokens for later use
 
@@ -106,4 +83,5 @@ More info on [recurring purchases][recur].
 [one-click-image]: https://developer.swedbankpay.com/assets/img/checkout/one-click.png "Prefilled payment option"
 [unscheduled]: https://developer.swedbankpay.com/checkout-v3/payments-only/features/optional/unscheduled
 [recur]: https://developer.swedbankpay.com/checkout-v3/payments-only/features/optional/recur
-[enterprise-tokens]: ./integrateTokensEnterprise.md
+[PaymentsOnly-tokens]: ./integrateTokens.md
+[enterprise-payer-ref]: https://developer.swedbankpay.com/checkout-v3/enterprise/features/optional/enterprise-payer-reference

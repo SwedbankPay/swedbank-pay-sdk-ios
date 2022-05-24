@@ -94,7 +94,9 @@ The delegate pattern is well known and widely used in the iOS community. Impleme
 
 This is all you need to get started and accepting payments, the next step is to let your customers save their card details, or to create purchase tokens for subscriptions or tokens for charges at a later stage. Depending on your specific use case.
 
-Continue reading the [integrate tokens walkthrough][integrateTokens] for a continued discussion on payment tokens. These features are also well documented in [swedbank pay's developer portal][optionalFeatures].
+Continue reading the [PaymentsOnly tokens walkthrough][integrateTokens] or [Enterprise tokens walkthrough][enterpriseTokens] for a continued discussion on payment tokens. These features are also well documented in swedbank pay's developer portal under "optional features".
+
+For more in-depth details of how to operate the SDK and to setup the necessary callbacks, [please refer to the SwedbankPay SDK documentation][dev-portal-sdk].
 
 
 ## Contributing
@@ -138,4 +140,4 @@ agreement][cla].
 [SwedbankPaySDKDelegate]: https://github.com/SwedbankPay/swedbank-pay-sdk-ios/blob/main/SwedbankPaySDK/Classes/SwedbankPaySDKController.swift#:~:text=protocol%20SwedbankPaySDKDelegate
 [SwedbankPaySDKDelegateExampleApp]: https://github.com/SwedbankPay/swedbank-pay-sdk-ios-example-app/blob/main/Example-app/ViewControllers/PaymentViewController.swift#:~:text=extension%20PaymentViewController:%20SwedbankPaySDKDelegate
 [integrateTokens]: ./integrateTokens.md
-[optionalFeatures]: https://developer.swedbankpay.com/checkout-v3/payments-only/features/optional
+[enterpriseTokens]: ./integrateTokensEnterprise.md
