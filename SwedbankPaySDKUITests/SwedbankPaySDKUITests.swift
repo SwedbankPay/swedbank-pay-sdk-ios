@@ -1,6 +1,7 @@
 import XCTest
 @testable import SwedbankPaySDKMerchantBackend
 
+private let shortTimeout = 3.0
 private let defaultTimeout = 30.0
 private let initialTimeout = 60.0
 private let tapCardOptionTimeout = 10.0
@@ -48,6 +49,19 @@ private func waitAndAssertExists(
 ) throws {
     _ = element.waitForExistence(timeout: timeout)
     try assertExists(element, message)
+}
+
+// Some buttons can be clicked even if not enabled, but usually its good to wait until they are enabled, so here is a shortcut.
+private func delayUnlessEnabled(
+    timeout: Double = shortTimeout,
+    _ element: XCUIElement
+) throws {
+    for _ in 0..<25 {
+        if element.isEnabled {
+            break
+        }
+        sleep(UInt32(timeout))
+    }
 }
 
 class SwedbankPaySDKUITests: XCTestCase {
@@ -147,13 +161,15 @@ class SwedbankPaySDKUITests: XCTestCase {
         keyboardDoneButton.tap()
     }
     
-    private func retryUntilTrue(f: () -> Bool) {
+    @discardableResult
+    private func retryUntilTrue(f: () -> Bool) -> Bool {
         for i in 0..<retryableActionMaxAttempts {
             print("attempt \(i)")
             if f() {
-                return
+                return true
             }
         }
+        return false
     }
     
     override func setUpWithError() throws {
@@ -199,6 +215,29 @@ class SwedbankPaySDKUITests: XCTestCase {
     private func waitForResultAndAssertNil() {
         let result = waitForResult(timeout: errorResultTimeout)
         XCTAssertNil(result)
+    }
+    
+    private func confirmAndWaitForCompletePayment(
+        _ element: XCUIElement,
+        _ errorMessage: String = "Could not confirm purchase"
+    ) throws {
+        
+        var message:TestMessage? = .didShow
+        let result = retryUntilTrue {
+            if case .error(_) = message {
+                return false
+            }
+            element.tap()
+            message = messageList.waitForFirst(timeout: shortTimeout)
+            return message == .complete
+        }
+        if !result {
+            if case .error(_) = message {
+                XCTFail(errorMessage)
+            } else {
+                XCTAssertTrue(messageList.waitForFirst(timeout: defaultTimeout) == .complete, errorMessage)
+            }
+        }
     }
     
     /// Sanity check: Check that a web view is displayed
@@ -486,7 +525,26 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
     }
     
-    func testOneClickEnterprise() throws {
+    // verify that the predefined box appears!
+    func testOneClickEnterprisePayerReference() throws {
+        app.launchArguments.append("-configName enterprise")
+        
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testEnterprisePayerReference")
+        app.launch()
+        
+        try waitUntilShown()
+        
+        try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+        cardOption.tap()
+        
+        try waitAndAssertExists(timeout: resultTimeout, payButton, "payButton not found")
+        try delayUnlessEnabled(payButton)
+        try confirmAndWaitForCompletePayment(payButton, "Could not pay with oneClick")
+    }
+    
+    // TODO: Needs merchant implementation first!
+    func testOneClickEnterpriseNationalIdentifyer() throws {
         app.launchArguments.append("-configName enterprise")
         
         app.launchArguments.append("-testV3")
@@ -494,18 +552,13 @@ class SwedbankPaySDKUITests: XCTestCase {
         app.launch()
         
         try waitUntilShown()
-        waitFor(.complete, timeout: resultTimeout * 9098098)
-        try waitAndAssertExists(timeout: defaultTimeout, cardOption, "Card option was not shown")
+        
+        try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         cardOption.tap()
         
-        try waitAndAssertExists(confirmButton, "Confirm button not found")
-        
-        //waitFor(.complete, timeout: resultTimeout * 9098098)
-        
-        retryUntilTrue {
-            confirmButton.tap()
-            return messageList.waitForFirst(timeout: resultTimeout) != nil
-        }
+        try waitAndAssertExists(timeout: resultTimeout, payButton, "payButton not found")
+        try delayUnlessEnabled(payButton)
+        try confirmAndWaitForCompletePayment(payButton, "Could not pay with national identifyer")
     }
     
     func testOneClickPaymentsOnly() throws {
