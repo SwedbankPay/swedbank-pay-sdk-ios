@@ -87,7 +87,7 @@ The last step is to just create an instance of the SwedbankPaySDKController and 
 
 ### 4. SwedbankPaySDKDelegate
 
-The delegate pattern is well known and widely used in the iOS community. Implement the delegate callbacks you are interested in to get notified of the state of the purchase. Typically you would need at least to know when payments succeed, is canceled or fail, but there are a few more callbacks to your disposal. See [the SwedbankPaySDKDelegate protocol][SwedbankPaySDKDelegate], or [the example app implementation][SwedbankPaySDKDelegateExampleApp] for more details.
+The delegate pattern is well known and widely used in the iOS community. Implement the delegate callbacks you are interested in to get notified of the state of the purchase. Typically you need to at least know when payments succeed, is canceled or fail, but there are a few more callbacks to your disposal. See [the SwedbankPaySDKDelegate protocol][SwedbankPaySDKDelegate], or [the example app implementation][SwedbankPaySDKDelegateExampleApp] for more details.
 
 
 ### Integration conclusions
