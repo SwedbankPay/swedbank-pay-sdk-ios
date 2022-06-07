@@ -554,7 +554,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     // Make sure we also support ssn directly
-    func testOneClickEnterpriseNationalIdentifyer() throws {
+    func testOneClickEnterpriseNationalIdentifier() throws {
         
         app.launchArguments.append("-configName enterprise")
         
@@ -570,7 +570,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         prefilledCard.firstMatch.tap()
         
         try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
-        try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with national identifyer")
+        try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with national identifier")
     }
     
     /*
