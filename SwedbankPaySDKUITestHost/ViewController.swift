@@ -58,10 +58,8 @@ class ViewController: UINavigationController {
                 }
             } else if testEnterprisePayerReference || CommandLine.arguments.contains("-testOneClickPayments") {
                 
-                //payerRef = "971C77AD-BFF2-4137-8929-ååå"
-                print("starting with unique ref: \(payerRef)")  //971C77AD-BFF2-4137-8929-0DFB223832B3
-                
-                payment.operation = .Purchase
+                print("starting with unique ref: \(payerRef)")
+                payment.operation = .Verify
                 if currentConfig.backendUrl == paymentTestConfigurationPaymentsOnly.backendUrl {
                     
                     payment.generatePaymentToken = true
@@ -71,8 +69,10 @@ class ViewController: UINavigationController {
                     if testEnterprisePayerReference {
                         payment.payer = .init(consumerProfileRef: nil, email: "leia.ahlstrom@payex.com", msisdn: "+46739000001", payerReference: payerRef)
                     } else {
+                        
+                        // This isn't working!
                         payment.payer = .init(consumerProfileRef: nil, payerReference: payerRef)
-                        payment.payer?.nationalIdentifier = .init(socialSecurityNumber: "870617-2387", countryCode: "SE")
+                        payment.payer?.nationalIdentifier = .init(socialSecurityNumber: "199710202392", countryCode: "SE")
                     }
                 }
                 

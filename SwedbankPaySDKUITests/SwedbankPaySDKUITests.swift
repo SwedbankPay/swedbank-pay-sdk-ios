@@ -18,7 +18,9 @@ private let noScaCardNumber = "4581097032723517"
 private let scaCardNumber = "4547781087013329"
 private let oldScaCardNumber = "5226612199533406"
 private let scaCardNumber3DS2 = "4000008000000153"
-private let badCardNumber = "4761739001010416"
+private let otherScaCardNumber = "4761739001010416"
+
+private let scaCards = ["4761739001010416", "5226612199533406"] //, "4547781087013329"
 
 private let expiryDate = "1233"
 private let noScaCvv = "111"
@@ -153,6 +155,9 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     private var keyboardDoneButton: XCUIElement {
         app.buttons.element(matching: .init(format: "label = 'Done'"))
+    }
+    private var prefilledCard: XCUIElement {
+        webView.staticTexts.element(matching: .init(format: "label CONTAINS[cd] '••••'"))
     }
     
     private func input(to webElement: XCUIElement, text: String) {
@@ -313,7 +318,8 @@ class SwedbankPaySDKUITests: XCTestCase {
     private func beginPayment(
         cardNumber: String,
         cvv: String,
-        swipeBeforeCard: Bool = false
+        swipeBeforeCard: Bool = false,
+        assertComplete: Bool = true
     ) throws {
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
@@ -368,6 +374,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     /// Check that a payment without SCA works
     func testItShouldSucceedAtPaymentWithoutSca() throws {
+        
         app.launch()
         defer {
             waitForResultAndAssertComplete()
@@ -383,7 +390,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         defer {
             waitForResultAndAssertComplete()
         }
-        try beginPayment(cardNumber: oldScaCardNumber, cvv: scaCvv)
+        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
         
         try waitAndAssertExists(
             timeout: scaTimeout,
@@ -406,7 +413,7 @@ class SwedbankPaySDKUITests: XCTestCase {
             
             try waitUntilShown()
             
-            // try this again with oldScaCardNumber if failing? No, if service is down it doesn't matter what we do.
+            // try this again with otherScaCardNumber if failing? No, if service is down it doesn't matter what we do.
             try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
             try waitAndAssertExists(
                 timeout: scaTimeout,
@@ -466,7 +473,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     // allow the compiler to use hard coded values
-    var cardToUse = oldScaCardNumber
+    var cardToUse = scaCardNumber
     
     func repeatGenerateUncheduledToken() throws {
         app.launchArguments.append("-testV3")
@@ -499,7 +506,7 @@ class SwedbankPaySDKUITests: XCTestCase {
                     print("May be service error, let's try again")
                     app.terminate()
                     //switch card number on the next attempt
-                    cardToUse = cardToUse == oldScaCardNumber ? scaCardNumber : oldScaCardNumber
+                    cardToUse = cardToUse == otherScaCardNumber ? scaCardNumber : otherScaCardNumber
                 }
             }
             if !success {
@@ -538,28 +545,45 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         cardOption.tap()
         
-        try waitAndAssertExists(timeout: resultTimeout, payButton, "payButton not found")
-        try delayUnlessEnabled(payButton)
-        try confirmAndWaitForCompletePayment(payButton, "Could not pay with oneClick")
+        try waitAndAssertExists(timeout: initialTimeout, prefilledCard, "No prefilled cards")
+        prefilledCard.firstMatch.tap()
+        
+        try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
+        try delayUnlessEnabled(confirmButton)
+        try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with oneClick")
     }
     
-    // TODO: Needs merchant implementation first!
+    // Make sure we also support ssn directly
     func testOneClickEnterpriseNationalIdentifyer() throws {
+        
         app.launchArguments.append("-configName enterprise")
         
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testOneClickPayments")
         app.launch()
-        
-        try waitUntilShown()
+        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         cardOption.tap()
         
-        try waitAndAssertExists(timeout: resultTimeout, payButton, "payButton not found")
-        try delayUnlessEnabled(payButton)
-        try confirmAndWaitForCompletePayment(payButton, "Could not pay with national identifyer")
+        try waitAndAssertExists(timeout: initialTimeout, prefilledCard, "No prefilled cards")
+        prefilledCard.firstMatch.tap()
+        
+        try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
+        try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with national identifyer")
     }
+    
+    /*
+    func testVipps() throws {
+        app.launchArguments.append("-testV3")
+        
+        app.launch()
+        
+        try waitUntilShown()
+        waitFor(.canceled, timeout: resultTimeout * 9098098)
+        print("Here!")
+    }
+    */
     
     func testOneClickPaymentsOnly() throws {
         
@@ -568,7 +592,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         app.launch()
         
         try waitUntilShown()
-        try beginPayment(cardNumber: cardToUse, cvv: scaCvv)
+        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
         try waitAndAssertExists(
             timeout: scaTimeoutShort,
             continueButton, "Continue button not found"
