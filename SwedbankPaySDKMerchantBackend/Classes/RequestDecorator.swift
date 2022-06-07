@@ -18,6 +18,7 @@ import SwedbankPaySDK
 
 public extension SwedbankPaySDK {
     struct SimpleRequestDecorator: SwedbankPaySDKRequestDecorator {
+        
         public var headers: [String: String]
         
         public init(headers: [String: String]) {
@@ -53,6 +54,12 @@ public protocol SwedbankPaySDKRequestDecorator {
         userData: Any?
     )
     
+    func decorateExpandOperation(
+        request: inout URLRequest,
+        operation: [SwedbankPaySDK.ExpandResource],
+        endpoint: String
+    )
+    
     /// A general method for decorating requests
     func decorateOperation(
         request: inout URLRequest,
@@ -82,6 +89,12 @@ public extension SwedbankPaySDKRequestDecorator {
         request: inout URLRequest,
         instrument: SwedbankPaySDK.Instrument,
         userData: Any?
+    ) {}
+    
+    func decorateExpandOperation(
+        request: inout URLRequest,
+        operation: [SwedbankPaySDK.ExpandResource],
+        endpoint: String
     ) {}
     
     func decorateOperation(

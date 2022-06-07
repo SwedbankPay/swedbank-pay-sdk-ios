@@ -533,7 +533,7 @@ public extension SwedbankPaySDK {
                 url: url,
                 body: body,
                 decoratorCall: { decorator, request in
-                    // here you can modify the request, add authentication headers, etc.
+                    decorator.decorateExpandOperation(request: &request, operation: expand, endpoint: endpoint)
                 },
                 completion: { result in
                     completion(result.mapError { $0 as SwedbankPaySDK.MerchantBackendError })
