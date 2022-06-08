@@ -1,6 +1,12 @@
 import Dispatch
 import Foundation
 
+extension String: Error {
+    var localizedDescription: String {
+        return self
+    }
+}
+
 class TestMessageList {
     private let queue = DispatchQueue(label: "TestMessageList", target: .global())
     private var messages: [TestMessage] = []
@@ -54,13 +60,26 @@ class TestMessageList {
         }
     }
     
-    func waitForMessage(timeout: Double, message: TestMessage) -> Bool {
+    func makeErrorIfExists(_ messages: [TestMessage]) throws {
+        for msg in messages {
+            if case let .error(errorMessage) = msg {
+                print("got error: \(errorMessage)")
+                throw errorMessage
+            }
+        }
+    }
+    
+    func waitForMessage(timeout: Double, message: TestMessage) throws -> Bool {
         let messages = getMessages()
+        try makeErrorIfExists(messages)
+        
         if messages.contains(message) {
             return true
         } else {
             let start = Date()
             let newBatch = waitForNewMessage(after: messages, timeout: timeout)
+            try makeErrorIfExists(newBatch)
+            
             if newBatch.contains(message) {
                 return true
             }
@@ -68,7 +87,7 @@ class TestMessageList {
             if timeLeft <= 0 {
                 return false
             }
-            return waitForMessage(timeout: timeLeft, message: message)
+            return try waitForMessage(timeout: timeLeft, message: message)
         }
     }
 }

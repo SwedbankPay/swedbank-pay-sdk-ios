@@ -29,7 +29,8 @@ private enum OperationRel {
 private extension Array where Element == SwedbankPaySDK.Operation {
     func find(rel: String) -> URL? {
         let operation = first { $0.rel == rel }
-        let href = (operation?.href).flatMap(URL.init(string:))
+        let href = (operation?.href?.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed)).flatMap(URL.init(string:))
+        
         return href
     }
     
@@ -532,7 +533,7 @@ public extension SwedbankPaySDK {
                 url: url,
                 body: body,
                 decoratorCall: { decorator, request in
-                    // here you can modify the request, add authentication headers, etc.
+                    decorator.decorateExpandOperation(request: &request, operation: expand, endpoint: endpoint)
                 },
                 completion: { result in
                     completion(result.mapError { $0 as SwedbankPaySDK.MerchantBackendError })

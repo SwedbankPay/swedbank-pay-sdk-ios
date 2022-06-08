@@ -27,6 +27,7 @@ class ViewController: UINavigationController {
         
         let isV3 = CommandLine.arguments.contains("-testV3")
         let withCheckin = CommandLine.arguments.contains("-testCheckin")
+        let testEnterprisePayerReference = CommandLine.arguments.contains("-testEnterprisePayerReference")
         createTestButton(viewController) {
             print("no commands")
         }
@@ -55,13 +56,26 @@ class ViewController: UINavigationController {
                     
                     self.testExpandTokens(viewController)
                 }
-            } else if CommandLine.arguments.contains("-testOneClickPayments") {
+            } else if testEnterprisePayerReference || CommandLine.arguments.contains("-testOneClickPayments") {
                 
-                print("starting with unique ref: \(payerRef)")  //971C77AD-BFF2-4137-8929-0DFB223832B3
-                
+                print("starting with unique ref: \(payerRef)")
                 payment.operation = .Verify
-                payment.generatePaymentToken = true
-                payment.payer = .init(consumerProfileRef: nil, payerReference: payerRef)
+                if currentConfig.backendUrl == paymentTestConfigurationPaymentsOnly.backendUrl {
+                    
+                    payment.generatePaymentToken = true
+                    payment.payer = .init(consumerProfileRef: nil, payerReference: payerRef)
+                } else {
+                    
+                    if testEnterprisePayerReference {
+                        payment.payer = .init(consumerProfileRef: nil, email: "leia.ahlstrom@payex.com", msisdn: "+46739000001", payerReference: payerRef)
+                    } else {
+                        
+                        // This isn't working!
+                        payment.payer = .init(consumerProfileRef: nil, payerReference: payerRef)
+                        payment.payer?.nationalIdentifier = .init(socialSecurityNumber: "199710202392", countryCode: "SE")
+                    }
+                }
+                
                 createTestButton(viewController) {
                     
                     self.testExpandOneClickTokens(viewController)
