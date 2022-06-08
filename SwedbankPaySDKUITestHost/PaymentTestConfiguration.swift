@@ -31,16 +31,16 @@ var currentConfig = paymentTestConfigurationPaymentsOnly
 
 let testPaymentOrder = SwedbankPaySDK.PaymentOrder(
     currency: "SEK",
-    amount: 100,
-    vatAmount: 20,
+    amount: 200,
+    vatAmount: 50,
     description: "Test Purchase",
     urls: .init(configuration: currentConfig, language: .English)
 )
 
 let testPaymentOrderCheckin = SwedbankPaySDK.PaymentOrder(
     currency: "SEK",
-    amount: 100,
-    vatAmount: 20,
+    amount: 200,
+    vatAmount: 50,
     description: "Test Purchase",
     urls: .init(configuration: currentConfig, language: .English),
     payer: .init(requireConsumerInfo: false, digitalProducts: false, shippingAddressRestrictedToCountryCodes: ["NO"], payerReference: "test payer")

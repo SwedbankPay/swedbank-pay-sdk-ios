@@ -406,26 +406,36 @@ class SwedbankPaySDKUITests: XCTestCase {
     func testV3ScaPayment() throws {
         
         for config in paymentTestConfigurations {
-            app.launchArguments.append("-configName \(config)")
+            var paymentSuccess = false
+            for card in scaCards {
             
-            app.launchArguments.append("-testV3")
-            app.launch()
-            
-            try waitUntilShown()
-            
-            // try this again with otherScaCardNumber if failing? No, if service is down it doesn't matter what we do.
-            try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
-            try waitAndAssertExists(
-                timeout: scaTimeout,
-                continueButton, "Continue button not found"
-            )
-            retryUntilTrue {
-                continueButton.tap()
-                return messageList.waitForFirst(timeout: resultTimeout) != nil
+                app.launchArguments.append("-configName \(config)")
+                app.launchArguments.append("-testV3")
+                app.launch()
+                
+                try waitUntilShown()
+                
+                // try this again with otherScaCardNumber if failing? No, if service is down it doesn't matter what we do.
+                print("testing with \(card)")
+                try beginPayment(cardNumber: card, cvv: scaCvv)
+                if continueButton.waitForExistence(timeout: defaultTimeout) {
+                    retryUntilTrue {
+                        continueButton.tap()
+                        return messageList.waitForFirst(timeout: resultTimeout) != nil
+                    }
+                    waitForResultAndAssertComplete()
+                    paymentSuccess = true
+                    app.terminate()
+                    break
+                }
+                //else "Continue button not found"
+                
+                app.terminate()
             }
-            waitForResultAndAssertComplete()
-            
-            app.terminate()
+            if !paymentSuccess {
+                XCTFail("V3 payment failed, no continue button using: \(config)")
+                return
+            }
         }
     }
     
@@ -604,13 +614,27 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         //just wait until payment is verified
         waitFor(.complete, timeout: resultTimeout)
-        //complete-message comes before transmission is done...
-        sleep(1)
         
-        testMenuButton.tap()
-        
-        //wait until we have a token and have started a new purchase flow
-        try waitUntilShown()
+        var complete = false
+        for _ in 0..<50 {
+            //complete-message comes before transmission is done, so we need to wait some undisclosed amount.
+            sleep(2)
+            
+            testMenuButton.tap()
+            
+            //wait until we have a token and have started a new purchase flow
+            do {
+                try waitUntilShown()
+                complete = true
+                break
+            } catch {
+                print("got error which means its either not done processing or failing: \n\(error)")
+                sleep(4)
+            }
+        }
+        if !complete {
+            throw "Could not get token for oneClick"
+        }
         
         //now it should only show us the purchase button and card-info snippet.
         try waitAndAssertExists(timeout: resultTimeout, payButton, "payButton not found")
