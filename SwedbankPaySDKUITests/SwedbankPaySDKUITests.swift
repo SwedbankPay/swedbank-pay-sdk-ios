@@ -616,9 +616,10 @@ class SwedbankPaySDKUITests: XCTestCase {
         waitFor(.complete, timeout: resultTimeout)
         
         var complete = false
+        // NOTE: SwedbankPay is working on fixing this timing-issue, so this should not happen in the future.
         for _ in 0..<50 {
             //complete-message comes before transmission is done, so we need to wait some undisclosed amount.
-            sleep(2)
+            sleep(1)
             
             testMenuButton.tap()
             
