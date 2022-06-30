@@ -17,15 +17,14 @@ import Foundation
 
 extension SwedbankPaySDK {
     
-    /// Keep track of current version and
+    /// Keep track of current version and build user agent string
     public struct VersionReporter {
         
-        public static var currentVersion: String? = {
-            let bundle = Bundle(for: SwedbankPaySDK.self)
-            return bundle.infoDictionary?["CFBundleShortVersionString"] as? String
-        }()
+        /// This number must match git's release-tag, pre-releases should be marked with "-alpha"
+        /// It can't be read from info.plist since SPM does not have those.
+        public static var currentVersion = "3.1.1"
         
-        /// We store the SDK version in the bundle for easy access
+        /// User agent reports version and platform
         public static var userAgent: String = {
             "SwedbankPaySDK-iOS/\(currentVersion ?? "Unknown")"
         }()
