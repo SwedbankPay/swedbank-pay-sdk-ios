@@ -26,7 +26,7 @@ extension SwedbankPaySDK {
         
         /// User agent reports version and platform
         public static var userAgent: String = {
-            "SwedbankPaySDK-iOS/\(currentVersion ?? "Unknown")"
+            "SwedbankPaySDK-iOS/\(currentVersion)"
         }()
     }
 }
