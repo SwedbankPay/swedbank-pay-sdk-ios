@@ -706,19 +706,21 @@ private extension SwedbankPaySDKController {
         // WKWebView silently turns https://foo.bar to https://foo.bar/
         // So append a path to the payment urls if needed
         switch url.absoluteURL {
-        case ensurePath(url: info.completeUrl):
-            vm.onComplete()
-            return true
-        case info.cancelUrl.map(ensurePath(url:)):
-            vm.onCanceled()
-            return true
-        case info.paymentUrl.map(ensurePath(url:)):
-            reloadPaymentMenu(delay: true)
-            return true
-        case info.termsOfServiceUrl.map(ensurePath(url:)):
-            return delegate?.overrideTermsOfServiceTapped(url: url) == true
-        default:
-            return false
+            case ensurePath(url: info.completeUrl):
+                vm.onComplete()
+                return true
+            case info.cancelUrl.map(ensurePath(url:)):
+                vm.onCanceled()
+                return true
+            case info.paymentUrl.map(ensurePath(url:)):
+                reloadPaymentMenu(delay: true)
+                return true
+            case info.termsOfServiceUrl.map(ensurePath(url:)):
+                return delegate?.overrideTermsOfServiceTapped(url: url) == true
+            default:
+                print("no match for paymentProcessURL: \(url.absoluteURL)")
+                
+                return false
         }
     }
     func paymentFailed(error: Error) {
@@ -930,25 +932,25 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
             completion(true)
         } else {
             switch webRedirectBehavior {
-            case .Default:
-                guard let configuration = viewModel?.configuration else {
-                    completion(true)
-                    return
-                }
-                configuration.decidePolicyForPaymentMenuRedirect(
-                    navigationAction: navigationAction
-                ) {
-                    let allow = $0 == .openInWebView
-                    DispatchQueue.main.async {
-                        completion(allow)
+                case .Default:
+                    guard let configuration = viewModel?.configuration else {
+                        completion(true)
+                        return
                     }
-                }
-                
-            case .AlwaysUseWebView:
-                completion(true)
-                
-            case .AlwaysUseBrowser:
-                completion(false)
+                    configuration.decidePolicyForPaymentMenuRedirect(
+                        navigationAction: navigationAction
+                    ) {
+                        let allow = $0 == .openInWebView
+                        DispatchQueue.main.async {
+                            completion(allow)
+                        }
+                    }
+                    
+                case .AlwaysUseWebView:
+                    completion(true)
+                    
+                case .AlwaysUseBrowser:
+                    completion(false)
             }
         }
     }
