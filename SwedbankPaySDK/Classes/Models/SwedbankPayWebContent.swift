@@ -179,7 +179,7 @@ extension SwedbankPayWebContent {
                     \(PaymentEvent.onScriptError, "url");
                 }
                 
-                window.onload = function () {
+                function loadPaymentMenu() {
     
                     \(PaymentEvent.onScriptLoaded, "null");
                     var parameters = {
@@ -208,7 +208,15 @@ extension SwedbankPayWebContent {
                         parameters.style = style;
                     }
                     window.payex.hostedView.checkout(parameters).open("checkout");
-                }
+                };
+    
+                window.onload = function () {
+                    if (\(TemplateComponent.delay)) {
+                        window.setTimeout(loadPaymentMenu, \(TemplateComponent.literal(paymentMenuDelay)));
+                    } else {
+                        loadPaymentMenu();
+                    }
+                };
 
             </script>
         </head>
