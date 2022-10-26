@@ -603,7 +603,7 @@ class SwedbankPaySDKUITests: XCTestCase {
             app.terminate()
         }
     }
-    
+    /*
     // verify that the predefined box appears!
     func testOneClickEnterprisePayerReference() throws {
         app.launchArguments.append("-configName enterprise")
@@ -644,6 +644,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
         try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with national identifier")
     }
+    */
     
     /*
     func testVipps() throws {
