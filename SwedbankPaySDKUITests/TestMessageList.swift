@@ -69,25 +69,25 @@ class TestMessageList {
         }
     }
     
-    func waitForMessage(timeout: Double, message: TestMessage) throws -> Bool {
+    func waitForMessage(timeout: Double, message: TestMessage) throws {
         let messages = getMessages()
         try makeErrorIfExists(messages)
         
         if messages.contains(message) {
-            return true
+            return
         } else {
             let start = Date()
             let newBatch = waitForNewMessage(after: messages, timeout: timeout)
             try makeErrorIfExists(newBatch)
             
             if newBatch.contains(message) {
-                return true
+                return
             }
             let timeLeft = start.timeIntervalSinceNow + timeout
             if timeLeft <= 0 {
-                return false
+                throw "Wait for message: \(message) timedout"
             }
-            return try waitForMessage(timeout: timeLeft, message: message)
+            try waitForMessage(timeout: timeLeft, message: message)
         }
     }
 }
