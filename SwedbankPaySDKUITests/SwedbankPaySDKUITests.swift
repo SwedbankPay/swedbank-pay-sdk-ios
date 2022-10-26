@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwedbankPaySDKMerchantBackend
 
-private let shortTimeout = 3.0
+private let shortTimeout = 4.0
 private let defaultTimeout = 30.0
 private let initialTimeout = 60.0
 private let tapCardOptionTimeout = 10.0
@@ -20,7 +20,16 @@ private let oldScaCardNumber = "5226612199533406"
 private let scaCardNumber3DS2 = "4000008000000153"
 private let otherScaCardNumber = "4761739001010416"
 
-private let scaCards = ["4761739001010416", "5226612199533406"] //, "4547781087013329"
+//the new scaCard that always work, but has the strange input: "5226612199533406"
+//used to be 3DS but not anymore: "4111111111111111", "4761739001010416",
+private let scaCards = ["4547781087013329", "5226612199533406"]
+
+private struct NoSCAContinueButtonFound: Error {
+    
+    var description: String {
+        "Could not find the continue button nor the textfield"
+    }
+}
 
 private let expiryDate = "1233"
 private let noScaCvv = "111"
@@ -163,7 +172,20 @@ class SwedbankPaySDKUITests: XCTestCase {
     private func input(to webElement: XCUIElement, text: String) {
         webElement.tap()
         webView.typeText(text)
-        keyboardDoneButton.tap()
+        if keyboardDoneButton.exists {
+            keyboardDoneButton.tap()
+        } else {
+            keyboardOkButton.tap()
+        }
+    }
+    
+    //The new 3DS page
+    private var otpTextField: XCUIElement {
+        webView.textFields.firstMatch
+    }
+    
+    private var keyboardOkButton: XCUIElement {
+        app.buttons.element(matching: .init(format: "label CONTAINS[cd] 'Ok'"))
     }
     
     @discardableResult
@@ -405,38 +427,54 @@ class SwedbankPaySDKUITests: XCTestCase {
     /// Check that a regular payment without checkin works in V3
     func testV3ScaPayment() throws {
         
+        var args = [String]()
         for config in paymentTestConfigurations {
-            var paymentSuccess = false
+            args = ["-configName \(config)", "-testV3", "-testModalController"]
             for card in scaCards {
             
-                app.launchArguments.append("-configName \(config)")
-                app.launchArguments.append("-testV3")
+                app.launchArguments.append(contentsOf: args)
                 app.launch()
                 
-                try waitUntilShown()
-                
-                // try this again with otherScaCardNumber if failing? No, if service is down it doesn't matter what we do.
-                print("testing with \(card)")
-                try beginPayment(cardNumber: card, cvv: scaCvv)
-                if continueButton.waitForExistence(timeout: defaultTimeout) {
-                    retryUntilTrue {
-                        continueButton.tap()
-                        return messageList.waitForFirst(timeout: resultTimeout) != nil
-                    }
-                    waitForResultAndAssertComplete()
-                    paymentSuccess = true
+                do {
+                    try scaPaymentRun(cardNumber: card)
+                    return
+                } catch {
                     app.terminate()
-                    break
                 }
-                //else "Continue button not found"
-                
-                app.terminate()
-            }
-            if !paymentSuccess {
-                XCTFail("V3 payment failed, no continue button using: \(config)")
-                return
             }
         }
+        
+        //all failed so this will also fail...
+        app.launchArguments.append(contentsOf: args)
+        app.launch()
+        
+        try scaPaymentRun(cardNumber: scaCards.first!)
+    }
+    
+    func scaPaymentRun(cardNumber: String) throws {
+        try waitUntilShown()
+        
+        // try this again with otherScaCardNumber if failing? No, if service is down it doesn't matter what we do.
+        try beginPayment(cardNumber: cardNumber, cvv: scaCvv)
+        
+        try scaAproveCard()
+        //else "Continue button not found"
+    }
+    
+    func scaAproveCard() throws {
+        
+        if continueButton.waitForExistence(timeout: shortTimeout) {
+            retryUntilTrue {
+                continueButton.tap()
+                return messageList.waitForFirst(timeout: resultTimeout) != nil
+            }
+        } else if otpTextField.waitForExistence(timeout: shortTimeout) {
+            input(to: otpTextField, text: "1234")
+        } else {
+            throw NoSCAContinueButtonFound()
+        }
+        
+        waitForResultAndAssertComplete()
     }
     
     /// Check that instrument-mode works in V3 and we can update payments with a new instrument

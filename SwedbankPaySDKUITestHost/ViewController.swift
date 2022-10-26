@@ -13,8 +13,28 @@ class ViewController: UINavigationController {
     override func viewDidLoad() {
         super.viewDidLoad()
         if !shouldRestoreState {
-            viewControllers = [createRootViewController()]
+            
+            if CommandLine.arguments.contains("-testModalController") {
+                
+                //Don't dissmiss ourself during process, then we will never get the result.
+                let emptyController = UIViewController()
+                viewControllers = [emptyController]
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
+                    emptyController.present(createRootViewController(), animated: true)
+                }
+                
+            } else {
+                viewControllers = [createRootViewController()]
+            }
         }
+    }
+    
+    private func getPaymentOrder(_ withCheckin: Bool, _ nonMerchant: Bool) -> SwedbankPaySDK.PaymentOrder {
+        if withCheckin {
+            return testPaymentOrderCheckin
+        }
+        return nonMerchant ? testNonMerchantPaymentOrder : testPaymentOrder
     }
     
     private func createRootViewController() -> UIViewController {
@@ -27,13 +47,14 @@ class ViewController: UINavigationController {
         
         let isV3 = CommandLine.arguments.contains("-testV3")
         let withCheckin = CommandLine.arguments.contains("-testCheckin")
+        let nonMerchant = CommandLine.arguments.contains("-testNonMerchant")
+        var payment = getPaymentOrder(withCheckin, nonMerchant)
         let testEnterprisePayerReference = CommandLine.arguments.contains("-testEnterprisePayerReference")
         createTestButton(viewController) {
             print("no commands")
         }
         
         if isV3 {
-            var payment = testPaymentOrder
             if CommandLine.arguments.contains("-testInstrument") {
                 payment.instrument = SwedbankPaySDK.Instrument.creditCard
                 createTestButton(viewController) {
@@ -88,7 +109,7 @@ class ViewController: UINavigationController {
             
             viewController.startPayment(paymentOrder: payment)
         } else {
-            let payment = withCheckin ? testPaymentOrderCheckin : testPaymentOrder
+            
             viewController.startPayment(withCheckin: withCheckin, consumer: nil, paymentOrder: payment, userData: nil)
         }
         
