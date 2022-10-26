@@ -22,7 +22,7 @@ private let otherScaCardNumber = "4761739001010416"
 
 //the new scaCard that always work, but has the strange input: "5226612199533406"
 //used to be 3DS but not anymore: "4111111111111111", "4761739001010416",
-private let scaCards = ["4547781087013329", "5226612199533406"]
+private let scaCards = ["4111111111111111", "5226612199533406", "4547781087013329"]
 
 private struct NoSCAContinueButtonFound: Error {
     
