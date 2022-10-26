@@ -913,7 +913,10 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
     }
     
     private func dismissExtraWebViews() {
-        dismiss(animated: true, completion: nil)
+        if presentedViewController != nil {
+            //Don't dissmiss ourselves if there is no presentedViewController.
+            dismiss(animated: true, completion: nil)
+        }
     }
     
     func allowWebViewNavigation(
