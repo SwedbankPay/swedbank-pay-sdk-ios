@@ -22,7 +22,7 @@ extension SwedbankPaySDK {
         
         /// This number must match git's release-tag, pre-releases should be marked with "-alpha"
         /// It can't be read from info.plist since SPM does not have those.
-        public static var currentVersion = "3.1.1"
+        public static var currentVersion = "4.0.1"
         
         /// User agent reports version and platform
         public static var userAgent: String = {

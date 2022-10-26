@@ -718,11 +718,11 @@ private extension SwedbankPaySDKController {
             case info.termsOfServiceUrl.map(ensurePath(url:)):
                 return delegate?.overrideTermsOfServiceTapped(url: url) == true
             default:
-                print("no match for paymentProcessURL: \(url.absoluteURL)")
-                
+                rootWebViewController.navigationLog(url, "No match in handlePaymentProcessUrl, open in app or browser")
                 return false
         }
     }
+    
     func paymentFailed(error: Error) {
         viewModel?.onFailed(error: error)
     }
@@ -855,9 +855,7 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
         if let navigationController = presentedViewController as? UINavigationController {
             navigationController.pushViewController(webViewController, animated: true)
         } else {
-            if presentedViewController != nil {
-                dismiss(animated: false, completion: nil)
-            }
+            dismissExtraWebViews(animated: false)
             webViewController.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(onWebViewDoneButtonPressed))
             let navigationController = UINavigationController(rootViewController: webViewController)
             present(navigationController, animated: true, completion: nil)
@@ -866,6 +864,14 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
     
     @objc private func onWebViewDoneButtonPressed() {
         dismissExtraWebViews()
+    }
+    
+    /// this function dismisses the extra ViewControllers that may have been added or created from JavaScript (alerts)
+    private func dismissExtraWebViews(animated: Bool = true) {
+        if presentedViewController != nil {
+            //Don't dissmiss ourselves if there is no presentedViewController.
+            dismiss(animated: animated, completion: nil)
+        }
     }
     
     func remove(webViewController: SwedbankPayWebViewControllerBase) {
@@ -912,10 +918,6 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
             webRedirectBehavior = .AlwaysUseBrowser
             reloadPaymentMenu()
         }
-    }
-    
-    private func dismissExtraWebViews() {
-        dismiss(animated: true, completion: nil)
     }
     
     func allowWebViewNavigation(
