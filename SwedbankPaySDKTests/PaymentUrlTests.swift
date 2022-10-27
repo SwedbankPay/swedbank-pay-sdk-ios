@@ -41,13 +41,16 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
             configuration: testConfiguration.sdkConfiguration(for: self),
             paymentOrder: paymentOrder
         )
+        print("Wating for first web")
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)
         
+        print("Wating for second web")
         webView.evaluateJavaScript("window.location = 'about:blank'", completionHandler: nil)
         waitForWebViewLoaded()
         wait(for: [expectEmptyWebView()], timeout: timeout)
         
+        print("Wating for third web")
         invokePaymentUrl()
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)

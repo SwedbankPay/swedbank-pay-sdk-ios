@@ -19,7 +19,7 @@ private let scaCardNumber = "4547781087013329"
 private let oldScaCardNumber = "5226612199533406"
 private let scaCardNumber3DS2 = "4000008000000153"
 private let otherScaCardNumber = "4761739001010416"
-private let ccaV2CardNumbers = ["4761739001010416", "5226612199533406"]
+private let ccaV2CardNumbers = ["5226612199533406", "4761739001010416", ]
 
 //the new scaCard that always work, but has the strange input: "5226612199533406"
 //used to be 3DS but not anymore: "4111111111111111", "4761739001010416",
@@ -37,7 +37,7 @@ private let noScaCvv = "111"
 private let scaCvv = "123" //268
 
 //how many configurations can be tested
-let paymentTestConfigurations = ["enterprise", "paymentsOnly"]
+let paymentTestConfigurations = ["enterprise", "paymentsOnly", ]
 
 private struct NonExistentElementError: Error {
     var element: XCUIElement
@@ -183,6 +183,9 @@ class SwedbankPaySDKUITests: XCTestCase {
     //The new 3DS page
     private var otpTextField: XCUIElement {
         webView.textFields.firstMatch
+    }
+    private var whitelistThisMerchant: XCUIElement {
+        webView.checkBoxes.firstMatch
     }
     
     private var keyboardOkButton: XCUIElement {
@@ -413,12 +416,14 @@ class SwedbankPaySDKUITests: XCTestCase {
     /// Temporarily disabled since sca-cards doesn't work anymore
     func testV3ScaPayment() throws {
         
-        var args = [String]()
+        let originalArguments = app.launchArguments
+        var args = originalArguments
         for config in paymentTestConfigurations {
-            args = ["-configName \(config)", "-testV3", "-testModalController"]
-            for card in scaCards {
+            args = originalArguments
+            args.append(contentsOf: ["-configName \(config)", "-testV3", "-testModalController"])
+            app.launchArguments = args
             
-                app.launchArguments.append(contentsOf: args)
+            for card in scaCards {
                 app.launch()
                 
                 do {
@@ -431,7 +436,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
         
         //all failed so this will also fail...
-        app.launchArguments.append(contentsOf: args)
+        app.launchArguments = args
         app.launch()
         
         try scaPaymentRun(cardNumber: scaCards.first!)
@@ -455,6 +460,7 @@ class SwedbankPaySDKUITests: XCTestCase {
                 return messageList.waitForFirst(timeout: resultTimeout) != nil
             }
         } else if otpTextField.waitForExistence(timeout: shortTimeout) {
+            whitelistThisMerchant.tap()
             input(to: otpTextField, text: "1234")
             
         } else {
