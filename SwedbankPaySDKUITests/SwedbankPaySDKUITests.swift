@@ -403,7 +403,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     /// Check that a regular payment without checkin works in V3
-    func testV3ScaPayment() throws {
+    func disabledTEMPtestV3ScaPayment() throws {
         
         for config in paymentTestConfigurations {
             var paymentSuccess = false
@@ -543,7 +543,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     // verify that the predefined box appears!
-    func testOneClickEnterprisePayerReference() throws {
+    func disabledTEMPtestOneClickEnterprisePayerReference() throws {
         app.launchArguments.append("-configName enterprise")
         
         app.launchArguments.append("-testV3")
@@ -564,7 +564,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     // Make sure we also support ssn directly
-    func testOneClickEnterpriseNationalIdentifier() throws {
+    func disabledTEMPtestOneClickEnterpriseNationalIdentifier() throws {
         
         app.launchArguments.append("-configName enterprise")
         
