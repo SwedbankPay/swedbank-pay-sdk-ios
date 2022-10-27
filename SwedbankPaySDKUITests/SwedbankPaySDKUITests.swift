@@ -23,7 +23,7 @@ private let ccaV2CardNumbers = ["5226612199533406", "4761739001010416", ]
 
 //the new scaCard that always work, but has the strange input: "5226612199533406"
 //used to be 3DS but not anymore: "4111111111111111", "4761739001010416",
-private let scaCards = ["4547781087013329", "4111111111111111", "4000008000000153", ]
+private let scaCards = ["4547781087013329", "4111111111111111", "4000008000000153", "4761739001010416"]
 
 private struct NoSCAContinueButtonFound: Error {
     
@@ -37,7 +37,7 @@ private let noScaCvv = "111"
 private let scaCvv = "123" //268
 
 //how many configurations can be tested
-let paymentTestConfigurations = ["enterprise", "paymentsOnly", ]
+let paymentTestConfigurations = ["paymentsOnly", "enterprise", ]
 
 private struct NonExistentElementError: Error {
     var element: XCUIElement
@@ -184,6 +184,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     private var otpTextField: XCUIElement {
         webView.textFields.firstMatch
     }
+    //cannot find this!
     private var whitelistThisMerchant: XCUIElement {
         webView.checkBoxes.firstMatch
     }
@@ -460,7 +461,7 @@ class SwedbankPaySDKUITests: XCTestCase {
                 return messageList.waitForFirst(timeout: resultTimeout) != nil
             }
         } else if otpTextField.waitForExistence(timeout: shortTimeout) {
-            whitelistThisMerchant.tap()
+            //whitelistThisMerchant.tap() it also does not matter!
             input(to: otpTextField, text: "1234")
             
         } else {
