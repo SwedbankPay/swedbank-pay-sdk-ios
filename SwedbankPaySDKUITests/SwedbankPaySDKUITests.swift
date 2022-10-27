@@ -19,10 +19,11 @@ private let scaCardNumber = "4547781087013329"
 private let oldScaCardNumber = "5226612199533406"
 private let scaCardNumber3DS2 = "4000008000000153"
 private let otherScaCardNumber = "4761739001010416"
+private let ccaV2CardNumbers = ["4761739001010416", "5226612199533406"]
 
 //the new scaCard that always work, but has the strange input: "5226612199533406"
 //used to be 3DS but not anymore: "4111111111111111", "4761739001010416",
-private let scaCards = ["4547781087013329", "4111111111111111", "5226612199533406", "4000008000000153", "4761739001010416", ]
+private let scaCards = ["4547781087013329", "4111111111111111", "4000008000000153", ]
 
 private struct NoSCAContinueButtonFound: Error {
     
@@ -410,7 +411,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     /// Check that a regular payment without checkin works in V3
     /// Temporarily disabled since sca-cards doesn't work anymore
-    func scaCardsHaveStoppedWorkingTestV3ScaPayment() throws {
+    func testV3ScaPayment() throws {
         
         var args = [String]()
         for config in paymentTestConfigurations {

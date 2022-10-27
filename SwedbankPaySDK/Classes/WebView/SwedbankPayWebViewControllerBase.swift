@@ -23,7 +23,11 @@ class SwedbankPayWebViewControllerBase: UIViewController {
 
     // Overridable for testing, so we can mock UIApplication.open(_:options:completionHandler:)
     var attemptOpenUniversalLink: (URL, @escaping (Bool) -> Void) -> Void = { url, completionHandler in
-        UIApplication.shared.open(url, options: [.universalLinksOnly: true], completionHandler: completionHandler)
+        if #available(iOS 10, *) {
+            UIApplication.shared.open(url, options: [.universalLinksOnly: true], completionHandler: completionHandler)
+        } else {
+            completionHandler(false)
+        }
     }
 
     let webView: WKWebView
