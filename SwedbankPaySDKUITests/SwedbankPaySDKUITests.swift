@@ -409,7 +409,8 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     /// Check that a regular payment without checkin works in V3
-    func testV3ScaPayment() throws {
+    /// Temporarily disabled since sca-cards doesn't work anymore
+    func scaCardsHaveStoppedWorkingTestV3ScaPayment() throws {
         
         var args = [String]()
         for config in paymentTestConfigurations {
