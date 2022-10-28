@@ -1,7 +1,8 @@
 import XCTest
 @testable import SwedbankPaySDKMerchantBackend
 
-private let shortTimeout = 4.0
+//github is slow, timeout may never be less than 10.
+private let shortTimeout = 10.0
 private let defaultTimeout = 30.0
 private let initialTimeout = 60.0
 private let tapCardOptionTimeout = 10.0

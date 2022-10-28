@@ -3,7 +3,8 @@ import WebKit
 @testable import SwedbankPaySDK
 
 class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
-    private let timeout = 5 as TimeInterval
+    //Github needs a good amount of time for everything.
+    private let timeout = 15 as TimeInterval
     
     private func makePaymentUrl(scheme: String, extraQueryItems: [URLQueryItem]? = nil) -> URL {
         let basePaymentUrl = MockMerchantBackend.paymentOrder(for: self).urls.paymentUrl!
