@@ -398,7 +398,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitForResultAndAssertComplete()
     }
     
-    /// Check that a payment with SCA works
+    /// Check that a payment with SCA v2 works
     func testItShouldSucceedAtPaymentWithSca() throws {
         app.launch()
         try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)

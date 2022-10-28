@@ -15,8 +15,7 @@ class ViewController: UINavigationController {
         if !shouldRestoreState {
             
             viewControllers = [createRootViewController()]
-            /*
-             Temporarily remove modal testing
+            
             if CommandLine.arguments.contains("-testModalController") {
                 
                 //Don't dissmiss ourself during process, then we will never get the result.
@@ -30,7 +29,6 @@ class ViewController: UINavigationController {
             } else {
                 viewControllers = [createRootViewController()]
             }
-            */
         }
     }
     
@@ -38,7 +36,7 @@ class ViewController: UINavigationController {
         if withCheckin {
             return testPaymentOrderCheckin
         }
-        return testPaymentOrder //nonMerchant ? testNonMerchantPaymentOrder :
+        return nonMerchant ? testNonMerchantPaymentOrder : testPaymentOrder 
     }
     
     private func createRootViewController() -> UIViewController {

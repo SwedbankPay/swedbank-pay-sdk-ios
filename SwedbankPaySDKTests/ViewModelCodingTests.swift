@@ -3,7 +3,7 @@ import XCTest
 @testable import SwedbankPaySDK
 
 class ViewModelCodingTests: XCTestCase {
-    private let timeout = 5 as TimeInterval
+    private let timeout = 15 as TimeInterval
     
     private var configuration: SwedbankPaySDKConfiguration {
         MockMerchantBackend.configuration(for: self)

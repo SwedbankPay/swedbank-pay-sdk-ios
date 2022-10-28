@@ -3,6 +3,8 @@ import Foundation
 @testable import SwedbankPaySDK
 
 class GoodWebViewRedirectsTests: XCTestCase {
+    
+    let defaultTimeout: TimeInterval = 15
     private var redirects: GoodWebViewRedirects!
     
     private func parse(_ text: String) {
@@ -18,7 +20,7 @@ class GoodWebViewRedirectsTests: XCTestCase {
     }
     
     private func waitForExpectations() {
-        waitForExpectations(timeout: 10, handler: nil)
+        waitForExpectations(timeout: defaultTimeout, handler: nil)
     }
     
     func testItParsesDomains() {
