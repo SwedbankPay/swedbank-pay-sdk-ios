@@ -37,7 +37,7 @@ private let noScaCvv = "111"
 private let scaCvv = "123" //268
 
 //how many configurations can be tested
-let paymentTestConfigurations = ["paymentsOnly", "enterprise", ]
+let paymentTestConfigurations = ["paymentsOnly", ]  //"enterprise",
 
 private struct NonExistentElementError: Error {
     var element: XCUIElement
