@@ -186,10 +186,12 @@ public struct NotImplementedError: Error {
 }
 
 public extension SwedbankPaySDKConfiguration {
-    
-    
-    
     // default functions for optional methods
+    
+    func postConsumers(consumer: SwedbankPaySDK.Consumer?, userData: Any?, completion: @escaping (Result<SwedbankPaySDK.ViewConsumerIdentificationInfo, Error>) -> Void) {
+        completion(.failure(SwedbankPayConfigurationError.notImplemented))
+    }
+    
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         options: SwedbankPaySDK.VersionOptions,
