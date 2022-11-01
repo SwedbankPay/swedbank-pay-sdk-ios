@@ -1,15 +1,12 @@
 name: UI Test
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
+on: [push]
 
 jobs:
   ui_test:
-    runs-on: macos-11
+    runs-on: macos-12
 
     steps:
       - uses: actions/checkout@v3
       - name: Run UI Tests
-        run: xcodebuild -scheme SwedbankPaySDKUITestHost -destination 'platform=iOS Simulator,name=iPhone 12 Pro,OS=latest' test
+        run: xcodebuild -scheme SwedbankPaySDKUITestHost -destination 'platform=iOS Simulator,name=iPhone 14 Pro,OS=latest' test

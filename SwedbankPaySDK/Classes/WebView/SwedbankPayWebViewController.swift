@@ -24,7 +24,24 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
     
     var shouldShowExternalAppAlerts = true
 
+    //Legacy navigationLogger
     var navigationLogger: ((URL) -> Void)?
+    
+    /// keep track on all webView redirects and the reason for redirection. Set to activate logging (active by default in DEBUG).
+    var redirectLog: [(url: URL, note: String, date: Date)]?
+    
+    /// print urls to log and send them to the navigationLogger
+    func navigationLog(_ url: URL?, _ note: String) {
+        guard let url else { return }
+        #if DEBUG
+        debugPrint("navigation: \(note) url: \(url.absoluteString)")
+        if redirectLog == nil {
+            redirectLog = .init()
+        }
+        #endif
+        navigationLogger?(url)
+        redirectLog?.append((url, note, Date()))
+    }
 
     var isAtRoot: Bool {
         return lastRootPage != nil
@@ -92,6 +109,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
         let request = navigationAction.request
         
         if isBaseUrlNavigation(navigationAction: navigationAction) {
+            navigationLog(request.url, "Link isBaseUrlNavigation")
             decisionHandler(.allow)
         } else if delegate?.overrideNavigation(request: request) == true {
             decisionHandler(.cancel)
@@ -99,10 +117,10 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
             // If targetFrame is nil, this is a new window navigation;
             // handle like a main frame navigation.
             if navigationAction.targetFrame?.isMainFrame != false {
-                navigationLogger?(url)
                 decidePolicyFor(navigationAction: navigationAction, url: url, decisionHandler: decisionHandler)
             } else {
                 let canOpen = WKWebView.canOpen(url: url)
+                navigationLog(url, "New window navigation, \(canOpen ? "allowed" : "cancelled")")
                 decisionHandler(canOpen ? .allow : .cancel)
             }
         } else {
@@ -117,6 +135,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
     ) {
         attemptOpenUniversalLink(url) { opened in
             if opened {
+                self.navigationLog(url, "Universal link opened in browser")
                 self.processHost = .externalApp(openDate: Date())
                 decisionHandler(.cancel)
             } else {
@@ -136,6 +155,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
     ) {
         if WKWebView.canOpen(url: url), let delegate = delegate {
             if navigationAction.targetFrame == nil {
+                navigationLog(url, "Link with no targetFrame, opened in webview")
                 decisionHandler(.allow) // always allow new frame navigations
             } else {
                 // A regular http(s) url. Check if it matches the list of
@@ -144,13 +164,17 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
                     if !allowed {
                         // Not tested or incompatible with web view;
                         // must continue process is Safari.
+                        self.navigationLog(url, "Incompatible link opened in browser")
                         self.continueNavigationInBrowser(url: url)
+                    } else {
+                        self.navigationLog(url, "Link opened in webview")
                     }
                     decisionHandler(allowed ? .allow : .cancel)
                 }
             }
         } else {
             // A custom-scheme url. Must let another app take care of it.
+            navigationLog(url, "Custom-scheme url opened in another app")
             UIApplication.shared.open(url, options: [:]) { opened in
                 if opened {
                     self.processHost = .externalApp(openDate: Date())

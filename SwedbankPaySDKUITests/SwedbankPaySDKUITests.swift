@@ -1,7 +1,8 @@
 import XCTest
 @testable import SwedbankPaySDKMerchantBackend
 
-private let shortTimeout = 3.0
+//github is slow, timeout may never be less than 10.
+private let shortTimeout = 10.0
 private let defaultTimeout = 30.0
 private let initialTimeout = 60.0
 private let tapCardOptionTimeout = 10.0
@@ -19,15 +20,25 @@ private let scaCardNumber = "4547781087013329"
 private let oldScaCardNumber = "5226612199533406"
 private let scaCardNumber3DS2 = "4000008000000153"
 private let otherScaCardNumber = "4761739001010416"
+private let ccaV2CardNumbers = ["5226612199533406", "4761739001010416", ]
 
-private let scaCards = ["4761739001010416", "5226612199533406"] //, "4547781087013329"
+//the new scaCard that always work, but has the strange input: "5226612199533406"
+//used to be 3DS but not anymore: "4111111111111111", "4761739001010416",
+private let scaCards = ["4547781087013329", "4111111111111111", "4000008000000153", "4761739001010416"]
+
+private struct NoSCAContinueButtonFound: Error {
+    
+    var description: String {
+        "Could not find the continue button nor the textfield"
+    }
+}
 
 private let expiryDate = "1233"
 private let noScaCvv = "111"
 private let scaCvv = "123" //268
 
 //how many configurations can be tested
-let paymentTestConfigurations = ["enterprise", "paymentsOnly"]
+let paymentTestConfigurations = ["paymentsOnly"]  //"enterprise"
 
 private struct NonExistentElementError: Error {
     var element: XCUIElement
@@ -163,7 +174,24 @@ class SwedbankPaySDKUITests: XCTestCase {
     private func input(to webElement: XCUIElement, text: String) {
         webElement.tap()
         webView.typeText(text)
-        keyboardDoneButton.tap()
+        if keyboardOkButton.exists {
+            keyboardOkButton.tap()
+        } else {
+            keyboardDoneButton.tap()
+        }
+    }
+    
+    //The new 3DS page
+    private var otpTextField: XCUIElement {
+        webView.textFields.firstMatch
+    }
+    //cannot find this!
+    private var whitelistThisMerchant: XCUIElement {
+        webView.checkBoxes.firstMatch
+    }
+    
+    private var keyboardOkButton: XCUIElement {
+        app.buttons.element(matching: .init(format: "label CONTAINS[cd] 'Ok'"))
     }
     
     @discardableResult
@@ -198,23 +226,20 @@ class SwedbankPaySDKUITests: XCTestCase {
         return messageList.waitForFirst(timeout: timeout)
     }
     
-    private func waitForComplete(timeout: Double = initialTimeout) throws -> Bool {
+    private func waitForComplete(timeout: Double = initialTimeout) throws {
         print("Waiting \(timeout)s for payment result")
-        return try messageList.waitForMessage(timeout: timeout, message: .complete)
+        try messageList.waitForMessage(timeout: timeout, message: .complete)
     }
     
-    private func waitFor(_ message: TestMessage, timeout: Double = initialTimeout) {
+    private func waitFor(_ message: TestMessage, timeout: Double = initialTimeout) throws {
         print("Waiting \(timeout)s for message: \(message)")
         
-        if let result = try? messageList.waitForMessage(timeout: timeout, message: message),
-            !result {
-            XCTFail("Did not get \"\(message)\" in time")
-        }
+        try messageList.waitForMessage(timeout: timeout, message: message)
     }
     
-    private func waitForResultAndAssertComplete() {
+    private func waitForResultAndAssertComplete() throws {
         
-        XCTAssertTrue(try waitForComplete(timeout: resultTimeout), "Did not get complete-message in time")
+        try waitForComplete(timeout: resultTimeout)
     }
     
     private func waitForResultAndAssertNil() {
@@ -248,22 +273,16 @@ class SwedbankPaySDKUITests: XCTestCase {
     /// Sanity check: Check that a web view is displayed
     func testItShouldDisplayWebView() throws {
         app.launch()
-        defer {
-            waitFor(.didShow, timeout: errorResultTimeout)
-        }
-        
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        try waitFor(.didShow, timeout: errorResultTimeout)
     }
     
     /// Sanity check for V3: Check that a web view is displayed
     func testItShouldDisplayWebViewV3() throws {
         app.launchArguments.append("-testV3")
         app.launch()
-        defer {
-            waitFor(.didShow, timeout: errorResultTimeout)
-        }
-        
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        try waitFor(.didShow, timeout: errorResultTimeout)
     }
     
     /// Sanity check: Check that error messages are sent through the message channel
@@ -367,29 +386,21 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     func waitUntilShown() throws {
         
-        if try messageList.waitForMessage(timeout: resultTimeout * 2, message: .didShow) == false {
-            XCTFail("Did not load HTML")
-        }
+        try messageList.waitForMessage(timeout: resultTimeout * 2, message: .didShow)
     }
     
     /// Check that a payment without SCA works
     func testItShouldSucceedAtPaymentWithoutSca() throws {
         
         app.launch()
-        defer {
-            waitForResultAndAssertComplete()
-        }
         
         try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
-        print("done")
+        try waitForResultAndAssertComplete()
     }
     
-    /// Check that a payment with SCA works
+    /// Check that a payment with SCA v2 works
     func testItShouldSucceedAtPaymentWithSca() throws {
         app.launch()
-        defer {
-            waitForResultAndAssertComplete()
-        }
         try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
         
         try waitAndAssertExists(
@@ -400,44 +411,106 @@ class SwedbankPaySDKUITests: XCTestCase {
             continueButton.tap()
             return messageList.waitForFirst(timeout: resultTimeout) != nil
         }
+        try waitForResultAndAssertComplete()
     }
     
     /// Check that a regular payment without checkin works in V3
-    func disabledTEMPtestV3ScaPayment() throws {
+    /// Temporarily disabled since sca-cards doesn't work anymore
+    func testV3ScaPayment() throws {
         
+        let originalArguments = app.launchArguments
+        var args = originalArguments
         for config in paymentTestConfigurations {
-            var paymentSuccess = false
-            for card in scaCards {
+            args = originalArguments
+            args.append(contentsOf: ["-configName \(config)", "-testV3", "-testModalController"])
+            app.launchArguments = args
             
-                app.launchArguments.append("-configName \(config)")
-                app.launchArguments.append("-testV3")
+            for card in scaCards {
                 app.launch()
                 
-                try waitUntilShown()
-                
-                // try this again with otherScaCardNumber if failing? No, if service is down it doesn't matter what we do.
-                print("testing with \(card)")
-                try beginPayment(cardNumber: card, cvv: scaCvv)
-                if continueButton.waitForExistence(timeout: defaultTimeout) {
-                    retryUntilTrue {
-                        continueButton.tap()
-                        return messageList.waitForFirst(timeout: resultTimeout) != nil
-                    }
-                    waitForResultAndAssertComplete()
-                    paymentSuccess = true
+                do {
+                    try scaPaymentRun(cardNumber: card)
+                    return
+                } catch {
                     app.terminate()
-                    break
                 }
-                //else "Continue button not found"
+            }
+        }
+        
+        //all failed so this will also fail...
+        app.launchArguments = args
+        app.launch()
+        
+        try scaPaymentRun(cardNumber: scaCards.first!)
+    }
+    
+    func scaPaymentRun(cardNumber: String) throws {
+        try waitUntilShown()
+        
+        // try this again with otherScaCardNumber if failing? No, if service is down it doesn't matter what we do.
+        try beginPayment(cardNumber: cardNumber, cvv: scaCvv)
+        
+        try scaAproveCard()
+        //else "Continue button not found"
+    }
+    
+    func scaAproveCard() throws {
+        
+        if continueButton.waitForExistence(timeout: shortTimeout) {
+            retryUntilTrue {
+                continueButton.tap()
+                return messageList.waitForFirst(timeout: resultTimeout) != nil
+            }
+        } else if otpTextField.waitForExistence(timeout: shortTimeout) {
+            //whitelistThisMerchant.tap() it also does not matter!
+            input(to: otpTextField, text: "1234")
+            
+        } else {
+            throw NoSCAContinueButtonFound()
+        }
+        
+        try waitForComplete(timeout: defaultTimeout)
+    }
+    
+    /*
+    // Not necessary at the moment.
+    /// Check that a failing 3ds works as expected
+    func testV3ScaFailing() throws {
+        
+        //let config = "paymentsOnly"
+        let config = "enterprise"   //we don't know their api-keys, nonMerchant
+        for card in scaCards {
+            
+            app.launchArguments.append("-configName \(config)")
+            app.launchArguments.append("-testV3")
+            app.launchArguments.append("-testNonMerchant")
+            app.launch()
+            
+            try waitUntilShown()
+            
+            // try this again with otherScaCardNumber if failing? No, if service is down it doesn't matter what we do.
+            print("testing with \(card)")
+            try beginPayment(cardNumber: card, cvv: scaCvv)
+            
+            
+            let expect = expectation(description: "stuck forever")
+            waitForExpectations(timeout: 9283747)
+            expect.fulfill()
+            
+            if continueButton.waitForExistence(timeout: defaultTimeout) {
+                retryUntilTrue {
+                    continueButton.tap()
+                    return messageList.waitForFirst(timeout: resultTimeout) != nil
+                }
+                //waitForResultAndAssertComplete()
+                
                 
                 app.terminate()
-            }
-            if !paymentSuccess {
-                XCTFail("V3 payment failed, no continue button using: \(config)")
-                return
+                break
             }
         }
     }
+     */
     
     /// Check that instrument-mode works in V3 and we can update payments with a new instrument
     func testV3Instruments() throws {
@@ -455,7 +528,7 @@ class SwedbankPaySDKUITests: XCTestCase {
             testMenuButton.tap()
             
             //just wait until instrument select-change
-            waitFor(.instrumentSelected, timeout: resultTimeout)
+            try waitFor(.instrumentSelected, timeout: resultTimeout)
             
             //start over with next merchant
             app.terminate()
@@ -475,7 +548,7 @@ class SwedbankPaySDKUITests: XCTestCase {
             testMenuButton.tap()
             
             //just wait until instrument select-change
-            waitFor(.canceled, timeout: resultTimeout)
+            try waitFor(.canceled, timeout: resultTimeout)
             
             //start over with next merchant
             app.terminate()
@@ -524,7 +597,7 @@ class SwedbankPaySDKUITests: XCTestCase {
             }
             
             //just wait until payment is verified
-            waitFor(.complete, timeout: resultTimeout)
+            try waitFor(.complete, timeout: resultTimeout)
             
             testMenuButton.tap()
             
@@ -541,9 +614,9 @@ class SwedbankPaySDKUITests: XCTestCase {
             app.terminate()
         }
     }
-    
+    /*
     // verify that the predefined box appears!
-    func disabledTEMPtestOneClickEnterprisePayerReference() throws {
+    func testOneClickEnterprisePayerReference() throws {
         app.launchArguments.append("-configName enterprise")
         
         app.launchArguments.append("-testV3")
@@ -564,7 +637,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     // Make sure we also support ssn directly
-    func disabledTEMPtestOneClickEnterpriseNationalIdentifier() throws {
+    func testOneClickEnterpriseNationalIdentifier() throws {
         
         app.launchArguments.append("-configName enterprise")
         
@@ -582,6 +655,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
         try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with national identifier")
     }
+    */
     
     /*
     func testVipps() throws {
@@ -590,7 +664,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         app.launch()
         
         try waitUntilShown()
-        waitFor(.canceled, timeout: resultTimeout * 9098098)
+     try waitFor(.canceled, timeout: resultTimeout * 9098098)
         print("Here!")
     }
     */
@@ -613,7 +687,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
         
         //just wait until payment is verified
-        waitFor(.complete, timeout: resultTimeout)
+        try waitFor(.complete, timeout: resultTimeout)
         
         var complete = false
         // NOTE: SwedbankPay is working on fixing this timing-issue, so this should not happen in the future.
@@ -659,38 +733,28 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     func testItShouldShowWebViewAfterRestoration() throws {
         app.launch()
-        defer {
-            waitFor(.didShow, timeout: errorResultTimeout)
-        }
-        
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
         restartAndRestoreState()
         
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        try waitFor(.didShow, timeout: errorResultTimeout)
     }
     
     func testItShouldShowWebViewAfterRestorationV3() throws {
         app.launchArguments.append("-testV3")
         app.launch()
         
-        defer {
-            waitFor(.didShow, timeout: errorResultTimeout)
-        }
-        
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
         restartAndRestoreState()
         
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+        try waitFor(.didShow, timeout: errorResultTimeout)
     }
     
     func testItShouldShowPaymentMenuAfterRestoration() throws {
         app.launch()
-        defer {
-            waitFor(.didShow, timeout: errorResultTimeout)
-        }
-        
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         
@@ -698,16 +762,13 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+        try waitFor(.didShow, timeout: errorResultTimeout)
     }
     
     func testItShouldShowPaymentMenuAfterRestorationV3() throws {
         app.launchArguments.append("-testV3")
         app.launch()
         
-        defer {
-            waitFor(.didShow, timeout: errorResultTimeout)
-        }
-        
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         //try waitAndAssertExists(phoneInput, "Phone option not found")
         
@@ -715,29 +776,24 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         //try waitAndAssertExists(phoneInput, "Phone option not found")
+        
+        try waitFor(.didShow, timeout: errorResultTimeout)
     }
     
     func testItShouldSucceedAtPaymentAfterRestoration() throws {
         app.launch()
-        defer {
-            waitFor(.complete)
-        }
-        
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         
         restartAndRestoreState()
         
         try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
+        try waitFor(.complete)
     }
     
     func testItShouldSucceedAtPaymentAfterRestorationV3() throws {
         app.launchArguments.append("-testV3")
         app.launch()
-        defer {
-            waitFor(.complete)
-        }
-        
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         //try waitAndAssertExists(phoneInput, "Phone option not found")
         
@@ -749,34 +805,30 @@ class SwedbankPaySDKUITests: XCTestCase {
         //try beginPayerIdentificationV3Small()
         
         try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
+        try waitFor(.complete)
     }
     
     func testItShouldReportSuccessAfterRestoration() throws {
         app.launch()
-        defer {
-            waitFor(.complete)
-        }
-        
         try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
-        waitForResultAndAssertComplete()
+        try waitForResultAndAssertComplete()
         
         restartAndRestoreState()
+        try waitFor(.complete)
     }
     
     func testItShouldReportSuccessAfterRestorationV3() throws {
         app.launchArguments.append("-testV3")
         app.launch()
-        defer {
-            waitFor(.complete)
-        }
         try waitUntilShown()
         
         //try beginPayerIdentificationV3Small()
         
         try beginPayment(cardNumber: noScaCardNumber, cvv: noScaCvv)
-        waitForResultAndAssertComplete()
+        try waitForResultAndAssertComplete()
         
         restartAndRestoreState()
+        try waitFor(.complete)
     }
     
     

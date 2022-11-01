@@ -3,7 +3,8 @@ import WebKit
 @testable import SwedbankPaySDK
 
 class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
-    private let timeout = 5 as TimeInterval
+    //Github needs a good amount of time for everything.
+    private let timeout = 15 as TimeInterval
     
     private func makePaymentUrl(scheme: String, extraQueryItems: [URLQueryItem]? = nil) -> URL {
         let basePaymentUrl = MockMerchantBackend.paymentOrder(for: self).urls.paymentUrl!
@@ -41,13 +42,16 @@ class PaymentUrlTests : SwedbankPaySDKControllerTestCase {
             configuration: testConfiguration.sdkConfiguration(for: self),
             paymentOrder: paymentOrder
         )
+        print("Wating for first web")
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)
         
+        print("Wating for second web")
         webView.evaluateJavaScript("window.location = 'about:blank'", completionHandler: nil)
         waitForWebViewLoaded()
         wait(for: [expectEmptyWebView()], timeout: timeout)
         
+        print("Wating for third web")
         invokePaymentUrl()
         waitForWebViewLoaded()
         wait(for: [expectViewPaymentorderPageInWebView()], timeout: timeout)

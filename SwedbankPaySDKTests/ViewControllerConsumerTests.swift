@@ -3,7 +3,7 @@ import WebKit
 @testable import SwedbankPaySDK
 
 class ViewControllerConsumerTests : SwedbankPaySDKControllerTestCase {
-    private let timeout = 5 as TimeInterval
+    private let timeout = 15 as TimeInterval
     
     private var testConfiguration: TestConfiguration?
     

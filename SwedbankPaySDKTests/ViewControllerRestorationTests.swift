@@ -4,7 +4,7 @@ import SwedbankPaySDK
 private let restorationIdentifier = "ViewControllerRestorationTests.viewController"
 
 class ViewControllerRestorationTests: SwedbankPaySDKControllerTestCase {
-    private let timeout = 5 as TimeInterval
+    private let timeout = 15 as TimeInterval
     
     override func setUp() {
         super.setUp()

@@ -186,10 +186,12 @@ public struct NotImplementedError: Error {
 }
 
 public extension SwedbankPaySDKConfiguration {
-    
-    
-    
     // default functions for optional methods
+    
+    func postConsumers(consumer: SwedbankPaySDK.Consumer?, userData: Any?, completion: @escaping (Result<SwedbankPaySDK.ViewConsumerIdentificationInfo, Error>) -> Void) {
+        completion(.failure(NotImplementedError()))
+    }
+    
     func updatePaymentOrder(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         options: SwedbankPaySDK.VersionOptions,
@@ -348,14 +350,8 @@ private extension SwedbankPaySDKConfiguration {
         // i.e. that if conforms to RFC 3986. This should never be a problem in practice.
         
         guard
-            let paymentUrlComponents = URLComponents(
-                url: paymentUrl,
-                resolvingAgainstBaseURL: true
-            ),
-            var componentsToCompare = URLComponents(
-                url: url,
-                resolvingAgainstBaseURL: true
-            )
+            let paymentUrlComponents = URLComponents(url: paymentUrl, resolvingAgainstBaseURL: true),
+            var componentsToCompare = URLComponents(url: url, resolvingAgainstBaseURL: true)
             else {
                 return false
         }
