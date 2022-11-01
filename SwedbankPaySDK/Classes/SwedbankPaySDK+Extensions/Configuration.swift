@@ -189,7 +189,7 @@ public extension SwedbankPaySDKConfiguration {
     // default functions for optional methods
     
     func postConsumers(consumer: SwedbankPaySDK.Consumer?, userData: Any?, completion: @escaping (Result<SwedbankPaySDK.ViewConsumerIdentificationInfo, Error>) -> Void) {
-        completion(.failure(SwedbankPayConfigurationError.notImplemented))
+        completion(.failure(NotImplementedError()))
     }
     
     func updatePaymentOrder(
