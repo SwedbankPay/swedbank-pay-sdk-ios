@@ -16,11 +16,10 @@
 import UIKit
 import WebKit
 
-final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
-    private static let guessMaybeStuckInterval = 30.0
-    private static let maybeStuckNoteMinimumIntervalFromDidBecomeActive = 3.0
+class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
+    internal static let maybeStuckNoteMinimumIntervalFromDidBecomeActive = 3.0
     
-    private var lastRootPage: (navigation: WKNavigation?, baseURL: URL?)?
+    internal var lastRootPage: (navigation: WKNavigation?, baseURL: URL?)?
     
     var shouldShowExternalAppAlerts = true
 
@@ -47,23 +46,25 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
         return lastRootPage != nil
     }
     
-    private enum ProcessHost {
+    internal enum ProcessHost {
         case webView
         case externalApp(openDate: Date)
         case browser
     }
     
-    private var processHost = ProcessHost.webView {
+    internal var processHost = ProcessHost.webView {
         didSet {
             wrangleProcessHostAlert()
         }
     }
-    private var wrangleProcessHostAlertTimer: Timer?
+    
+    internal var wrangleProcessHostAlertTimer: Timer?
+    internal func earliestMaybeStuckDate(_ openDate: Date) -> Date {
+        openDate + 30.0
+    }
 
-    override init(
-        configuration: WKWebViewConfiguration,
-        delegate: SwedbankPayWebViewControllerDelegate
-    ) {
+    override init(configuration: WKWebViewConfiguration, delegate: SwedbankPayWebViewControllerDelegate) {
+        
         super.init(configuration: configuration, delegate: delegate)
         webView.navigationDelegate = self
     }
@@ -88,7 +89,7 @@ final class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
          
     }
     
-    @objc private func appDidBecomeActive() {
+    @objc internal func appDidBecomeActive() {
         wrangleProcessHostAlert(appDidBecomeActiveDate: Date())
     }
 
@@ -128,7 +129,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
         }
     }
     
-    private func decidePolicyFor(
+    internal func decidePolicyFor(
         navigationAction: WKNavigationAction,
         url: URL,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
@@ -215,7 +216,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
         return url.path.isEmpty ? URL(string: "/", relativeTo: url)!.absoluteURL : url.absoluteURL
     }
     
-    private func isBaseUrlNavigation(navigationAction: WKNavigationAction) -> Bool {
+    internal func isBaseUrlNavigation(navigationAction: WKNavigationAction) -> Bool {
         if let lastRootPage = lastRootPage, navigationAction.targetFrame?.isMainFrame == true {
             let url = navigationAction.request.url
             if let baseUrl = lastRootPage.baseURL {
@@ -286,7 +287,7 @@ extension SwedbankPayWebViewController {
     }
     
     private func wrangleExternalAppAlert(openDate: Date, appDidBecomeActiveDate: Date?, now: Date) -> UIAlertController? {
-        var earliestAlertDate = openDate + Self.guessMaybeStuckInterval
+        var earliestAlertDate = earliestMaybeStuckDate(openDate)
         if let appDidBecomeActiveDate = appDidBecomeActiveDate {
             earliestAlertDate = max(earliestAlertDate, appDidBecomeActiveDate + Self.maybeStuckNoteMinimumIntervalFromDidBecomeActive)
         }

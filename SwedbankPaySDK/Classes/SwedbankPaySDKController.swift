@@ -241,7 +241,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
             
     private let nonpersistableConfiguration: SwedbankPaySDKConfiguration?
     
-    private let userContentController = WKUserContentController()
+    internal let userContentController = WKUserContentController()
     private lazy var rootWebViewController = createRootWebViewController()
     
     private var loadingIndicatorStyle: UIActivityIndicatorView.Style {
@@ -418,7 +418,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         viewModel?.abortPayment()
     }
     
-    private func createRootWebViewController() -> SwedbankPayWebViewController {
+    internal func createRootWebViewController() -> SwedbankPayWebViewController {
         let config = WKWebViewConfiguration()
         config.userContentController = userContentController
         return SwedbankPayWebViewController(configuration: config, delegate: self)
