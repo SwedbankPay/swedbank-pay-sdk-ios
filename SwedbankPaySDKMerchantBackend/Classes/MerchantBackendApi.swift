@@ -50,7 +50,7 @@ struct MerchantBackendApi {
         }
     }
     
-    private func buildRequest<B: Encodable>(
+    internal func buildRequest<B: Encodable>(
         method: HTTPMethod,
         url: URL,
         body: B?,
@@ -78,7 +78,7 @@ struct MerchantBackendApi {
         )
     }
     
-    private func isDomainWhitelisted(_ url: URL) -> Bool {
+    internal func isDomainWhitelisted(_ url: URL) -> Bool {
         if let host = url.host {
             for whitelistObj in domainWhitelist {
                 if whitelistObj.includeSubdomains {
@@ -95,7 +95,7 @@ struct MerchantBackendApi {
         return false
     }
     
-    private struct RequestDecoratorInterceptor: RequestInterceptor {
+    internal struct RequestDecoratorInterceptor: RequestInterceptor {
         let requestDecorator: SwedbankPaySDKRequestDecorator
         let decoratorCall: DecoratorCall
         
@@ -113,7 +113,7 @@ struct MerchantBackendApi {
         }
     }
     
-    private func perform<T: Decodable>(
+    internal func perform<T: Decodable>(
         request: DataRequest,
         completion: @escaping (Result<T, SwedbankPaySDK.MerchantBackendError>) -> Void
     ) {
@@ -135,7 +135,7 @@ struct MerchantBackendApi {
         }
     }
     
-    private func checkError(response: AFDataResponse<Data>) throws {
+    internal func checkError(response: AFDataResponse<Data>) throws {
         if let code = response.response?.statusCode, (400...599).contains(code) {
             throw SwedbankPaySDK.MerchantBackendError.problem(
                 getProblem(response: response)
@@ -143,7 +143,7 @@ struct MerchantBackendApi {
         }
     }
     
-    private func checkContentType(
+    internal func checkContentType(
         _ response: AFDataResponse<Data>,
         _ expectedContentType: String
     ) throws {
@@ -152,7 +152,7 @@ struct MerchantBackendApi {
         try require(contentType[..<separatorIndex] == expectedContentType)
     }
     
-    private func getProblem(response: AFDataResponse<Data>) -> SwedbankPaySDK.Problem {
+    internal func getProblem(response: AFDataResponse<Data>) -> SwedbankPaySDK.Problem {
         do {
             try checkContentType(response, "application/problem+json")
             return Problems.parseProblem(response: response)
@@ -161,7 +161,7 @@ struct MerchantBackendApi {
         }
     }
     
-    private func parse<T: Decodable>(response: AFDataResponse<Data>) throws -> T {
+    internal func parse<T: Decodable>(response: AFDataResponse<Data>) throws -> T {
         let data = try response.result.get() // any network error will be thrown out of here
         
         do {

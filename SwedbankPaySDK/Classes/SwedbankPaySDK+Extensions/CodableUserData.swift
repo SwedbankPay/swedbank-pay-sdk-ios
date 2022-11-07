@@ -41,7 +41,7 @@ public extension SwedbankPaySDK {
     }
 }
 
-private func defaultEncodedTypeName(for codableType: Codable.Type) -> String {
+internal func defaultEncodedTypeName(for codableType: Codable.Type) -> String {
     return String(reflecting: codableType)
 }
 
@@ -114,13 +114,13 @@ extension KeyedDecodingContainer {
     }
 }
 
-private protocol ErasedCoder {
+internal protocol ErasedCoder {
     var encodedTypeName: String { get }
     func encode<K: CodingKey>(to container: inout KeyedEncodingContainer<K>, key: K, value: Any) throws
     func decode<K: CodingKey>(from container: KeyedDecodingContainer<K>, key: K) throws -> Any
 }
 
-private enum Coders {}
+internal enum Coders {}
 extension Coders {
     private static var registeredCoders = CoderMap()
     private static let internalCoders: CoderMap = {
@@ -142,7 +142,7 @@ extension Coders {
     }
 }
 
-private struct CoderMap {
+internal struct CoderMap {
     private var byType: [ObjectIdentifier: ErasedCoder] = [:]
     private var byName: [String: ErasedCoder] = [:]
     
@@ -159,7 +159,7 @@ private struct CoderMap {
         return byName[encodedTypeName]
     }
     
-    private struct TypedCoder<T: Codable>: ErasedCoder {
+    internal struct TypedCoder<T: Codable>: ErasedCoder {
         let encodedTypeName: String
         func encode<K: CodingKey>(to container: inout KeyedEncodingContainer<K>, key: K, value: Any) throws {
             try container.encode(value as! T, forKey: key)

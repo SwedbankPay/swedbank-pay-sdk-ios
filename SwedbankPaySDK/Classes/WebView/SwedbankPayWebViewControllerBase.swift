@@ -100,7 +100,7 @@ extension SwedbankPayWebViewControllerBase: WKUIDelegate {
     }
 }
 
-private extension SwedbankPayWebViewControllerBase {
+internal extension SwedbankPayWebViewControllerBase {
     enum JavascriptDialog {
         case alert(() -> Void)
         case confirm((Bool) -> Void)

@@ -42,7 +42,7 @@ struct DeletePaymentTokenLink: Link {
         }
     }
     
-    private struct Body: Encodable {
+    internal struct Body: Encodable {
         let state = "Deleted"
         let comment: String
     }

@@ -19,14 +19,14 @@ import Alamofire
 
 private let callbackURLTypeKey = "com.swedbank.SwedbankPaySDK.callback"
 
-private enum OperationRel {
+internal enum OperationRel {
     static let viewConsumerIdentification = "view-consumer-identification"
     static let viewPaymentOrder = "view-paymentorder"
     static let viewPaymentLink = "view-checkout"
     static let setInstrumentLink = "set-instrument"
 }
 
-private extension Array where Element == SwedbankPaySDK.Operation {
+internal extension Array where Element == SwedbankPaySDK.Operation {
     func find(rel: String) -> URL? {
         let operation = first { $0.rel == rel }
         let href = (operation?.href?.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed)).flatMap(URL.init(string:))
@@ -191,7 +191,7 @@ public extension SwedbankPaySDK {
             return scheme
         }
                 
-        private func withTopLevelResources<T>(
+        internal func withTopLevelResources<T>(
             _ onFailure: @escaping (Result<T, Error>) -> Void,
             f: @escaping (TopLevelResources) -> Void
         ) {
@@ -485,7 +485,7 @@ public extension SwedbankPaySDK {
             }
         }
         
-        private struct ExpandBody: Encodable {
+        internal struct ExpandBody: Encodable {
             let resource: String
             let expand: [ExpandResource]
         }

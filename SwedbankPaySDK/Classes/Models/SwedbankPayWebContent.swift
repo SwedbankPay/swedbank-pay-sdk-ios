@@ -228,7 +228,7 @@ extension SwedbankPayWebContent {
     """
 }
 
-private extension SwedbankPayWebContent {
+internal extension SwedbankPayWebContent {
     enum TemplateComponent {
         case literal(String)
         case delay
@@ -266,14 +266,14 @@ extension SwedbankPayWebContent.HTMLTemplate : ExpressibleByStringInterpolation 
     }
 }
 
-private extension SwedbankPayWebContent {
+internal extension SwedbankPayWebContent {
     private static let messageNameKey = "msg"
     private static let messageArgumentKey = "arg"
     
-    private static func buildMessageBody(event: String, argument: String) -> String {
+    static func buildMessageBody(event: String, argument: String) -> String {
         return "{\(messageNameKey):'\(event)',\(messageArgumentKey):\(argument)}"
     }
-    private static func parse<T: RawRepresentable>(messageBody: Any) -> (event: T, argument: Any?)? where T.RawValue == String {
+    static func parse<T: RawRepresentable>(messageBody: Any) -> (event: T, argument: Any?)? where T.RawValue == String {
         let bodyDict = messageBody as? [String: Any]
         let name = bodyDict?[messageNameKey] as? String
         let event = name.flatMap(T.init(rawValue:))
@@ -299,7 +299,7 @@ private extension SwedbankPayWebContent {
     }
 }
 
-private extension SwedbankPayWebContent {
+internal extension SwedbankPayWebContent {
     static func makeStyleJs(from style: [String: Any]?) -> String {
         let data = style.flatMap { try? JSONSerialization.data(withJSONObject: $0) }
         let string = data.flatMap { String(data: $0, encoding: .utf8) }

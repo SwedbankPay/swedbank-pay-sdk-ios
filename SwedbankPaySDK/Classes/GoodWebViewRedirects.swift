@@ -43,7 +43,7 @@ class GoodWebViewRedirects {
             }
         }
     }
-    private func getData() -> [SwedbankPaySDK.WebViewRedirect]? {
+    internal func getData() -> [SwedbankPaySDK.WebViewRedirect]? {
         let cache = self.cache
         let data = cache ?? readFromFile()
         if cache == nil {
@@ -52,7 +52,7 @@ class GoodWebViewRedirects {
         return data
     }
     
-    private func readFromFile() -> [SwedbankPaySDK.WebViewRedirect]? {
+    internal func readFromFile() -> [SwedbankPaySDK.WebViewRedirect]? {
         guard let file = openDataFile() else {
             return nil
         }
@@ -62,13 +62,13 @@ class GoodWebViewRedirects {
         return read(from: file)
     }
     
-    private func read(from file: UnsafeMutablePointer<FILE>) -> [SwedbankPaySDK.WebViewRedirect] {
+    internal func read(from file: UnsafeMutablePointer<FILE>) -> [SwedbankPaySDK.WebViewRedirect] {
         return file.getLines().lazy
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .compactMap(parse(line:))
     }
     
-    private func parse(line: String) -> SwedbankPaySDK.WebViewRedirect? {
+    internal func parse(line: String) -> SwedbankPaySDK.WebViewRedirect? {
         switch line.first {
         case "#", nil:
             return nil
@@ -81,7 +81,7 @@ class GoodWebViewRedirects {
         }
     }
     
-    private func parseWildcard(line: String) -> SwedbankPaySDK.WebViewRedirect? {
+    internal func parseWildcard(line: String) -> SwedbankPaySDK.WebViewRedirect? {
         let suffix: Substring
         let allowNestedSubdomains: Bool
         if line.hasPrefix("**.") {
