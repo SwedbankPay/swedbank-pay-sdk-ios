@@ -1,5 +1,5 @@
 import UIKit
-import SwedbankPaySDK
+@testable import SwedbankPaySDK
 
 //Quick errors by using strings
 extension String: LocalizedError {
@@ -36,11 +36,13 @@ class ViewController: UINavigationController {
         if withCheckin {
             return testPaymentOrderCheckin
         }
-        return nonMerchant ? testNonMerchantPaymentOrder : testPaymentOrder 
+        return nonMerchant ? testNonMerchantPaymentOrder : testPaymentOrder
     }
     
     private func createRootViewController() -> UIViewController {
-        let viewController = SwedbankPaySDKController()
+        //To test the webView we need to mock its controllers
+        let testExternalURL = CommandLine.arguments.contains("-testExternalURL")
+        let viewController = testExternalURL ? MockSwedbankPaySDKController() : SwedbankPaySDKController()
         
         viewController.restorationIdentifier = "paymentViewController"
         

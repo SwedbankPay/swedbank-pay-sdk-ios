@@ -831,6 +831,28 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitFor(.complete)
     }
     
+    /*
+     the test goes like this:
+     load a random URL in the app-browser, but cancel it
+     set processHost to external which starts the isStuck timer,
+     tap retry
+     now the payment menu should be reloaded, and all requests following this are redirected to the browser.
+     */
+    func testDelayOpenAlert() throws {
+        app.launchArguments.append(contentsOf: ["-testV3", "-testExternalURL", "-testModalController"])
+        app.launch()
+        
+        let retryButton = app.alerts["Stuck?"].scrollViews.otherElements.buttons["Retry"]
+        XCTAssertTrue(retryButton.waitForExistence(timeout: defaultTimeout), "No alert for retry button")
+        retryButton.tap()
+        
+        //Now everything reloads and all new payments are redirected to the browser.
+        
+        sleep(2)
+        try waitUntilShown()
+        try assertExists(cardOption, "Credit card option not found")
+        cardOption.tap()
+    }
     
     /* V3 has no checkin - so wait with this
     /// Check that a V3 payment with the new checkin gets the info
