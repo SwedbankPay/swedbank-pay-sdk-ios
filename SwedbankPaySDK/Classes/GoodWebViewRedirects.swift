@@ -23,12 +23,12 @@ class GoodWebViewRedirects {
         return path.flatMap { fopen($0, "r") }
     })
     
-    internal let queue = DispatchQueue(label: "GoodWebViewRedirects", qos: .userInitiated)
-    internal var cache: [SwedbankPaySDK.WebViewRedirect]?
+    private let queue = DispatchQueue(label: "GoodWebViewRedirects", qos: .userInitiated)
+    private var cache: [SwedbankPaySDK.WebViewRedirect]?
     
     // Overridable for tests.
     // Swift has no native "read lines" function so we use the C library.
-    internal let openDataFile: () -> UnsafeMutablePointer<FILE>?
+    private let openDataFile: () -> UnsafeMutablePointer<FILE>?
     
     init(openDataFile: @escaping () -> UnsafeMutablePointer<FILE>?) {
         self.openDataFile = openDataFile
@@ -43,7 +43,7 @@ class GoodWebViewRedirects {
             }
         }
     }
-    internal func getData() -> [SwedbankPaySDK.WebViewRedirect]? {
+    private func getData() -> [SwedbankPaySDK.WebViewRedirect]? {
         let cache = self.cache
         let data = cache ?? readFromFile()
         if cache == nil {
@@ -52,7 +52,7 @@ class GoodWebViewRedirects {
         return data
     }
     
-    internal func readFromFile() -> [SwedbankPaySDK.WebViewRedirect]? {
+    private func readFromFile() -> [SwedbankPaySDK.WebViewRedirect]? {
         guard let file = openDataFile() else {
             return nil
         }
@@ -62,13 +62,13 @@ class GoodWebViewRedirects {
         return read(from: file)
     }
     
-    internal func read(from file: UnsafeMutablePointer<FILE>) -> [SwedbankPaySDK.WebViewRedirect] {
+    private func read(from file: UnsafeMutablePointer<FILE>) -> [SwedbankPaySDK.WebViewRedirect] {
         return file.getLines().lazy
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .compactMap(parse(line:))
     }
     
-    internal func parse(line: String) -> SwedbankPaySDK.WebViewRedirect? {
+    private func parse(line: String) -> SwedbankPaySDK.WebViewRedirect? {
         switch line.first {
         case "#", nil:
             return nil
@@ -81,7 +81,7 @@ class GoodWebViewRedirects {
         }
     }
     
-    internal func parseWildcard(line: String) -> SwedbankPaySDK.WebViewRedirect? {
+    private func parseWildcard(line: String) -> SwedbankPaySDK.WebViewRedirect? {
         let suffix: Substring
         let allowNestedSubdomains: Bool
         if line.hasPrefix("**.") {

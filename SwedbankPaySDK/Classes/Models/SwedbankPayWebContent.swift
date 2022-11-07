@@ -15,7 +15,7 @@
 
 import WebKit
 
-internal let paymentMenuDelay = "500"
+private let paymentMenuDelay = "500"
 
 enum SwedbankPayWebContent {}
 
@@ -25,7 +25,7 @@ extension SwedbankPayWebContent {
 
 extension SwedbankPayWebContent {
     struct HTMLTemplate<T: RawRepresentable> where T.RawValue == String {
-        internal let components: [TemplateComponent]
+        private let components: [TemplateComponent]
         
         func buildPage(
             scriptUrl: String,
@@ -228,7 +228,7 @@ extension SwedbankPayWebContent {
     """
 }
 
-internal extension SwedbankPayWebContent {
+private extension SwedbankPayWebContent {
     enum TemplateComponent {
         case literal(String)
         case delay
@@ -266,14 +266,14 @@ extension SwedbankPayWebContent.HTMLTemplate : ExpressibleByStringInterpolation 
     }
 }
 
-internal extension SwedbankPayWebContent {
-    static let messageNameKey = "msg"
-    static let messageArgumentKey = "arg"
+private extension SwedbankPayWebContent {
+    private static let messageNameKey = "msg"
+    private static let messageArgumentKey = "arg"
     
-    static func buildMessageBody(event: String, argument: String) -> String {
+    private static func buildMessageBody(event: String, argument: String) -> String {
         return "{\(messageNameKey):'\(event)',\(messageArgumentKey):\(argument)}"
     }
-    static func parse<T: RawRepresentable>(messageBody: Any) -> (event: T, argument: Any?)? where T.RawValue == String {
+    private static func parse<T: RawRepresentable>(messageBody: Any) -> (event: T, argument: Any?)? where T.RawValue == String {
         let bodyDict = messageBody as? [String: Any]
         let name = bodyDict?[messageNameKey] as? String
         let event = name.flatMap(T.init(rawValue:))
@@ -299,7 +299,7 @@ internal extension SwedbankPayWebContent {
     }
 }
 
-internal extension SwedbankPayWebContent {
+private extension SwedbankPayWebContent {
     static func makeStyleJs(from style: [String: Any]?) -> String {
         let data = style.flatMap { try? JSONSerialization.data(withJSONObject: $0) }
         let string = data.flatMap { String(data: $0, encoding: .utf8) }

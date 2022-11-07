@@ -50,9 +50,9 @@ enum Problems {
     }
 }
 
-internal typealias JsonObject = [String: Any]
+private typealias JsonObject = [String: Any]
 
-internal extension JsonObject {
+private extension JsonObject {
     var type: String { self["type"] as? String ?? "about:blank" }
     var title: String? { self["title"] as? String }
     var status: Int? { self["status"] as? Int }
@@ -60,7 +60,7 @@ internal extension JsonObject {
     var instance: String? { self["instance"] as? String }
 }
 
-internal func parseProblemOrFail(
+private func parseProblemOrFail(
     response: AFDataResponse<Data>
 ) throws -> SwedbankPaySDK.Problem {
     let data = try requireSome(response.data)
@@ -71,7 +71,7 @@ internal func parseProblemOrFail(
     return problemSpace.parseProblem(status: status, json: json)
 }
 
-internal func getProblemSpace(status: Int) throws -> ProblemSpace {
+private func getProblemSpace(status: Int) throws -> ProblemSpace {
     switch status {
     case 400...499: return clientProblems
     case 500...599: return serverProblems
@@ -79,8 +79,8 @@ internal func getProblemSpace(status: Int) throws -> ProblemSpace {
     }
 }
 
-internal struct ProblemSpace {
-    internal let parseProblemOfType: (String, Int, JsonObject) -> SwedbankPaySDK.Problem
+private struct ProblemSpace {
+    private let parseProblemOfType: (String, Int, JsonObject) -> SwedbankPaySDK.Problem
     
     init<T>(
         problemType: @escaping (T) -> SwedbankPaySDK.Problem,
@@ -99,7 +99,7 @@ internal struct ProblemSpace {
         return parseProblemOfType(type, status, json)
     }
     
-    internal static func makeUnknownProblem<T>(
+    private static func makeUnknownProblem<T>(
         _ type: String,
         _ status: Int,
         _ json: JsonObject,
@@ -111,7 +111,7 @@ internal struct ProblemSpace {
     }
 }
 
-internal let clientProblems = ProblemSpace(
+private let clientProblems = ProblemSpace(
     problemType: SwedbankPaySDK.Problem.client,
     unknownProblemType: SwedbankPaySDK.ClientProblem.unknown
 ) { type, status, json in
@@ -131,7 +131,7 @@ internal let clientProblems = ProblemSpace(
     }
 }
 
-internal let serverProblems = ProblemSpace(
+private let serverProblems = ProblemSpace(
     problemType: SwedbankPaySDK.Problem.server,
     unknownProblemType: SwedbankPaySDK.ServerProblem.unknown
 ) { type, status, json in
@@ -149,7 +149,7 @@ internal let serverProblems = ProblemSpace(
     }
 }
 
-internal func parseBadGatewayProblem(
+private func parseBadGatewayProblem(
     _ status: Int,
     _ json: JsonObject
 ) -> SwedbankPaySDK.ServerProblem.MobileSDKProblem {
@@ -165,7 +165,7 @@ internal func parseBadGatewayProblem(
     
 }
 
-internal func parseSwedbankPayProblem<T, S>(
+private func parseSwedbankPayProblem<T, S>(
     _ type: (S, String?, Int, String?, String?, String?, [SwedbankPaySDK.SwedbankPaySubProblem]?, [String: Any]) -> T,
     _ subtype: S,
     _ status: Int,

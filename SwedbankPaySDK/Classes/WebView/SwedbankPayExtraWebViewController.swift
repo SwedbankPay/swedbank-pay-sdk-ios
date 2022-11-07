@@ -54,7 +54,7 @@ extension SwedbankPayExtraWebViewController: WKNavigationDelegate {
         }
     }
     
-    internal func decidePolicyFor(
+    private func decidePolicyFor(
         url: URL,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
@@ -70,7 +70,7 @@ extension SwedbankPayExtraWebViewController: WKNavigationDelegate {
         }
     }
     
-    internal func decidePolicyForNormalLink(
+    private func decidePolicyForNormalLink(
         url: URL,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {

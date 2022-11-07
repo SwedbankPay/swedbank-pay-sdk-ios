@@ -31,7 +31,7 @@ struct PaymentOrdersLink: Link {
         }
     }
     
-    internal struct Body: Encodable {
+    private struct Body: Encodable {
         let paymentorder: SwedbankPaySDK.PaymentOrder
     }
 }

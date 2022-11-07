@@ -41,16 +41,16 @@ struct AbortPaymentOperation: BackendOperation {
         }
     }
     
-    internal struct Body: Encodable {
+    private struct Body: Encodable {
         init(href: URL, abortReason: String) {
             
             self.href = href
             paymentorder = PaymentOrder(abortReason: abortReason)
         }
         
-        internal let href: URL
-        internal let paymentorder: PaymentOrder
-        internal struct PaymentOrder: Encodable {
+        private let href: URL
+        private let paymentorder: PaymentOrder
+        private struct PaymentOrder: Encodable {
             let operation = "Abort"
             let abortReason: String
         }

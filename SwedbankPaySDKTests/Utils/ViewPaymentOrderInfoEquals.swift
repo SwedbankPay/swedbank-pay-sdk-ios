@@ -24,7 +24,7 @@ extension SwedbankPaySDK.ViewPaymentOrderInfo {
         XCTAssertEqual(userInfo, otherUserInfo)
     }
     
-    internal func baseAssertEqualTo(other: SwedbankPaySDK.ViewPaymentOrderInfo) {
+    private func baseAssertEqualTo(other: SwedbankPaySDK.ViewPaymentOrderInfo) {
         XCTAssertEqual(webViewBaseURL, other.webViewBaseURL)
         XCTAssertEqual(completeUrl, other.completeUrl)
         XCTAssertEqual(cancelUrl, other.cancelUrl)

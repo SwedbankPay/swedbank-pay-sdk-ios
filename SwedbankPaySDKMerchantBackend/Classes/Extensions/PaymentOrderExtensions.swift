@@ -69,14 +69,14 @@ public extension SwedbankPaySDK.PaymentOrderUrls {
     }
 }
 
-internal extension SwedbankPaySDK.PaymentOrderUrls {
-    static func buildCompleteUrl(configuration: SwedbankPaySDK.MerchantBackendConfiguration) -> URL {
+private extension SwedbankPaySDK.PaymentOrderUrls {
+    private static func buildCompleteUrl(configuration: SwedbankPaySDK.MerchantBackendConfiguration) -> URL {
         return URL(string: "complete", relativeTo: configuration.backendUrl)!
     }
-    static func buildCancelUrl(configuration: SwedbankPaySDK.MerchantBackendConfiguration) -> URL {
+    private static func buildCancelUrl(configuration: SwedbankPaySDK.MerchantBackendConfiguration) -> URL {
         return URL(string: "cancel", relativeTo: configuration.backendUrl)!
     }
-    static func buildPaymentUrl(configuration: SwedbankPaySDK.MerchantBackendConfiguration, language: SwedbankPaySDK.Language, id: String) -> URL {
+    private static func buildPaymentUrl(configuration: SwedbankPaySDK.MerchantBackendConfiguration, language: SwedbankPaySDK.Language, id: String) -> URL {
         var components = URLComponents()
         components.path = "sdk-callback/ios-universal-link"
         var queryItems: [URLQueryItem] = [
@@ -90,7 +90,7 @@ internal extension SwedbankPaySDK.PaymentOrderUrls {
         components.queryItems = queryItems
         return components.url(relativeTo: configuration.backendUrl)!
     }
-    static func getAppName() -> String? {
+    private static func getAppName() -> String? {
         let bundle = Bundle.main
         let displayName = bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
         return displayName ?? bundle.object(forInfoDictionaryKey: "CFBundleName") as? String

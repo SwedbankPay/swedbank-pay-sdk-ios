@@ -239,21 +239,21 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         }
     }
             
-    internal let nonpersistableConfiguration: SwedbankPaySDKConfiguration?
+    private let nonpersistableConfiguration: SwedbankPaySDKConfiguration?
     
     internal let userContentController = WKUserContentController()
-    internal lazy var rootWebViewController = createRootWebViewController()
+    private lazy var rootWebViewController = createRootWebViewController()
     
-    internal var loadingIndicatorStyle: UIActivityIndicatorView.Style {
+    private var loadingIndicatorStyle: UIActivityIndicatorView.Style {
         if #available(iOS 13.0, *) {
             return .medium
         } else {
             return .gray
         }
     }
-    internal lazy var initialLoadingIndicator = UIActivityIndicatorView(style: loadingIndicatorStyle)
+    private lazy var initialLoadingIndicator = UIActivityIndicatorView(style: loadingIndicatorStyle)
     
-    internal var viewModel: SwedbankPaySDKViewModel? {
+    private var viewModel: SwedbankPaySDKViewModel? {
         didSet {
             oldValue?.onStateChanged = nil
             viewModel?.onStateChanged = { [unowned self] in
@@ -424,7 +424,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         return SwedbankPayWebViewController(configuration: config, delegate: self)
     }
     
-    internal func addRootWebViewController() {
+    private func addRootWebViewController() {
         let view = self.view!
         
         addChild(rootWebViewController)
@@ -440,7 +440,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         rootWebViewController.didMove(toParent: self)
     }
     
-    internal func addInitialLoadingIndicator() {
+    private func addInitialLoadingIndicator() {
         let view = self.view!
         
         initialLoadingIndicator.stopAnimating()
@@ -461,7 +461,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         ])
     }
     
-    internal func updateUI() {
+    private func updateUI() {
         if isViewLoaded, let viewModel = viewModel {
             switch viewModel.state {
                 case .idle:
@@ -513,7 +513,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         }
     }
     
-    internal func notifyDelegateIfNeeded() {
+    private func notifyDelegateIfNeeded() {
         if let viewModel = viewModel {
             switch viewModel.state {
             case .complete:
@@ -532,7 +532,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     
     /// Creates consumer identification JavaScript URL String from list of operations and executes loadWebViewURL with it along with correct type
     /// - parameter list: List of operations available; need to find correct type of operation from it
-    internal func showCheckin(_ info: SwedbankPaySDK.IdentifyingVersion, options: SwedbankPaySDK.VersionOptions) {
+    private func showCheckin(_ info: SwedbankPaySDK.IdentifyingVersion, options: SwedbankPaySDK.VersionOptions) {
         //use isV3 to select template
         switch info {
             case .v2(let info):
@@ -543,7 +543,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     }
     
     /// Version 2 checkin
-    internal func showCheckin(_ info: SwedbankPaySDK.ViewConsumerIdentificationInfo) {
+    private func showCheckin(_ info: SwedbankPaySDK.ViewConsumerIdentificationInfo) {
         loadPage(
             baseURL: info.webViewBaseURL,
             template: SwedbankPayWebContent.checkInTemplate,
@@ -553,7 +553,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         }
     }
     
-    internal func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentOrderInfo, delay: Bool, options: SwedbankPaySDK.VersionOptions) {
+    private func showPaymentOrder(info: SwedbankPaySDK.ViewPaymentOrderInfo, delay: Bool, options: SwedbankPaySDK.VersionOptions) {
         //we use isV3 to select template
         let template = info.isV3 == true ? SwedbankPayWebContent.paymentTemplateV3 : SwedbankPayWebContent.paymentTemplate
         loadPage(
@@ -569,14 +569,14 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         }
     }
     
-    internal func reloadPaymentMenu(delay: Bool = false) {
+    private func reloadPaymentMenu(delay: Bool = false) {
         if case .paying(let info, options: let options, _) = viewModel?.state {
             dismissExtraWebViews()
             showPaymentOrder(info: info, delay: delay, options: options)
         }
     }
     
-    internal func set(scriptMessageHandler: WKScriptMessageHandler?) {
+    private func set(scriptMessageHandler: WKScriptMessageHandler?) {
         debugPrint("setting script message handler to \(scriptMessageHandler == nil ? "" : "non-")nil")
         userContentController.removeScriptMessageHandler(forName: SwedbankPayWebContent.scriptMessageHandlerName)
         if let scriptMessageHandler = scriptMessageHandler {
@@ -584,7 +584,7 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
         }
     }
     
-    internal func loadPage<T>(
+    private func loadPage<T>(
         baseURL: URL?,
         template: SwedbankPayWebContent.HTMLTemplate<T>,
         scriptUrl: URL,
@@ -603,8 +603,8 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     
     // MARK: State Restoration
     
-    internal static let restorableStateVersion: Int64 = 1
-    internal enum RestorableStateKeys: String {
+    private static let restorableStateVersion: Int64 = 1
+    private enum RestorableStateKeys: String {
         case version = "com.swedbankpay.mobilesdk.version"
         case viewModel = "com.swedbankpay.mobilesdk.viewmodel"
         case hadNonpersistableConfiguration = "com.swedbankpay.mobilesdk.badconfig"
@@ -693,8 +693,8 @@ and overriding the configuration property.
 }
 
 // MARK: Payment process URLs
-internal extension SwedbankPaySDKController {
-    func ensurePath(url: URL) -> URL {
+private extension SwedbankPaySDKController {
+    private func ensurePath(url: URL) -> URL {
         return url.path.isEmpty ? URL(string: "/", relativeTo: url)!.absoluteURL : url.absoluteURL
     }
     
@@ -740,7 +740,7 @@ extension SwedbankPaySDKController : CallbackUrlDelegate {
         return handled
     }
     
-    internal func urlMatchesPaymentUrl(url: URL) -> Bool {
+    private func urlMatchesPaymentUrl(url: URL) -> Bool {
         guard let paymentUrl = viewModel?.viewPaymentOrderInfo?.paymentUrl else {
             return false
         }
@@ -751,8 +751,8 @@ extension SwedbankPaySDKController : CallbackUrlDelegate {
 }
 
 /// Extension to handle the WKWebview JavaScript events
-internal extension SwedbankPaySDKController {
-    func parseTerminalFailure(jsTerminalFailure: Any?) -> SwedbankPaySDK.TerminalFailure? {
+private extension SwedbankPaySDKController {
+    private func parseTerminalFailure(jsTerminalFailure: Any?) -> SwedbankPaySDK.TerminalFailure? {
         return (jsTerminalFailure as? [AnyHashable : Any]).map {
             SwedbankPaySDK.TerminalFailure(
                 origin: $0["origin"] as? String,
@@ -828,14 +828,14 @@ internal extension SwedbankPaySDKController {
     
     /// Payer identified event received
     /// - parameter messageBody: JS object as returned from Payex
-    func handlePayerIdentified(_ messageBody: Any?) {
+    private func handlePayerIdentified(_ messageBody: Any?) {
         debugPrint("SwedbankPaySDK: onPayerIdentified event received \(messageBody ?? "")")
         viewModel?.handlePayerIdentified()
     }
     
     /// Consumer identified event received
     /// - parameter messageBody: consumer identification String saved as consumerProfileRef
-    func handleConsumerIdentifiedEvent(_ messageBody: Any?) {
+    private func handleConsumerIdentifiedEvent(_ messageBody: Any?) {
         debugPrint("SwedbankPaySDK: onConsumerIdentified event received")
         if let str = messageBody as? String {
             viewModel?.continue(consumerProfileRef: str)
@@ -862,12 +862,12 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
         }
     }
     
-    @objc internal func onWebViewDoneButtonPressed() {
+    @objc private func onWebViewDoneButtonPressed() {
         dismissExtraWebViews()
     }
     
     /// this function dismisses the extra ViewControllers that may have been added or created from JavaScript (alerts)
-    internal func dismissExtraWebViews(animated: Bool = true) {
+    private func dismissExtraWebViews(animated: Bool = true) {
         if presentedViewController != nil {
             //Don't dissmiss ourselves if there is no presentedViewController.
             dismiss(animated: animated, completion: nil)
@@ -963,7 +963,7 @@ extension SwedbankPaySDKController : SwedbankPayWebViewControllerDelegate {
 }
 
 extension SwedbankPaySDKController.WebContentError: Codable {
-    internal enum CodingKeys: String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case discriminator
         case scriptUrl
         case terminalFailure
@@ -971,7 +971,7 @@ extension SwedbankPaySDKController.WebContentError: Codable {
         case codableErrorType
     }
     
-    internal enum Discriminator: String, Codable {
+    private enum Discriminator: String, Codable {
         case scriptLoadingFailure
         case scriptError
         case redirectFailure
@@ -1006,12 +1006,12 @@ extension SwedbankPaySDKController.WebContentError: Codable {
 }
 
 extension SwedbankPaySDKController.StateRestorationError: Codable {
-    internal enum CodingKeys: String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case discriminator
         case unregisteredTypeName
     }
     
-    internal enum Discriminator: String, Codable {
+    private enum Discriminator: String, Codable {
         case unregisteredCodable
         case nonpersistableConfiguration
         case unknown

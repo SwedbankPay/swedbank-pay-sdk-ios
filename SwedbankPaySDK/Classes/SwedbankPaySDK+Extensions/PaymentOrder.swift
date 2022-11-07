@@ -590,7 +590,7 @@ public extension SwedbankPaySDK {
             self.reOrderPurchaseIndicator = reOrderPurchaseIndicator
         }
         
-        internal static func format(preOrderDate: DateComponents) -> String {
+        private static func format(preOrderDate: DateComponents) -> String {
             guard let year = preOrderDate.year else {
                 fatalError("preOrderDate has no year")
             }

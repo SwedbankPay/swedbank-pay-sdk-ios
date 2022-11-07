@@ -33,13 +33,13 @@ struct SetInstrumentLink: Link {
         }
     }
     
-    internal struct Body: Encodable {
+    private struct Body: Encodable {
         init(instrument: SwedbankPaySDK.Instrument) {
             paymentorder = PaymentOrder(instrument: instrument)
         }
         
-        internal let paymentorder: PaymentOrder
-        internal struct PaymentOrder: Encodable {
+        private let paymentorder: PaymentOrder
+        private struct PaymentOrder: Encodable {
             let operation = "SetInstrument"
             let instrument: SwedbankPaySDK.Instrument
         }
@@ -68,16 +68,16 @@ struct SetInstrumentOperation: BackendOperation {
         }
     }
     
-    internal struct Body: Encodable {
+    private struct Body: Encodable {
         init(instrument: SwedbankPaySDK.Instrument, href: URL) {
             
             self.href = href
             paymentorder = PaymentOrder(instrument: instrument)
         }
         
-        internal let href: URL?
-        internal let paymentorder: PaymentOrder
-        internal struct PaymentOrder: Encodable {
+        private let href: URL?
+        private let paymentorder: PaymentOrder
+        private struct PaymentOrder: Encodable {
             let operation = "SetInstrument"
             let instrument: SwedbankPaySDK.Instrument
         }

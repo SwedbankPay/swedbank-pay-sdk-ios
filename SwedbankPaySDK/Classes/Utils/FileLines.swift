@@ -16,7 +16,7 @@
 import Foundation
 
 struct FileLines: Sequence, IteratorProtocol {
-    internal let file: UnsafeMutablePointer<FILE>
+    private let file: UnsafeMutablePointer<FILE>
     
     fileprivate init(file: UnsafeMutablePointer<FILE>) {
         self.file = file

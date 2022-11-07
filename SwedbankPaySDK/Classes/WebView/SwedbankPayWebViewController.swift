@@ -149,7 +149,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
         }
     }
     
-    internal func decidePolicyForNormalLink(
+    private func decidePolicyForNormalLink(
         navigationAction: WKNavigationAction,
         url: URL,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
@@ -185,7 +185,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
         }
     }
     
-    internal func continueNavigationInBrowser(url: URL) {
+    private func continueNavigationInBrowser(url: URL) {
         // Naively, one would think that opening the original navigation
         // target here would work. However, testing has shown that not
         // to be the case. Without expending time to work out the exact
@@ -212,7 +212,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
         }
     }
     
-    internal func ensurePath(url: URL) -> URL {
+    private func ensurePath(url: URL) -> URL {
         return url.path.isEmpty ? URL(string: "/", relativeTo: url)!.absoluteURL : url.absoluteURL
     }
     
@@ -273,7 +273,7 @@ extension SwedbankPayWebViewController {
         }
     }
     
-    internal func makeProcessHostAlert(appDidBecomeActiveDate: Date?, now: () -> Date) -> UIAlertController? {
+    private func makeProcessHostAlert(appDidBecomeActiveDate: Date?, now: () -> Date) -> UIAlertController? {
         switch processHost {
         case .webView:
             return nil
@@ -286,7 +286,7 @@ extension SwedbankPayWebViewController {
         }
     }
     
-    internal func wrangleExternalAppAlert(openDate: Date, appDidBecomeActiveDate: Date?, now: Date) -> UIAlertController? {
+    private func wrangleExternalAppAlert(openDate: Date, appDidBecomeActiveDate: Date?, now: Date) -> UIAlertController? {
         var earliestAlertDate = earliestMaybeStuckDate(openDate)
         if let appDidBecomeActiveDate = appDidBecomeActiveDate {
             earliestAlertDate = max(earliestAlertDate, appDidBecomeActiveDate + Self.maybeStuckNoteMinimumIntervalFromDidBecomeActive)
@@ -301,7 +301,7 @@ extension SwedbankPayWebViewController {
         return shouldShow ? makeExternalAppAlert() : nil
     }
     
-    internal func makeExternalAppAlert() -> UIAlertController {
+    private func makeExternalAppAlert() -> UIAlertController {
         let alert = UIAlertController(
             title: SwedbankPaySDKResources.localizedString(key: "maybeStuckAlertTitle"),
             message: SwedbankPaySDKResources.localizedString(key: "maybeStuckAlertBody"),
@@ -322,7 +322,7 @@ extension SwedbankPayWebViewController {
         return alert
     }
     
-    internal func makeBrowserAlert() -> UIAlertController {
+    private func makeBrowserAlert() -> UIAlertController {
         let alert = UIAlertController(
             title: SwedbankPaySDKResources.localizedString(key: "browserAlertTitle"),
             message: SwedbankPaySDKResources.localizedString(key: "browserAlertBody"),
@@ -336,8 +336,8 @@ extension SwedbankPayWebViewController {
     }
 }
 
-internal extension UIAlertController {
-    static var isProcessHostControllerKey: Void = ()
+private extension UIAlertController {
+    private static var isProcessHostControllerKey: Void = ()
     var isProcessHostAlertController: Bool {
         get {
             objc_getAssociatedObject(self, &Self.isProcessHostControllerKey) as? Bool == true

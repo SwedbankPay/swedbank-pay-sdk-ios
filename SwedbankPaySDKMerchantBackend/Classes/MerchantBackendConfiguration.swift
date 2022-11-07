@@ -17,16 +17,16 @@ import WebKit
 import SwedbankPaySDK
 import Alamofire
 
-internal let callbackURLTypeKey = "com.swedbank.SwedbankPaySDK.callback"
+private let callbackURLTypeKey = "com.swedbank.SwedbankPaySDK.callback"
 
-internal enum OperationRel {
+private enum OperationRel {
     static let viewConsumerIdentification = "view-consumer-identification"
     static let viewPaymentOrder = "view-paymentorder"
     static let viewPaymentLink = "view-checkout"
     static let setInstrumentLink = "set-instrument"
 }
 
-internal extension Array where Element == SwedbankPaySDK.Operation {
+private extension Array where Element == SwedbankPaySDK.Operation {
     func find(rel: String) -> URL? {
         let operation = first { $0.rel == rel }
         let href = (operation?.href?.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed)).flatMap(URL.init(string:))
@@ -132,7 +132,7 @@ public extension SwedbankPaySDK {
             self.callbackScheme = callbackScheme ?? MerchantBackendConfiguration.getDefaultCallbackScheme()
         }
         
-        internal static func makeSession(pinPublicKeys: [PinPublicKeys]?) -> Session {
+        private static func makeSession(pinPublicKeys: [PinPublicKeys]?) -> Session {
             
             // It's important to tell the backend what SDK-version we are using
             let configuration = URLSessionConfiguration.default
@@ -159,7 +159,7 @@ public extension SwedbankPaySDK {
             }
         }
         
-        internal static func makeDomainWhitelist(
+        private static func makeDomainWhitelist(
             backendUrl: URL,
             domainWhitelist: [WhitelistedDomain]?
         ) -> [WhitelistedDomain] {
@@ -174,7 +174,7 @@ public extension SwedbankPaySDK {
             }
         }
         
-        internal static func getDefaultCallbackScheme() -> String {
+        private static func getDefaultCallbackScheme() -> String {
             let urlTypes = Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [Any]
             let urlTypeDicts = urlTypes?.lazy.compactMap { $0 as? [AnyHashable: Any] }
             guard let callbackUrlType = urlTypeDicts?.filter({
@@ -191,7 +191,7 @@ public extension SwedbankPaySDK {
             return scheme
         }
                 
-        internal func withTopLevelResources<T>(
+        private func withTopLevelResources<T>(
             _ onFailure: @escaping (Result<T, Error>) -> Void,
             f: @escaping (TopLevelResources) -> Void
         ) {
@@ -485,7 +485,7 @@ public extension SwedbankPaySDK {
             }
         }
         
-        internal struct ExpandBody: Encodable {
+        private struct ExpandBody: Encodable {
             let resource: String
             let expand: [ExpandResource]
         }

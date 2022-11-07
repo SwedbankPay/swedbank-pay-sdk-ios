@@ -16,7 +16,7 @@
 import Foundation
 
 enum SwedbankPaySDKResources {}
-internal extension SwedbankPaySDKResources {
+private extension SwedbankPaySDKResources {
     #if SWIFT_PACKAGE_MANAGER
     static let bundle = Bundle.module
     #else
