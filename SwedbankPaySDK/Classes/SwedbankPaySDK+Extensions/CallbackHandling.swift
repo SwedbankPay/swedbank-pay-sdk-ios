@@ -49,7 +49,7 @@ public extension SwedbankPaySDK {
 }
 
 extension SwedbankPaySDK {
-    private static let delegates = NSHashTable<CallbackUrlDelegate>(options: [.weakMemory, .objectPointerPersonality])
+    internal static let delegates = NSHashTable<CallbackUrlDelegate>(options: [.weakMemory, .objectPointerPersonality])
     
     static func addCallbackUrlDelegate(_ delegate: CallbackUrlDelegate) {
         delegates.add(delegate)
@@ -57,7 +57,7 @@ extension SwedbankPaySDK {
     static func removeCallbackUrlDelegate(_ delegate: CallbackUrlDelegate) {
         delegates.remove(delegate)
     }
-    private static func handleCallbackUrl(_ url: URL) -> Bool {
+    internal static func handleCallbackUrl(_ url: URL) -> Bool {
         var result = false
         for delegate in IteratorSequence(NSFastEnumerationIterator(self.delegates)) {
             let handled = (delegate as? CallbackUrlDelegate)?

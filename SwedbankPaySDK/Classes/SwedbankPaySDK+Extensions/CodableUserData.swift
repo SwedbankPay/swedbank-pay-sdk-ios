@@ -25,14 +25,14 @@ public extension SwedbankPaySDK {
     /// `SwedbankPaySDKController` state preservation, you can register those types here as well.
     /// Otherwise, `Error`s will be converted to `NSError` when saving and restoring the state.
     ///
-    /// The type should not be a private or local type. Use of such types may result in decoding failures.
+    /// The type should not be a internal or local type. Use of such types may result in decoding failures.
     static func registerCodable<T: Codable>(_ type: T.Type) {
         registerCodable(type, encodedTypeName: defaultEncodedTypeName(for: type))
     }
     
     /// Variant of `registerCodable` that allows to manually set the encoded name for the `Codable` type.
     ///
-    /// If you must use a private or local type, then this function may help, as the default encoded name
+    /// If you must use a internal or local type, then this function may help, as the default encoded name
     /// for such types is unpredictable. Otherwise, there is ususaly no need to use this function.
     ///
     /// Encoded type names beginning with `"com.swedbankpay."` are reserved for the SDK.
@@ -41,11 +41,11 @@ public extension SwedbankPaySDK {
     }
 }
 
-private func defaultEncodedTypeName(for codableType: Codable.Type) -> String {
+internal func defaultEncodedTypeName(for codableType: Codable.Type) -> String {
     return String(reflecting: codableType)
 }
 
-private let internalEncodedTypeNamePrefix = "com.swedbankpay.mobilesdk."
+internal let internalEncodedTypeNamePrefix = "com.swedbankpay.mobilesdk."
 
 extension KeyedEncodingContainer {
     mutating func encodeIfPresent(userData: Any?, codableTypeKey: Key, valueKey: Key) throws {
@@ -69,7 +69,7 @@ extension KeyedEncodingContainer {
         }
     }
     
-    private mutating func encode(nsCodingUserData: NSCoding, key: Key) throws {
+    internal mutating func encode(nsCodingUserData: NSCoding, key: Key) throws {
         let data: Data
         if #available(iOS 11.0, *) {
             data = try NSKeyedArchiver.archivedData(withRootObject: nsCodingUserData, requiringSecureCoding: false)
@@ -79,7 +79,7 @@ extension KeyedEncodingContainer {
         try encode(data, forKey: key)
     }
     
-    private mutating func encode(codableUserData: Codable, typeKey: Key, valueKey: Key) throws {
+    internal mutating func encode(codableUserData: Codable, typeKey: Key, valueKey: Key) throws {
         guard let coder = Coders.getCoder(for: codableUserData) else {
             throw SwedbankPaySDKController.StateRestorationError.unregisteredCodable(defaultEncodedTypeName(for: type(of: codableUserData)))
         }
@@ -114,16 +114,16 @@ extension KeyedDecodingContainer {
     }
 }
 
-private protocol ErasedCoder {
+internal protocol ErasedCoder {
     var encodedTypeName: String { get }
     func encode<K: CodingKey>(to container: inout KeyedEncodingContainer<K>, key: K, value: Any) throws
     func decode<K: CodingKey>(from container: KeyedDecodingContainer<K>, key: K) throws -> Any
 }
 
-private enum Coders {}
+internal enum Coders {}
 extension Coders {
-    private static var registeredCoders = CoderMap()
-    private static let internalCoders: CoderMap = {
+    internal static var registeredCoders = CoderMap()
+    internal static let internalCoders: CoderMap = {
         var map = CoderMap()
         map.registerInternalCoder(SwedbankPaySDKController.WebContentError.self)
         map.registerInternalCoder(SwedbankPaySDKController.StateRestorationError.self)
@@ -142,9 +142,9 @@ extension Coders {
     }
 }
 
-private struct CoderMap {
-    private var byType: [ObjectIdentifier: ErasedCoder] = [:]
-    private var byName: [String: ErasedCoder] = [:]
+internal struct CoderMap {
+    internal var byType: [ObjectIdentifier: ErasedCoder] = [:]
+    internal var byName: [String: ErasedCoder] = [:]
     
     mutating func registerCoder<T: Codable>(for type: T.Type, encodedTypeName: String) {
         let coder = TypedCoder<T>(encodedTypeName: encodedTypeName)
@@ -159,7 +159,7 @@ private struct CoderMap {
         return byName[encodedTypeName]
     }
     
-    private struct TypedCoder<T: Codable>: ErasedCoder {
+    internal struct TypedCoder<T: Codable>: ErasedCoder {
         let encodedTypeName: String
         func encode<K: CodingKey>(to container: inout KeyedEncodingContainer<K>, key: K, value: Any) throws {
             try container.encode(value as! T, forKey: key)

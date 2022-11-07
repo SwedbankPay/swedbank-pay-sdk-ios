@@ -212,7 +212,7 @@ public extension SwedbankPaySDKConfigurationAsync {
 @available(iOS 15.0.0, *)
 public extension SwedbankPaySDKConfigurationAsync {
     @discardableResult
-    private func bridge<T>(
+    internal func bridge<T>(
         _ completion: @escaping (Result<T, Error>) -> Void,
         f: @escaping () async throws -> T
     ) -> Task<Void, Never> {

@@ -2,8 +2,8 @@ import Foundation
 import XCTest
 
 enum FileUtils {
-    private static var emptyBuffer: Void = ()
-    private static func openData(_ content: Data) throws -> UnsafeMutablePointer<FILE> {
+    internal static var emptyBuffer: Void = ()
+    internal static func openData(_ content: Data) throws -> UnsafeMutablePointer<FILE> {
         try content.withUnsafeBytes { buffer in
             let file = try XCTUnwrap(tmpfile())
             XCTAssertEqual(fwrite(buffer.baseAddress, buffer.count, 1, file), 1)

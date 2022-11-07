@@ -306,7 +306,7 @@ public extension SwedbankPaySDKConfigurationWithCallbackScheme {
     }
 }
 
-private extension SwedbankPaySDKConfiguration {
+internal extension SwedbankPaySDKConfiguration {
     func prospectivePaymentUrl(
         url: URL,
         matches paymentUrl: URL,
@@ -373,7 +373,7 @@ private extension SwedbankPaySDKConfiguration {
         return componentsToCompare == paymentUrlComponentsToCompare
     }
     
-    private func callback(queryItems: [URLQueryItem]?, match requiredItems: [URLQueryItem]?) -> Bool {
+    func callback(queryItems: [URLQueryItem]?, match requiredItems: [URLQueryItem]?) -> Bool {
         // Backend is allowed to add query items to the url.
         // It must not remove or modify any.
         var items = queryItems ?? []

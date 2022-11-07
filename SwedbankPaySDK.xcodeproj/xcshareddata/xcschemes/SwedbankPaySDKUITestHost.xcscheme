@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1400"
+   LastUpgradeVersion = "1410"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -35,6 +35,24 @@
                BlueprintIdentifier = "A5494B2526330227006EB38B"
                BuildableName = "SwedbankPaySDKUITests.xctest"
                BlueprintName = "SwedbankPaySDKUITests"
+               ReferencedContainer = "container:SwedbankPaySDK.xcodeproj">
+            </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "SwedbankPaySDKUITests/testDebugCoop()">
+               </Test>
+               <Test
+                  Identifier = "SwedbankPaySDKUITests/testV3ScaFailing()">
+               </Test>
+            </SkippedTests>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C552630123706467005E97DC"
+               BuildableName = "SwedbankPaySDKTests.xctest"
+               BlueprintName = "SwedbankPaySDKTests"
                ReferencedContainer = "container:SwedbankPaySDK.xcodeproj">
             </BuildableReference>
          </TestableReference>

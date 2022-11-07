@@ -224,8 +224,8 @@ final class SwedbankPaySDKViewModel {
 }
 
 //consumerSession and consumerResult are only used in V2 and will be removed in the future.
-private extension SwedbankPaySDKViewModel {
-    private func initializeConsumerSession(
+internal extension SwedbankPaySDKViewModel {
+    func initializeConsumerSession(
         options: SwedbankPaySDK.VersionOptions,
         fromAwakeAfterDecode: Bool = false
     ) {
@@ -248,7 +248,7 @@ private extension SwedbankPaySDKViewModel {
         }
     }
     
-    private func handlePostConsumersResult(
+    func handlePostConsumersResult(
         result: Result<SwedbankPaySDK.ViewConsumerIdentificationInfo, Error>
     ) {
         if case .initializingConsumerSession(let options) = state {
@@ -262,8 +262,8 @@ private extension SwedbankPaySDKViewModel {
     }
 }
 
-private extension SwedbankPaySDKViewModel {
-    private func createPaymentOrder(
+internal extension SwedbankPaySDKViewModel {
+    func createPaymentOrder(
         consumerProfileRef: String?,
         options: SwedbankPaySDK.VersionOptions,
         fromAwakeAfterDecode: Bool = false
@@ -291,7 +291,7 @@ private extension SwedbankPaySDKViewModel {
         }
     }
     
-    private func handlePostPaymentOrdersResult(
+    func handlePostPaymentOrdersResult(
         result: Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>
     ) {
         if case .creatingPaymentOrder(_, options: let options) = state {
@@ -316,9 +316,9 @@ private extension SwedbankPaySDKViewModel {
     }
 }
 
-private extension SwedbankPaySDKViewModel {
+internal extension SwedbankPaySDKViewModel {
     
-    private func refreshPaymentOrderAfterIdentification(
+    func refreshPaymentOrderAfterIdentification(
         paymentInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         options: SwedbankPaySDK.VersionOptions,
         fromAwakeAfterDecode: Bool = false
@@ -344,7 +344,7 @@ private extension SwedbankPaySDKViewModel {
         }
     }
     
-    private func handleExpandPayer(
+    func handleExpandPayer(
         info: SwedbankPaySDK.ViewPaymentOrderInfo,
         options: SwedbankPaySDK.VersionOptions,
         result: Result<Void, Error>
@@ -365,7 +365,7 @@ private extension SwedbankPaySDKViewModel {
         }
     }
     
-    private func updatePaymentOrder(
+    func updatePaymentOrder(
         viewPaymentOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo,
         updateInfo: Any,
         options: SwedbankPaySDK.VersionOptions
@@ -400,7 +400,7 @@ private extension SwedbankPaySDKViewModel {
         }
     }
     
-    private func handleUpdatePaymentOrderResult(
+    func handleUpdatePaymentOrderResult(
         update: Update,
         updateInfo: Any,
         result: Result<SwedbankPaySDK.ViewPaymentOrderInfo, Error>
@@ -424,7 +424,7 @@ private extension SwedbankPaySDKViewModel {
 // MARK: State Restoration
 
 extension SwedbankPaySDKViewModel.State: Codable {
-    private enum Key: String, CodingKey {
+    internal enum Key: String, CodingKey {
         case discriminator
         case info
         case consumerProfileRef
@@ -434,7 +434,7 @@ extension SwedbankPaySDKViewModel.State: Codable {
         case codableErrorType
     }
     
-    private enum Discriminator: String, Codable {
+    internal enum Discriminator: String, Codable {
         case idle
         case initializingConsumerSession
         case identifyingConsumer
@@ -532,7 +532,7 @@ extension SwedbankPaySDKViewModel.State: Codable {
 }
 
 extension SwedbankPaySDKViewModel: Codable {
-    private enum CodingKeys: String, CodingKey {
+    internal enum CodingKeys: String, CodingKey {
         case state
         case consumer
         case paymentOrder

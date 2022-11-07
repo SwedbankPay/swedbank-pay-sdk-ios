@@ -19,7 +19,7 @@ import WebKit
 class SwedbankPayWebViewControllerBase: UIViewController {
     weak var delegate: SwedbankPayWebViewControllerDelegate?
 
-    private var onJavascriptDialogDismissed: (() -> Void)?
+    internal var onJavascriptDialogDismissed: (() -> Void)?
 
     // Overridable for testing, so we can mock UIApplication.open(_:options:completionHandler:)
     var attemptOpenUniversalLink: (URL, @escaping (Bool) -> Void) -> Void = { url, completionHandler in
@@ -100,7 +100,7 @@ extension SwedbankPayWebViewControllerBase: WKUIDelegate {
     }
 }
 
-private extension SwedbankPayWebViewControllerBase {
+internal extension SwedbankPayWebViewControllerBase {
     enum JavascriptDialog {
         case alert(() -> Void)
         case confirm((Bool) -> Void)
