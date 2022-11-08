@@ -7,7 +7,7 @@ private func mockAttemptOpenUniversalLink(_: URL, completionHandler: (Bool) -> V
 }
 
 class SwedbankPaySDKControllerTestCase : XCTestCase {
-    private let webviewLoadingTimeout = 10 as TimeInterval
+    private let webviewLoadingTimeout = 15 as TimeInterval
     
     private var window: UIWindow?
     
@@ -69,9 +69,9 @@ class SwedbankPaySDKControllerTestCase : XCTestCase {
     
     func waitForWebViewLoaded() {
         let webView = self.webView
-        let loadingStarted = XCTKVOExpectation(keyPath: #keyPath(WKWebView.isLoading), object: webView, expectedValue: true)
+        let loadingStarted = XCTKeyPathExpectation<WKWebView, Bool>(keyPath: \WKWebView.isLoading, observedObject: webView, expectedValue: true)
         wait(for: [loadingStarted], timeout: webviewLoadingTimeout)
-        let loadingFinished = XCTKVOExpectation(keyPath: #keyPath(WKWebView.isLoading), object: webView, expectedValue: false)
+        let loadingFinished = XCTKeyPathExpectation(keyPath: \WKWebView.isLoading, observedObject: webView, expectedValue: false)
         wait(for: [loadingFinished], timeout: webviewLoadingTimeout)
     }
     
