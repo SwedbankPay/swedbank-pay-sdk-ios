@@ -536,23 +536,40 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     func testAbortPayment() throws {
+        
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testAbortPayment")
+        let originalArguments = app.launchArguments
         for config in paymentTestConfigurations {
+            
+            app.launchArguments = originalArguments
             app.launchArguments.append("-configName \(config)")
-            app.launchArguments.append("-testV3")
-            app.launchArguments.append("-testAbortPayment")
             app.launch()
             
-            try waitUntilShown()
-            
-            //switch instrument, this calls viewController.abortPayment()
-            testMenuButton.tap()
-            
-            //just wait until instrument select-change
-            try waitFor(.canceled, timeout: resultTimeout)
-            
-            //start over with next merchant
-            app.terminate()
+            do {
+                try waitUntilShown()
+                
+                //switch instrument, this calls viewController.abortPayment()
+                testMenuButton.tap()
+                
+                //just wait until instrument select-change
+                try waitFor(.canceled, timeout: resultTimeout)
+                return
+            } catch {
+                //start over with next merchant
+                app.terminate()
+            }
         }
+        
+        //try one last time
+        app.launch()
+        try waitUntilShown()
+        
+        //switch instrument, this calls viewController.abortPayment()
+        testMenuButton.tap()
+        
+        //just wait until instrument select-change
+        try waitFor(.canceled, timeout: resultTimeout)
     }
     
     // allow the compiler to use hard coded values
