@@ -117,6 +117,7 @@
 		D50CA69D27D74F1400FC6007 /* BackendOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50CA69C27D74F1400FC6007 /* BackendOperation.swift */; };
 		D50CA69F27D74F6000FC6007 /* AbortPaymentOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50CA69E27D74F6000FC6007 /* AbortPaymentOperation.swift */; };
 		D581EFDF27A92A56001B85A7 /* VersionOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D581EFDE27A92A56001B85A7 /* VersionOptions.swift */; };
+		D5993446291947EB004AB761 /* MockWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5993445291947EB004AB761 /* MockWebViewController.swift */; };
 		D5AE5DA027E0D4DA00BE5468 /* ExpandResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5AE5D9F27E0D4DA00BE5468 /* ExpandResource.swift */; };
 /* End PBXBuildFile section */
 
@@ -283,6 +284,7 @@
 		D50CA69C27D74F1400FC6007 /* BackendOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendOperation.swift; sourceTree = "<group>"; };
 		D50CA69E27D74F6000FC6007 /* AbortPaymentOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbortPaymentOperation.swift; sourceTree = "<group>"; };
 		D581EFDE27A92A56001B85A7 /* VersionOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionOptions.swift; sourceTree = "<group>"; };
+		D5993445291947EB004AB761 /* MockWebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockWebViewController.swift; sourceTree = "<group>"; };
 		D5AE5D9F27E0D4DA00BE5468 /* ExpandResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandResource.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -398,6 +400,7 @@
 				A5C061B326402A93004A7FEF /* LaunchScreen.storyboard */,
 				63CB6612271D991200100683 /* Storyboard.storyboard */,
 				A5494B1B26330209006EB38B /* Info.plist */,
+				D5993445291947EB004AB761 /* MockWebViewController.swift */,
 			);
 			path = SwedbankPaySDKUITestHost;
 			sourceTree = "<group>";
@@ -738,7 +741,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1240;
-				LastUpgradeCheck = 1400;
+				LastUpgradeCheck = 9410;
 				ORGANIZATIONNAME = Swedbank;
 				TargetAttributes = {
 					A5494B0A26330207006EB38B = {
@@ -872,6 +875,7 @@
 				A598BF48263844540032E261 /* TestMessage.swift in Sources */,
 				A5494B492633036E006EB38B /* PaymentTestConfiguration.swift in Sources */,
 				63CB6615271D997100100683 /* ViewController.swift in Sources */,
+				D5993446291947EB004AB761 /* MockWebViewController.swift in Sources */,
 				A598BF3D263838880032E261 /* PaymentDelegate.swift in Sources */,
 				A598BF96263AD1ED0032E261 /* SocketHelper.swift in Sources */,
 			);

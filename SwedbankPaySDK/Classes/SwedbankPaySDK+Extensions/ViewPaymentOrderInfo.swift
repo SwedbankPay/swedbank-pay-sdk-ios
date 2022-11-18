@@ -172,7 +172,7 @@ public extension SwedbankPaySDK {
 }
 
 extension SwedbankPaySDK.ViewPaymentOrderInfo: Codable {
-    private enum CodingKeys: String, CodingKey {
+    internal enum CodingKeys: String, CodingKey {
         case paymentId
         case isV3
         case webViewBaseURL

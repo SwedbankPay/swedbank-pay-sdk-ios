@@ -122,7 +122,7 @@ extension SwedbankPayWebContent {
     <!DOCTYPE html>
     <html>
         <head>
-            <title>Swedbank Pay Checkout is Awesome!</title>
+            <title>Swedbank Pay Checkout2 is Awesome!</title>
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     
             <script language="javascript">
@@ -136,12 +136,16 @@ extension SwedbankPayWebContent {
                             container: "checkout",
                             onError: function(error) {
                                 \(PaymentEvent.onError, "error");
-                            }
+                            },
+                            onEventNotification: function(eventNotification) {
+                                \(PaymentEvent.generalEvent, "eventNotification");
+                            },
                         };
                         var style = \(TemplateComponent.style);
                         if (style) {
                             parameters.style = style;
-                        }
+                        };
+    
                         payex.hostedView.paymentMenu(parameters).open();
                     };
                     script.onerror = function(event) {
@@ -150,7 +154,7 @@ extension SwedbankPayWebContent {
                     var head = document.getElementsByTagName('head')[0];
                     head.appendChild(script);
                 }
-    
+                
                 window.onload = function () {
                     if (\(TemplateComponent.delay)) {
                         window.setTimeout(loadPaymentMenu, \(TemplateComponent.literal(paymentMenuDelay)));
@@ -228,7 +232,7 @@ extension SwedbankPayWebContent {
     """
 }
 
-private extension SwedbankPayWebContent {
+internal extension SwedbankPayWebContent {
     enum TemplateComponent {
         case literal(String)
         case delay
@@ -266,14 +270,14 @@ extension SwedbankPayWebContent.HTMLTemplate : ExpressibleByStringInterpolation 
     }
 }
 
-private extension SwedbankPayWebContent {
+internal extension SwedbankPayWebContent {
     private static let messageNameKey = "msg"
     private static let messageArgumentKey = "arg"
     
-    private static func buildMessageBody(event: String, argument: String) -> String {
+    static func buildMessageBody(event: String, argument: String) -> String {
         return "{\(messageNameKey):'\(event)',\(messageArgumentKey):\(argument)}"
     }
-    private static func parse<T: RawRepresentable>(messageBody: Any) -> (event: T, argument: Any?)? where T.RawValue == String {
+    static func parse<T: RawRepresentable>(messageBody: Any) -> (event: T, argument: Any?)? where T.RawValue == String {
         let bodyDict = messageBody as? [String: Any]
         let name = bodyDict?[messageNameKey] as? String
         let event = name.flatMap(T.init(rawValue:))
@@ -299,7 +303,7 @@ private extension SwedbankPayWebContent {
     }
 }
 
-private extension SwedbankPayWebContent {
+internal extension SwedbankPayWebContent {
     static func makeStyleJs(from style: [String: Any]?) -> String {
         let data = style.flatMap { try? JSONSerialization.data(withJSONObject: $0) }
         let string = data.flatMap { String(data: $0, encoding: .utf8) }

@@ -69,7 +69,7 @@ public extension SwedbankPaySDK.PaymentOrderUrls {
     }
 }
 
-private extension SwedbankPaySDK.PaymentOrderUrls {
+internal extension SwedbankPaySDK.PaymentOrderUrls {
     private static func buildCompleteUrl(configuration: SwedbankPaySDK.MerchantBackendConfiguration) -> URL {
         return URL(string: "complete", relativeTo: configuration.backendUrl)!
     }

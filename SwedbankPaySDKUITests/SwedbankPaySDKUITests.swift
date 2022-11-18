@@ -535,24 +535,59 @@ class SwedbankPaySDKUITests: XCTestCase {
         //}
     }
     
+    /// Test monthly invoice payment
+    func testV3MonthlyInvoiceInstrument() throws {
+        
+        let config = "paymentsOnly" //currently our test-enterprise does not have the permission to restrict instruments
+        app.launchArguments.append("-configName \(config)")
+        //app.launchArguments.append("-testV3")
+        app.launch()
+        
+        try waitUntilShown()
+        
+        //check that monthlyExists
+        let monthlyInvoice = webText(label: "Monthly invoice")
+        XCTAssertTrue(monthlyInvoice.waitForExistence(timeout: resultTimeout), "No monthly invoice option!")
+        monthlyInvoice.tap()
+        
+        //we can't automate bankID testing yet.
+    }
+    
     func testAbortPayment() throws {
+        
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testAbortPayment")
+        let originalArguments = app.launchArguments
         for config in paymentTestConfigurations {
+            
+            app.launchArguments = originalArguments
             app.launchArguments.append("-configName \(config)")
-            app.launchArguments.append("-testV3")
-            app.launchArguments.append("-testAbortPayment")
             app.launch()
             
-            try waitUntilShown()
-            
-            //switch instrument, this calls viewController.abortPayment()
-            testMenuButton.tap()
-            
-            //just wait until instrument select-change
-            try waitFor(.canceled, timeout: resultTimeout)
-            
-            //start over with next merchant
-            app.terminate()
+            do {
+                try waitUntilShown()
+                
+                //switch instrument, this calls viewController.abortPayment()
+                testMenuButton.tap()
+                
+                //just wait until instrument select-change
+                try waitFor(.canceled, timeout: resultTimeout)
+                return
+            } catch {
+                //start over with next merchant
+                app.terminate()
+            }
         }
+        
+        //try one last time
+        app.launch()
+        try waitUntilShown()
+        
+        //switch instrument, this calls viewController.abortPayment()
+        testMenuButton.tap()
+        
+        //just wait until instrument select-change
+        try waitFor(.canceled, timeout: resultTimeout)
     }
     
     // allow the compiler to use hard coded values
@@ -831,6 +866,28 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitFor(.complete)
     }
     
+    /*
+     the test goes like this:
+     load a random URL in the app-browser, but cancel it
+     set processHost to external which starts the isStuck timer,
+     tap retry
+     now the payment menu should be reloaded, and all requests following this are redirected to the browser.
+     */
+    func testDelayOpenAlert() throws {
+        app.launchArguments.append(contentsOf: ["-testV3", "-testExternalURL", "-testModalController"])
+        app.launch()
+        
+        let retryButton = app.alerts["Stuck?"].scrollViews.otherElements.buttons["Retry"]
+        XCTAssertTrue(retryButton.waitForExistence(timeout: defaultTimeout), "No alert for retry button")
+        retryButton.tap()
+        
+        //Now everything reloads and all new payments are redirected to the browser.
+        
+        sleep(2)
+        try waitUntilShown()
+        try assertExists(cardOption, "Credit card option not found")
+        cardOption.tap()
+    }
     
     /* V3 has no checkin - so wait with this
     /// Check that a V3 payment with the new checkin gets the info
