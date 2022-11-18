@@ -538,23 +538,19 @@ class SwedbankPaySDKUITests: XCTestCase {
     /// Test monthly invoice payment
     func testV3MonthlyInvoiceInstrument() throws {
         
-        //for config in paymentTestConfigurations {
-            let config = "paymentsOnly" //currently our test-enterprise does not have the permission to restrict instruments
-            app.launchArguments.append("-configName \(config)")
-            //app.launchArguments.append("-testV3")
-            app.launch()
-            
-            try waitUntilShown()
-            
-            //switch instrument, this calls viewController.updatePaymentOrder(updateInfo: instrument!)
-            //testMenuButton.tap()
-            
-            //just wait until instrument select-change
-            try waitFor(.instrumentSelected, timeout: resultTimeout * 987)
-            
-            //start over with next merchant
-            app.terminate()
-        //}
+        let config = "paymentsOnly" //currently our test-enterprise does not have the permission to restrict instruments
+        app.launchArguments.append("-configName \(config)")
+        //app.launchArguments.append("-testV3")
+        app.launch()
+        
+        try waitUntilShown()
+        
+        //check that monthlyExists
+        let monthlyInvoice = webText(label: "Monthly invoice")
+        XCTAssertTrue(monthlyInvoice.waitForExistence(timeout: resultTimeout), "No monthly invoice option!")
+        monthlyInvoice.tap()
+        
+        //we can't automate bankID testing yet.
     }
     
     func testAbortPayment() throws {
