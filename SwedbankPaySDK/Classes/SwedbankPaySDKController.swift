@@ -65,6 +65,10 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     /// - parameter url: the URL of the Terms of Service page
     /// - returns: `true` to consume the tap and disable the default behaviour, `false` to allow the SDK to show the ToS web page
     func overrideTermsOfServiceTapped(url: URL) -> Bool
+    
+    /// Called for every JavaScriptEvent sent by the paymentMenu
+    ///
+    func javaScriptEvent(name: String, arguments: [String: Any])
 }
 public extension SwedbankPaySDKDelegate {
     func shippingAddressIsKnown() {}
@@ -79,6 +83,7 @@ public extension SwedbankPaySDKDelegate {
     func overrideTermsOfServiceTapped(url: URL) -> Bool {
         return false
     }
+    func javaScriptEvent(name: String, arguments: [String: Any]) {}
 }
 
 /// Swedbank Pay SDK ViewController, initialize this to start the payment process
@@ -798,11 +803,14 @@ internal extension SwedbankPaySDKController {
             case .generalEvent:
                 debugPrint("generalEvent from JS: \(argument ?? "no args")")
                 //to tell the delegate that the webView with paymentOrder has shown, we must listen to the first OnCheckoutResized after OnCheckoutLoaded?
-                if let argument = argument as? [String: Any],
-                   let source = argument["sourceEvent"] as? String,
-                   let viewModel = viewModel,
-                   let versionOptions = viewModel.versionOptions,
-                   versionOptions.contains(.isV3),
+                guard let argument = argument as? [String: Any],
+                   let source = (argument["sourceEvent"] as? String ?? argument["details"] as? String)
+                else {
+                    break
+                }
+                
+                if let viewModel = viewModel,
+                   let versionOptions = viewModel.versionOptions, versionOptions.contains(.isV3),
                    let info = viewModel.viewPaymentOrderInfo {
                     
                     if source == "OnCheckoutLoaded" {
@@ -821,6 +829,10 @@ internal extension SwedbankPaySDKController {
                             self.delegate?.instrumentSelected()
                         }
                     }
+                }
+                //send all JS-events to delegate for easy logging or other actions
+                DispatchQueue.main.async {
+                    self.delegate?.javaScriptEvent(name: source, arguments: argument)
                 }
                 break
             }

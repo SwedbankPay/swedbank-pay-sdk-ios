@@ -122,7 +122,7 @@ extension SwedbankPayWebContent {
     <!DOCTYPE html>
     <html>
         <head>
-            <title>Swedbank Pay Checkout is Awesome!</title>
+            <title>Swedbank Pay Checkout2 is Awesome!</title>
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     
             <script language="javascript">
@@ -136,12 +136,16 @@ extension SwedbankPayWebContent {
                             container: "checkout",
                             onError: function(error) {
                                 \(PaymentEvent.onError, "error");
-                            }
+                            },
+                            onEventNotification: function(eventNotification) {
+                                \(PaymentEvent.generalEvent, "eventNotification");
+                            },
                         };
                         var style = \(TemplateComponent.style);
                         if (style) {
                             parameters.style = style;
-                        }
+                        };
+    
                         payex.hostedView.paymentMenu(parameters).open();
                     };
                     script.onerror = function(event) {
@@ -150,7 +154,7 @@ extension SwedbankPayWebContent {
                     var head = document.getElementsByTagName('head')[0];
                     head.appendChild(script);
                 }
-    
+                
                 window.onload = function () {
                     if (\(TemplateComponent.delay)) {
                         window.setTimeout(loadPaymentMenu, \(TemplateComponent.literal(paymentMenuDelay)));

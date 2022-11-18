@@ -31,4 +31,7 @@ class PaymentDelegate: SwedbankPaySDKDelegate {
     func instrumentSelected() {
         connection.send(message: .instrumentSelected)
     }
+    func javaScriptEvent(name: String, arguments: [String: Any]) {
+        //connection.send(message: .anyEvent)
+    }
 }

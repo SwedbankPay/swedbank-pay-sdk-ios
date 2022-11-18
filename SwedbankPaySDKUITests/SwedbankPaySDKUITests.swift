@@ -535,6 +535,28 @@ class SwedbankPaySDKUITests: XCTestCase {
         //}
     }
     
+    /// Test monthly invoice payment
+    func testV3MonthlyInvoiceInstrument() throws {
+        
+        //for config in paymentTestConfigurations {
+            let config = "paymentsOnly" //currently our test-enterprise does not have the permission to restrict instruments
+            app.launchArguments.append("-configName \(config)")
+            //app.launchArguments.append("-testV3")
+            app.launch()
+            
+            try waitUntilShown()
+            
+            //switch instrument, this calls viewController.updatePaymentOrder(updateInfo: instrument!)
+            //testMenuButton.tap()
+            
+            //just wait until instrument select-change
+            try waitFor(.instrumentSelected, timeout: resultTimeout * 987)
+            
+            //start over with next merchant
+            app.terminate()
+        //}
+    }
+    
     func testAbortPayment() throws {
         
         app.launchArguments.append("-testV3")
