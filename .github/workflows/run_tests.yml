@@ -4,20 +4,23 @@ on: [push]
 
 jobs:
   test:
+    runs-on: 'macos-latest'
+    
     strategy:
       fail-fast: false #if 'true' then one failed job cancels all jobs remaining
       matrix:
         # all simulators are not available, but on macos-10.15, the "latest" will be 14.4
-        macOS: ['macos-10.15', 'macos-latest']
+        #macOS: ['macos-10.15', 'macos-latest']
     
-    runs-on: ${{ matrix.macOS }}
-    
+    #runs-on: ${{ matrix.macOS }}
+    #or select xcode  12.4.0
     steps:
       - uses: actions/checkout@v3
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: 'latest'
+          xcode-version: '12.0'
       - name: Show Available Destinations
         run: xcodebuild -scheme SwedbankPaySDK -showdestinations #-workspace Grocery.xcworkspace 
+        
       - name: Run Tests ${{ matrix.macOS }}
         run: xcodebuild -scheme SwedbankPaySDK -destination 'platform=iOS Simulator,name=iPhone 8,OS=latest' test
