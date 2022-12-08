@@ -8,12 +8,18 @@ jobs:
     strategy:
       fail-fast: false #if 'true' then one failed job cancels all jobs remaining
       matrix:
-        iOS: ['iPhone 8,OS=14.7', 'iPhone 14 Pro,OS=latest']
+        iOS: ['iPhone 8,OS=14.7'] #, 'iPhone 14 Pro,OS=latest']
         
     steps:
       - uses: actions/checkout@v3
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: 'latest'
+      - uses: futureware-tech/simulator-action@v2
+        with:
+          model: 'iPhone 8'
+          os_version: '14.7'
+      - name: Show Available Destinations
+        run: xcodebuild -scheme SwedbankPaySDK -showdestinations #-workspace Grocery.xcworkspace 
       - name: Run Tests ${{ matrix.iOS }}
         run: xcodebuild -scheme SwedbankPaySDK -destination 'platform=iOS Simulator,name=${{ matrix.iOS }}' test
