@@ -9,17 +9,11 @@ jobs:
     strategy:
       fail-fast: false #if 'true' then one failed job cancels all jobs remaining
       matrix:
-        xcode: ['latest-stable', 'latest', '14.7']
+        ios: ['14.7', 'latest']
         
     steps:
       - uses: actions/checkout@v3
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: ${{ matrix.xcode }}
-      - uses: mxcl/xcodebuild@v1.9.2
-        with:
-          platform: 'iOS'
-          scheme: 'SwedbankPaySDK'
-          action: 'test'
-          
-        #run: xcodebuild -scheme SwedbankPaySDK -destination 'platform=iOS Simulator,name=iPhone 14 Pro,OS=latest' test
+          xcode-version: 'latest'
+        run: xcodebuild -scheme SwedbankPaySDK -destination 'platform=iOS Simulator,name=iPhone 14 Pro,OS=${{ matrix.xcode }}' test
