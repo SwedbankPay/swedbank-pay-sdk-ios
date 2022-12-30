@@ -14,6 +14,7 @@ private let errorResultTimeout = 10.0
 private let stateSavingDelay = 5.0
 
 private let retryableActionMaxAttempts = 5
+private let ssn = "199710202392"
 
 private let noScaCardNumber = "4581097032723517"
 private let scaCardNumber = "4547781087013329"
@@ -24,8 +25,9 @@ private let ccaV2CardNumbers = ["5226612199533406", "4761739001010416", ]
 
 //the new scaCard that always work, but has the strange input: "5226612199533406"
 //used to be 3DS but not anymore: "4111111111111111", "4761739001010416",
-private let scaCards = ["4547781087013329", "4000008000000153", "4111111111111111", "4761739001010416"]
+private let scaCards = ["4547781087013329", "4761739001010416", "4000008000000153", "4111111111111111"]
 //4547 7810 8701 3329
+//4761 7390 0101 0416
 
 private struct NoSCAContinueButtonFound: Error {
     
@@ -78,6 +80,7 @@ private func delayUnlessEnabled(
     }
 }
 
+@discardableResult
 private func waitForOne(_ elements: [XCUIElement], _ timeout: Double = defaultTimeout, errorMessage: String) throws -> XCUIElement {
     let start = Date()
     while start.timeIntervalSinceNow > -timeout {
@@ -99,7 +102,9 @@ class SwedbankPaySDKUITests: XCTestCase {
     private var webView: XCUIElement {
         app.webViews.firstMatch
     }
+    
     private func webText(label: String) -> XCUIElement {
+        //.init(format: "label CONTAINS[cd] 'proceed'"))
         let predicate = NSPredicate(format: "label = %@", argumentArray: [label])
         return webView.staticTexts.element(matching: predicate)
     }
@@ -143,7 +148,28 @@ class SwedbankPaySDKUITests: XCTestCase {
     private var testMenuButton: XCUIElement {
         app.buttons.element(matching: .button, identifier: "testMenuButton")
     }
+    private var ssnInput: XCUIElement {
+        let predicate = NSPredicate(format: "label CONTAINS[cd] 'Personal identi'")
+        return webView.textFields.element(matching: predicate)
+    }
+    private var saveCredentialsButton: XCUIElement {
+        let predicate = NSPredicate(format: "label CONTAINS[cd] 'Save my credentials'")
+        return webView.buttons.element(matching: predicate)
+    }
+    private var addAnotherCardLink: XCUIElement {
+        webView.links.contains(label: "add another card")
+    }
     
+    private var anyPrefilledCard: XCUIElement {
+        let predicate = NSPredicate(format: "label CONTAINS[cd] '•••• '") //3329
+        return webView.buttons.element(matching: predicate).firstMatch
+    }
+    
+    private func prefilledCard(_ card: String) -> XCUIElement {
+        let start = card.index(card.endIndex, offsetBy: -4)
+        let pattern = "•••• " + String(card[start..<card.endIndex])
+        return webView.buttons.contains(label: pattern)
+    }
     
     // purchase
     private var cardOption: XCUIElement {
@@ -179,9 +205,6 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     private var keyboardDoneButton: XCUIElement {
         app.buttons.element(matching: .init(format: "label = 'Done'"))
-    }
-    private var prefilledCard: XCUIElement {
-        webView.staticTexts.element(matching: .init(format: "label CONTAINS[cd] '••••'"))
     }
     
     private func input(to webElement: XCUIElement, text: String, waitForOk: Bool = false) {
@@ -370,12 +393,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         continueAsGuestButton.tap()
     }
     
-    private func beginPayment(
-        cardNumber: String,
-        cvv: String,
-        swipeBeforeCard: Bool = false,
-        assertComplete: Bool = true
-    ) throws {
+    private func beginPayment( cardNumber: String, cvv: String, swipeBeforeCard: Bool = false, assertComplete: Bool = true) throws {
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
@@ -385,7 +403,7 @@ class SwedbankPaySDKUITests: XCTestCase {
             if swipeBeforeCard {
                 //swipe up if card isn't found (in V3 it's below the fold)
                 //can be made dynamic with: if cardOption.waitForExistence(timeout: 2) == false || creditCardOption.waitForExistence(timeout: 2) == false {
-                //but it is tapping the carPay button instead... 
+                //but it is tapping the carPay button instead...
                 app.swipeUp()
             }
             
@@ -397,6 +415,11 @@ class SwedbankPaySDKUITests: XCTestCase {
             }
             return found
         }
+        try performPayment(cardNumber: cardNumber, cvv: cvv)
+    }
+    
+    private func performPayment( cardNumber: String, cvv: String) throws {
+        
         try assertExists(creditCardOption, "Credit card option not found")
         creditCardOption.tap()
         
@@ -487,7 +510,10 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     func scaAproveCard() throws {
         
-        if continueButton.waitForExistence(timeout: defaultTimeout) {
+        let otpPage = webView.staticTexts.contains(label: "Challenge Form")
+        try waitForOne([otpPage, continueButton], errorMessage: "No known 3ds challange page detected")
+        
+        if continueButton.exists {
             try retryUntilSuccess {
                 continueButton.tap()
                 try waitForResponseOrFailure()
@@ -682,28 +708,84 @@ class SwedbankPaySDKUITests: XCTestCase {
             app.terminate()
         }
     }
-    /*
+    
     // verify that the predefined box appears!
     func testOneClickEnterprisePayerReference() throws {
-        app.launchArguments.append("-configName enterprise")
         
+        app.launchArguments.append("-configName enterprise")
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testEnterprisePayerReference")
+        
+        for scaCard in scaCards {
+            do {
+                try runOneClickEnterprisePayerReference(scaCard)
+                return //it worked
+            } catch {
+                app.terminate()
+            }
+        }
+        try runOneClickEnterprisePayerReference(scaCards.first!)
+    }
+    
+    func runOneClickEnterprisePayerReference(_ scaCard: String) throws {
+        
         app.launch()
         
         try waitUntilShown()
+        try waitAndAssertExists(ssnInput, "No ssn input")
+        input(to: ssnInput, text: ssn, waitForOk: true)
+        
+        try waitAndAssertExists(saveCredentialsButton, "No save button")
+        saveCredentialsButton.tap()
         
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
-        cardOption.tap()
+        cardOption.firstMatch.tap()
         
-        try waitAndAssertExists(timeout: initialTimeout, prefilledCard, "No prefilled cards")
-        prefilledCard.firstMatch.tap()
+        try waitForOne([anyPrefilledCard, prefilledCard(scaCard), creditCardOption, addAnotherCardLink], errorMessage: "Could not find starting point for oneClick payer ref")
+        
+        //detect if the right card exist
+        if anyPrefilledCard.exists {
+            //select this and continue!
+            try purchaseWithPrefilledCard()
+            //we don't need to do more - it remembers everything!
+            return
+        }
+        //otherwise there is either a link to add a new card - or if no cards just card input.
+        else if creditCardOption.exists {
+            //no cards
+            
+        } else {
+            //if not: add a new card
+            //try waitAndAssertExists(timeout: initialTimeout, addAnotherCardLink, "addAnotherCard not found")
+            addAnotherCardLink.firstMatch.tap()
+        }
+        try performPayment(cardNumber: scaCard, cvv: scaCvv)
+        try scaAproveCard()
+        app.terminate()
+        app.launch()
+        
+        try waitAndAssertExists(ssnInput, "No ssn input")
+        input(to: ssnInput, text: ssn, waitForOk: true)
+        
+        try waitAndAssertExists(saveCredentialsButton, "No save button")
+        saveCredentialsButton.tap()
+        
+        try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+        cardOption.firstMatch.tap()
+        
+        try waitAndAssertExists(timeout: scaTimeout, anyPrefilledCard, "No prefilled cards")
+        try purchaseWithPrefilledCard()
+    }
+    
+    func purchaseWithPrefilledCard() throws {
+        anyPrefilledCard.firstMatch.tap()
         
         try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
         try delayUnlessEnabled(confirmButton)
         try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with oneClick")
     }
     
+    /*
     // Make sure we also support ssn directly
     func testOneClickEnterpriseNationalIdentifier() throws {
         
@@ -717,8 +799,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         cardOption.tap()
         
-        try waitAndAssertExists(timeout: initialTimeout, prefilledCard, "No prefilled cards")
-        prefilledCard.firstMatch.tap()
+        try waitAndAssertExists(timeout: initialTimeout, prefilledCard("3329"), "No prefilled cards")
+        prefilledCard("3329").firstMatch.tap()
         
         try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
         try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with national identifier")
@@ -979,4 +1061,11 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
         
      */
+}
+
+extension XCUIElementQuery {
+    func contains(label: String) -> XCUIElement {
+        let predicate = NSPredicate(format: "label CONTAINS[cd] %@", argumentArray: [label])
+        return self.element(matching: predicate)
+    }
 }
