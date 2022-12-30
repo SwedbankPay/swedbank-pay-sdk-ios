@@ -16,7 +16,7 @@ private let stateSavingDelay = 5.0
 private let retryableActionMaxAttempts = 5
 private let ssn = "199710202392"
 
-private let noScaCardNumber = "4581097032723517"
+private let noScaCardNumber = "4111111111111111"
 private let scaCardNumber = "4547781087013329"
 private let oldScaCardNumber = "5226612199533406"
 private let scaCardNumber3DS2 = "4000008000000153"
@@ -24,8 +24,8 @@ private let otherScaCardNumber = "4761739001010416"
 private let ccaV2CardNumbers = ["5226612199533406", "4761739001010416", ]
 
 //the new scaCard that always work, but has the strange input: "5226612199533406"
-//used to be 3DS but not anymore: "4111111111111111", "4761739001010416",
-private let scaCards = ["4547781087013329", "4761739001010416", "4000008000000153", "4111111111111111"]
+//used to be 3DS but not anymore: "4111111111111111",
+private let scaCards = ["4547781087013329", "4761739001010416", "4581097032723517", "4000008000000153", "4111111111111111"]
 //4547 7810 8701 3329
 //4761 7390 0101 0416
 
@@ -80,6 +80,7 @@ private func delayUnlessEnabled(
     }
 }
 
+/// Note that XCUIElements is never equal to anything, not themselves even
 @discardableResult
 private func waitForOne(_ elements: [XCUIElement], _ timeout: Double = defaultTimeout, errorMessage: String) throws -> XCUIElement {
     let start = Date()
@@ -237,10 +238,10 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     @discardableResult
-    private func retryUntilTrue(f: () -> Bool) -> Bool {
+    private func retryUntilTrue(f: () throws -> Bool) rethrows -> Bool {
         for i in 0..<retryableActionMaxAttempts {
             print("attempt \(i)")
-            if f() {
+            if try f() {
                 return true
             }
         }
@@ -312,9 +313,12 @@ class SwedbankPaySDKUITests: XCTestCase {
     ) throws {
         
         var message:TestMessage? = .didShow
-        let result = retryUntilTrue {
+        let result = try retryUntilTrue {
             if case .error(_) = message {
                 return false
+            }
+            if !element.exists {
+                throw errorMessage
             }
             element.tap()
             message = messageList.waitForFirst(timeout: shortTimeout)
@@ -322,9 +326,11 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
         if !result {
             if case .error(_) = message {
-                XCTFail(errorMessage)
+                throw errorMessage
             } else {
-                XCTAssertTrue(messageList.waitForFirst(timeout: defaultTimeout) == .complete, errorMessage)
+                if messageList.waitForFirst(timeout: defaultTimeout) != .complete {
+                    throw errorMessage
+                }
             }
         }
     }
@@ -508,10 +514,12 @@ class SwedbankPaySDKUITests: XCTestCase {
         //else "Continue button not found"
     }
     
-    func scaAproveCard() throws {
+    ///Will throw if purchase is not successfull
+    private func scaAproveCard() throws {
         
         let otpPage = webView.staticTexts.contains(label: "Challenge Form")
-        try waitForOne([otpPage, continueButton], errorMessage: "No known 3ds challange page detected")
+        let otpCode = webView.staticTexts.contains(label: "OTP Code")
+        _ = try? waitForOne([otpPage, otpCode, continueButton], shortTimeout, errorMessage: "No known 3ds challange page detected")
         
         if continueButton.exists {
             try retryUntilSuccess {
@@ -601,8 +609,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         //}
     }
     
-    /// Test monthly invoice payment
-    func testV3MonthlyInvoiceInstrument() throws {
+    /// Test monthly invoice payment, we have to run this manually for now since I can't automate bankID yet
+    func _testV3MonthlyInvoiceInstrument() throws {
         
         let config = "paymentsOnly" //currently our test-enterprise does not have the permission to restrict instruments
         app.launchArguments.append("-configName \(config)")
@@ -782,7 +790,13 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
         try delayUnlessEnabled(confirmButton)
-        try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with oneClick")
+        //sometimes we need to tap confirmButton twice, but always wait until it disapears
+        while (confirmButton.exists) {
+            confirmButton.tap()
+            _ = continueButton.waitForExistence(timeout: 1.5)
+        }
+        try scaAproveCard()
+        //try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with oneClick")
     }
     
     /*
@@ -804,18 +818,6 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
         try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with national identifier")
-    }
-    */
-    
-    /*
-    func testVipps() throws {
-        app.launchArguments.append("-testV3")
-        
-        app.launch()
-        
-        try waitUntilShown()
-     try waitFor(.canceled, timeout: resultTimeout * 9098098)
-        print("Here!")
     }
     */
     
