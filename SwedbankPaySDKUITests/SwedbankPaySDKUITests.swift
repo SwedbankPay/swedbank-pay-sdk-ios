@@ -546,46 +546,6 @@ class SwedbankPaySDKUITests: XCTestCase {
         throw errorMessage
     }
     
-    /*
-    // Not necessary at the moment.
-    /// Check that a failing 3ds works as expected
-    func testV3ScaFailing() throws {
-        
-        //let config = "paymentsOnly"
-        let config = "enterprise"   //we don't know their api-keys, nonMerchant
-        for card in scaCards {
-            
-            app.launchArguments.append("-configName \(config)")
-            app.launchArguments.append("-testV3")
-            app.launchArguments.append("-testNonMerchant")
-            app.launch()
-            
-            try waitUntilShown()
-            
-            // try this again with otherScaCardNumber if failing? No, if service is down it doesn't matter what we do.
-            print("testing with \(card)")
-            try beginPayment(cardNumber: card, cvv: scaCvv)
-            
-            
-            let expect = expectation(description: "stuck forever")
-            waitForExpectations(timeout: 9283747)
-            expect.fulfill()
-            
-            if continueButton.waitForExistence(timeout: defaultTimeout) {
-                retryUntilTrue {
-                    continueButton.tap()
-                    return messageList.waitForFirst(timeout: resultTimeout) != nil
-                }
-                //waitForResultAndAssertComplete()
-                
-                
-                app.terminate()
-                break
-            }
-        }
-    }
-     */
-    
     /// Check that instrument-mode works in V3 and we can update payments with a new instrument
     func testV3Instruments() throws {
         
@@ -799,27 +759,49 @@ class SwedbankPaySDKUITests: XCTestCase {
         //try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with oneClick")
     }
     
-    /*
+    
     // Make sure we also support ssn directly
     func testOneClickEnterpriseNationalIdentifier() throws {
         
         app.launchArguments.append("-configName enterprise")
-        
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testOneClickPayments")
-        app.launch()
-        try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
-        try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
-        cardOption.tap()
+        let originalArguments = app.launchArguments
         
-        try waitAndAssertExists(timeout: initialTimeout, prefilledCard("3329"), "No prefilled cards")
-        prefilledCard("3329").firstMatch.tap()
-        
-        try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
-        try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with national identifier")
+        //Sometimes it fails due to payerRef is not unique. 
+        try rerunXTimes(scaCards.count, ignoreLaunch: true) { index in
+            var args = originalArguments
+            args.append("-regeneratePayerRef")
+            app.launchArguments = args
+            app.launch()
+            try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
+            
+            try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+            retryUntilTrue {
+                cardOption.tap()
+                return anyPrefilledCard.waitForExistence(timeout: shortTimeout)
+            }
+            try assertExists(anyPrefilledCard, "No prefilled cards")
+            
+            try purchaseWithPrefilledCard()
+        }
     }
-    */
+    
+    ///Rerun the test a few times to make testing more robust.
+    private func rerunXTimes(_ count: Int, ignoreLaunch: Bool = false, _ closure: (Int) throws -> Void) rethrows {
+        for index in 0..<count {
+            do {
+                if !ignoreLaunch {
+                    app.launch()
+                }
+                try closure(index)
+                return
+            } catch {
+                app.terminate()
+            }
+        }
+    }
     
     func testOneClickPaymentsOnly() throws {
         
