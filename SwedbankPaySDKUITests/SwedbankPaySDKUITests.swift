@@ -257,7 +257,7 @@ class SwedbankPaySDKUITests: XCTestCase {
                 //no action
             }
         }
-        try f()
+        try closure()
     }
     
     private func waitUntilShown() throws {
