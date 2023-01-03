@@ -49,11 +49,16 @@ class ViewController: UINavigationController {
         createPaymentDelegate()
         viewController.delegate = paymentDelegate
         
+        
         let isV3 = CommandLine.arguments.contains("-testV3")
         let withCheckin = CommandLine.arguments.contains("-testCheckin")
         let nonMerchant = CommandLine.arguments.contains("-testNonMerchant")
-        var payment = getPaymentOrder(withCheckin, nonMerchant)
+        let regeneratePayerRef = CommandLine.arguments.contains("-regeneratePayerRef")
         let testEnterprisePayerReference = CommandLine.arguments.contains("-testEnterprisePayerReference")
+        if regeneratePayerRef {
+            payerRef = UUID.init().uuidString
+        }
+        var payment = getPaymentOrder(withCheckin, nonMerchant)
         createTestButton(viewController) {
             print("no commands")
         }

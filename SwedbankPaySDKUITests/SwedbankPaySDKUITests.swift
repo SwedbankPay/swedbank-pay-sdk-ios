@@ -399,7 +399,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         continueAsGuestButton.tap()
     }
     
-    private func beginPayment( cardNumber: String, cvv: String, swipeBeforeCard: Bool = false, assertComplete: Bool = true) throws {
+    private func beginPayment(cardNumber: String, cvv: String, swipeBeforeCard: Bool = false, assertComplete: Bool = true) throws {
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
@@ -424,7 +424,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try performPayment(cardNumber: cardNumber, cvv: cvv)
     }
     
-    private func performPayment( cardNumber: String, cvv: String) throws {
+    private func performPayment(cardNumber: String, cvv: String) throws {
         
         try assertExists(creditCardOption, "Credit card option not found")
         creditCardOption.tap()
@@ -683,19 +683,15 @@ class SwedbankPaySDKUITests: XCTestCase {
         app.launchArguments.append("-configName enterprise")
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testEnterprisePayerReference")
+        let originalArguments = app.launchArguments
         
-        for scaCard in scaCards {
-            do {
-                try runOneClickEnterprisePayerReference(scaCard)
-                return //it worked
-            } catch {
-                app.terminate()
-            }
+        try rerunXTimes(scaCards.count, ignoreLaunch: true) { index in
+            app.launchArguments.append("-regeneratePayerRef")
+            try runOneClickEnterprisePayerReference(originalArguments, scaCards[index])
         }
-        try runOneClickEnterprisePayerReference(scaCards.first!)
     }
     
-    func runOneClickEnterprisePayerReference(_ scaCard: String) throws {
+    func runOneClickEnterprisePayerReference(_ originalArguments: [String], _ scaCard: String) throws {
         
         app.launch()
         
@@ -730,6 +726,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try performPayment(cardNumber: scaCard, cvv: scaCvv)
         try scaAproveCard()
         app.terminate()
+        app.launchArguments = originalArguments
         app.launch()
         
         try waitAndAssertExists(ssnInput, "No ssn input")
@@ -780,11 +777,21 @@ class SwedbankPaySDKUITests: XCTestCase {
             try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
             retryUntilTrue {
                 cardOption.tap()
+                if panInput.exists {
+                    return true
+                }
                 return anyPrefilledCard.waitForExistence(timeout: shortTimeout)
             }
-            try assertExists(anyPrefilledCard, "No prefilled cards")
-            
-            try purchaseWithPrefilledCard()
+            if anyPrefilledCard.exists == false {
+                try performPayment(cardNumber: scaCards[index], cvv: scaCvv)
+                try scaAproveCard()
+                
+                //Throw error to restart - if we come back here there is something wrong with that card
+                throw "Saved a new card, but it did not get remembered"
+            } else {
+                try assertExists(anyPrefilledCard, "No prefilled cards")
+                try purchaseWithPrefilledCard()
+            }
         }
     }
     
@@ -799,6 +806,9 @@ class SwedbankPaySDKUITests: XCTestCase {
                 return
             } catch {
                 app.terminate()
+                if index == count - 1 {
+                    throw error
+                }
             }
         }
     }
