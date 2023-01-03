@@ -238,20 +238,20 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     @discardableResult
-    private func retryUntilTrue(f: () throws -> Bool) rethrows -> Bool {
+    private func retryUntilTrue(closure: () throws -> Bool) rethrows -> Bool {
         for i in 0..<retryableActionMaxAttempts {
             print("attempt \(i)")
-            if try f() {
+            if try closure() {
                 return true
             }
         }
         return false
     }
-    private func retryUntilSuccess(f: () throws -> () ) throws {
+    private func retryUntilSuccess(closure: () throws -> Void ) throws {
         for i in 0..<retryableActionMaxAttempts-1 {
             print("attempt \(i)")
             do {
-                try f()
+                try closure()
                 return
             } catch {
                 //no action
@@ -570,7 +570,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     /// Test monthly invoice payment, we have to run this manually for now since I can't automate bankID yet
-    func _testV3MonthlyInvoiceInstrument() throws {
+    func manuallyTestV3MonthlyInvoiceInstrument() throws {
         
         let config = "paymentsOnly" //currently our test-enterprise does not have the permission to restrict instruments
         app.launchArguments.append("-configName \(config)")
@@ -748,14 +748,13 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
         try delayUnlessEnabled(confirmButton)
         //sometimes we need to tap confirmButton twice, but always wait until it disapears
-        while (confirmButton.exists) {
+        while confirmButton.exists {
             confirmButton.tap()
             _ = continueButton.waitForExistence(timeout: 1.5)
         }
         try scaAproveCard()
         //try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with oneClick")
     }
-    
     
     // Make sure we also support ssn directly
     func testOneClickEnterpriseNationalIdentifier() throws {
