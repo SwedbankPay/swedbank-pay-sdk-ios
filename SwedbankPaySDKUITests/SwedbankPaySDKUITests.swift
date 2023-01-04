@@ -399,7 +399,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     private func beginPayment(cardNumber: String, cvv: String,
-        swipeBeforeCard: Bool = false, assertComplete: Bool = true) throws {
+                              swipeBeforeCard: Bool = false, assertComplete: Bool = true) throws {
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
@@ -444,7 +444,11 @@ class SwedbankPaySDKUITests: XCTestCase {
                 break
             }
         }
-        let button = try waitForOne([confirmButton, payButton], errorMessage: "Could not find confirm nor pay button within beginPayment")
+        
+        //Sorry for this ugly code, my hands are tied due to linting.
+        let button = try waitForOne(
+            [confirmButton, payButton],
+            errorMessage: "Could not find confirm nor pay button within beginPayment")
         try waitAndAssertExists(button, "Pay/continue button not found")
         button.tap()
     }
@@ -534,8 +538,11 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
     }
     
-    func waitForResponseOrFailure(_ timeout: Double = defaultTimeout,
-        _ errorMessage: String = "Card failed upstream, try with another card.") throws {
+    //Sorry for this ugly code, my hands are tied due to linting.
+    func waitForResponseOrFailure(
+        _ timeout: Double = defaultTimeout,
+        _ errorMessage: String = "Card failed upstream, try with another card.") throws
+    {
         let start = Date()
         while start.timeIntervalSinceNow > -timeout {
             if successMessage.waitForExistence(timeout: 1) {

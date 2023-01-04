@@ -47,8 +47,7 @@ class ViewController: UINavigationController {
         viewController.restorationIdentifier = "paymentViewController"
         
         createPaymentDelegate()
-        viewController.delegate = paymentDelegate
-        
+        viewController.delegate = paymentDelegate        
         
         let isV3 = CommandLine.arguments.contains("-testV3")
         let withCheckin = CommandLine.arguments.contains("-testCheckin")
