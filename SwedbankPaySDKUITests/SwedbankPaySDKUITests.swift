@@ -541,8 +541,8 @@ class SwedbankPaySDKUITests: XCTestCase {
     //Sorry for this ugly code, my hands are tied due to linting.
     func waitForResponseOrFailure(
         _ timeout: Double = defaultTimeout,
-        _ errorMessage: String = "Card failed upstream, try with another card.") throws
-    {
+        _ errorMessage: String = "Card failed upstream, try with another card.") throws {
+            
         let start = Date()
         while start.timeIntervalSinceNow > -timeout {
             if successMessage.waitForExistence(timeout: 1) {
