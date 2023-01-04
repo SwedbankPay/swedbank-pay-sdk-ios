@@ -25,9 +25,9 @@ private let ccaV2CardNumbers = ["5226612199533406", "4761739001010416", ]
 
 //the new scaCard that always work, but has the strange input: "5226612199533406"
 //used to be 3DS but not anymore: "4111111111111111",
-private let scaCards = ["4547781087013329", "4761739001010416", "4581097032723517", "4000008000000153", "4111111111111111"]
-//4547 7810 8701 3329
-//4761 7390 0101 0416
+private let scaCards = ["4547781087013329", "4761739001010416",
+                        "4581097032723517", "4000008000000153",
+                        "4111111111111111"] //note the manual line-breaks
 
 private struct NoSCAContinueButtonFound: Error {
     
@@ -82,7 +82,8 @@ private func delayUnlessEnabled(
 
 /// Note that XCUIElements is never equal to anything, not themselves even
 @discardableResult
-private func waitForOne(_ elements: [XCUIElement], _ timeout: Double = defaultTimeout, errorMessage: String) throws -> XCUIElement {
+private func waitForOne(_ elements: [XCUIElement], _ timeout: Double = defaultTimeout,
+                        errorMessage: String) throws -> XCUIElement {
     let start = Date()
     while start.timeIntervalSinceNow > -timeout {
         for element in elements {
@@ -239,8 +240,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     @discardableResult
     private func retryUntilTrue(closure: () throws -> Bool) rethrows -> Bool {
-        for i in 0..<retryableActionMaxAttempts {
-            print("attempt \(i)")
+        for _ in 0..<retryableActionMaxAttempts {
             if try closure() {
                 return true
             }
@@ -248,8 +248,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         return false
     }
     private func retryUntilSuccess(closure: () throws -> Void ) throws {
-        for i in 0..<retryableActionMaxAttempts-1 {
-            print("attempt \(i)")
+        for _ in 0..<retryableActionMaxAttempts-1 {
             do {
                 try closure()
                 return
@@ -399,7 +398,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         continueAsGuestButton.tap()
     }
     
-    private func beginPayment(cardNumber: String, cvv: String, swipeBeforeCard: Bool = false, assertComplete: Bool = true) throws {
+    private func beginPayment(cardNumber: String, cvv: String,
+        swipeBeforeCard: Bool = false, assertComplete: Bool = true) throws {
         try waitAndAssertExists(timeout: initialTimeout, webView, "Web view not found")
         
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
@@ -519,7 +519,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         let otpPage = webView.staticTexts.contains(label: "Challenge Form")
         let otpCode = webView.staticTexts.contains(label: "OTP Code")
-        _ = try? waitForOne([otpPage, otpCode, continueButton], shortTimeout, errorMessage: "No known 3ds challange page detected")
+        _ = try? waitForOne([otpPage, otpCode, continueButton],
+                            shortTimeout, errorMessage: "No known 3ds challange page detected")
         
         if continueButton.exists {
             try retryUntilSuccess {
@@ -533,7 +534,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
     }
     
-    func waitForResponseOrFailure(_ timeout: Double = defaultTimeout, _ errorMessage: String = "Card failed upstream, try with another card.") throws {
+    func waitForResponseOrFailure(_ timeout: Double = defaultTimeout,
+        _ errorMessage: String = "Card failed upstream, try with another card.") throws {
         let start = Date()
         while start.timeIntervalSinceNow > -timeout {
             if successMessage.waitForExistence(timeout: 1) {
@@ -705,7 +707,9 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         cardOption.firstMatch.tap()
         
-        try waitForOne([anyPrefilledCard, prefilledCard(scaCard), creditCardOption, addAnotherCardLink], errorMessage: "Could not find starting point for oneClick payer ref")
+        try waitForOne([anyPrefilledCard, prefilledCard(scaCard),
+            creditCardOption, addAnotherCardLink],
+            errorMessage: "Could not find starting point for oneClick payer ref")
         
         //detect if the right card exist
         if anyPrefilledCard.exists {

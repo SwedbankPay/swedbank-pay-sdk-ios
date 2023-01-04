@@ -221,9 +221,9 @@ class ViewController: UINavigationController {
 
     var testButtonAction: (() -> Void)?
     private func createTestButton(_ viewController: UIViewController, _ action: @escaping () -> Void) {
-        //let action = UIAction { _ in action() }
         testButtonAction = action
-        let button = UIBarButtonItem(title: "Test change", style: .plain, target: self, action: #selector(testMenuButtonAction))
+        let button = UIBarButtonItem(title: "Test change", style: .plain,
+                                     target: self, action: #selector(testMenuButtonAction))
         button.accessibilityIdentifier = "testMenuButton"
         viewController.navigationItem.rightBarButtonItem = button
     }
