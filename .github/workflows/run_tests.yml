@@ -19,12 +19,12 @@ jobs:
           xcrun simctl list runtimes
           xcrun simctl create "iPhone 8 iOS15.5" "com.apple.CoreSimulator.SimDeviceType.iPhone-8" "com.apple.CoreSimulator.SimRuntime.iOS-15-5"
           xcrun simctl list devices 15.5
-          
-      - name: Show Available Destinations
-        run: xcodebuild -scheme SwedbankPaySDK -showdestinations #-workspace Grocery.xcworkspace 
       
       - name: Run Unit Tests  #${{ matrix.macOS }}
-        run: xcodebuild -scheme SwedbankPaySDK -destination 'platform=iOS Simulator,name=iPhone 8 iOS15.5' test
+        run: xcodebuild -scheme SwedbankPaySDK -destination 'platform=iOS Simulator,name=iPhone 8 iOS15.5,OS=15.5' test
+        
+      - name: Show Available Destinations
+        run: xcodebuild -scheme SwedbankPaySDK -showdestinations
 
 
 #<XCODE_PATH>/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime /Library/Developer/CoreSimulator/Profiles/Runtimes/iOS\ <IOS_VERSION>.simruntime
