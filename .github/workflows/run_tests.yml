@@ -17,7 +17,7 @@ jobs:
           
           sudo ln -s /Applications/Xcode_13.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime /Library/Developer/CoreSimulator/Profiles/Runtimes/iOS\ 15.5.simruntime
           xcrun simctl list runtimes
-          xcrun simctl create custom-test-device "iPhone 8 iOS15.5" "com.apple.CoreSimulator.SimDeviceType.iPhone-8" "com.apple.CoreSimulator.SimRuntime.iOS-15-5"
+          xcrun simctl create "iPhone 8 iOS15.5" "com.apple.CoreSimulator.SimDeviceType.iPhone-8" "com.apple.CoreSimulator.SimRuntime.iOS-15-5"
           xcrun simctl list devices 15.5
           
       - name: Show Available Destinations
