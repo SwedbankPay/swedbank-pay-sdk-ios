@@ -761,7 +761,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         //sometimes we need to tap confirmButton twice, but always wait until it disapears
         while confirmButton.exists {
             confirmButton.tap()
-            _ = continueButton.waitForExistence(timeout: 1.5)
+            _ = continueButton.waitForExistence(timeout: shortTimeout)
         }
         try scaAproveCard()
         //try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with oneClick")
