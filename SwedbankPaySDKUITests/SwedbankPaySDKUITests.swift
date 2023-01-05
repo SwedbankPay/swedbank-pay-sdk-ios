@@ -210,9 +210,10 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     private func input(to webElement: XCUIElement, text: String, waitForOk: Bool = false) {
+        _ = webElement.waitForExistence(timeout: 5)
         webElement.tap()
         webView.typeText(text)
-        if keyboardOkButton.exists || (waitForOk && keyboardOkButton.waitForExistence(timeout: 1)) {
+        if keyboardOkButton.exists || (waitForOk && keyboardOkButton.waitForExistence(timeout: shortTimeout)) {
             keyboardOkButton.tap()
         } else {
             keyboardDoneButton.tap()
@@ -639,7 +640,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitFor(.canceled, timeout: resultTimeout)
     }
     
-    func repeatGenerateUncheduledToken(_ cardToUse: String) throws {
+    func repeatGenerateUnscheduledToken(_ cardToUse: String) throws {
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testVerifyUnscheduledToken")
         app.launch()
@@ -651,14 +652,14 @@ class SwedbankPaySDKUITests: XCTestCase {
         try scaApproveCard()
     }
     
-    func testGenerateUncheduledToken() throws {
+    func testGenerateUnscheduledToken() throws {
         
         for config in paymentTestConfigurations {
             app.launchArguments.append("-configName \(config)")
             var success = false
             for cardToUse in scaCards {
                 do {
-                    try repeatGenerateUncheduledToken(cardToUse)
+                    try repeatGenerateUnscheduledToken(cardToUse)
                     if unknownErrorMessage.exists {
                         print("error!")
                     }
@@ -670,7 +671,7 @@ class SwedbankPaySDKUITests: XCTestCase {
                 }
             }
             if !success {
-                try repeatGenerateUncheduledToken(scaCardNumber)
+                try repeatGenerateUnscheduledToken(scaCardNumber)
             }
             
             //just wait until payment is verified
