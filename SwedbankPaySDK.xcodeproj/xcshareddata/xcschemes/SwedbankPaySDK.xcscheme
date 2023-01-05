@@ -32,6 +32,16 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A5494B2526330227006EB38B"
+               BuildableName = "SwedbankPaySDKUITests.xctest"
+               BlueprintName = "SwedbankPaySDKUITests"
+               ReferencedContainer = "container:SwedbankPaySDK.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "C552630123706467005E97DC"
                BuildableName = "SwedbankPaySDKTests.xctest"
                BlueprintName = "SwedbankPaySDKTests"
