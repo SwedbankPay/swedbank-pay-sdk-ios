@@ -514,24 +514,30 @@ class SwedbankPaySDKUITests: XCTestCase {
         // try this again with otherScaCardNumber if failing? No, if service is down it doesn't matter what we do.
         try beginPayment(cardNumber: cardNumber, cvv: scaCvv)
         
-        try scaAproveCard()
+        try scaApproveCard()
         //else "Continue button not found"
     }
     
     ///Will throw if purchase is not successfull
-    private func scaAproveCard() throws {
+    private func scaApproveCard() throws {
         
         let otpPage = webView.staticTexts.contains(label: "Challenge Form")
         let otpCode = webView.staticTexts.contains(label: "OTP Code")
-        _ = try? waitForOne([otpPage, otpCode, continueButton],
+        _ = try? waitForOne([otpPage, otpCode, continueButton, successMessage, unknownErrorMessage],
                             shortTimeout, errorMessage: "No known 3ds challange page detected")
-        
+
         if continueButton.exists {
+            print("sca aproving with continue button")
             try retryUntilSuccess {
                 continueButton.tap()
                 try waitForResponseOrFailure()
             }
+        } else if successMessage.exists {
+            print("This card was pre-approved")
+        } else if unknownErrorMessage.exists {
+            throw "This card did not work, you must remove it before trying again"
         } else {
+            print("sca aproving with otp text field")
             //whitelistThisMerchant.tap() it also does not matter!
             input(to: otpTextField, text: "1234", waitForOk: true)
             try waitForResponseOrFailure()
@@ -642,7 +648,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitUntilShown()
         try beginPayment(cardNumber: cardToUse, cvv: scaCvv)
         //tap continue button or do the otp dance.
-        try scaAproveCard()
+        try scaApproveCard()
     }
     
     func testGenerateUncheduledToken() throws {
@@ -705,7 +711,12 @@ class SwedbankPaySDKUITests: XCTestCase {
         app.launch()
         
         try waitUntilShown()
+        
+        try waitAndAssertExists(timeout: initialTimeout, webView, "no weview for OneClickEnterprisePayerReference")
+        
         try waitAndAssertExists(ssnInput, "No ssn input")
+        //it shows up and then has a little animation (which can't be tapped), add a delay to protect from that.
+        sleep(1)
         input(to: ssnInput, text: ssn, waitForOk: true)
         
         try waitAndAssertExists(saveCredentialsButton, "No save button")
@@ -735,7 +746,7 @@ class SwedbankPaySDKUITests: XCTestCase {
             addAnotherCardLink.firstMatch.tap()
         }
         try performPayment(cardNumber: scaCard, cvv: scaCvv)
-        try scaAproveCard()
+        try scaApproveCard()
         app.terminate()
         app.launchArguments = originalArguments
         app.launch()
@@ -754,16 +765,26 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     func purchaseWithPrefilledCard() throws {
+        print("purchaseWithPrefilledCard")
         anyPrefilledCard.firstMatch.tap()
         
         try waitAndAssertExists(timeout: resultTimeout, confirmButton, "payButton not found")
         try delayUnlessEnabled(confirmButton)
+        
+        print("Tap confirm until gone")
         //sometimes we need to tap confirmButton twice, but always wait until it disapears
-        while confirmButton.exists {
+        retryUntilTrue {
+            if !confirmButton.exists {
+                return true
+            }
             confirmButton.tap()
             _ = continueButton.waitForExistence(timeout: shortTimeout)
+            return false
         }
-        try scaAproveCard()
+        if confirmButton.exists {
+            throw "Could tap confirm button for prefilled card"
+        }
+        try scaApproveCard()
         //try confirmAndWaitForCompletePayment(confirmButton, "Could not pay with oneClick")
     }
     
@@ -787,16 +808,19 @@ class SwedbankPaySDKUITests: XCTestCase {
             try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
             retryUntilTrue {
                 cardOption.tap()
+                print("Check if panInput exist, or wait for prefilled card")
                 if panInput.exists {
                     return true
                 }
                 return anyPrefilledCard.waitForExistence(timeout: shortTimeout)
             }
             if anyPrefilledCard.exists == false {
+                print("Prefilled card did not exist, create one")
                 try performPayment(cardNumber: scaCards[index], cvv: scaCvv)
-                try scaAproveCard()
+                try scaApproveCard()
                 
                 //Throw error to restart - if we come back here there is something wrong with that card
+                print("Restart test by throwing error, this should only happen once")
                 throw "Saved a new card, but it did not get remembered"
             } else {
                 try assertExists(anyPrefilledCard, "No prefilled cards")
