@@ -213,9 +213,20 @@ class SwedbankPaySDKUITests: XCTestCase {
         _ = webElement.waitForExistence(timeout: 5)
         webElement.tap()
         webView.typeText(text)
-        if keyboardOkButton.exists || (waitForOk && keyboardOkButton.waitForExistence(timeout: shortTimeout)) {
+        if keyboardOkButton.exists || (waitForOk && keyboardOkButton.waitForExistence(timeout: 2)) {
             keyboardOkButton.tap()
         } else {
+            if waitForOk {
+                //This happens from time to time, then there should be a Done key instead
+                print("Did not find Ok button")
+                if !keyboardDoneButton.exists {
+                    keyboardOkButton.tap()
+                    return
+                }
+            }
+            if !keyboardDoneButton.exists {
+                print("No 'done' keyboard button")
+            }
             keyboardDoneButton.tap()
         }
     }
@@ -718,7 +729,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitAndAssertExists(ssnInput, "No ssn input")
         //it shows up and then has a little animation (which can't be tapped), add a delay to protect from that.
         sleep(1)
-        input(to: ssnInput, text: ssn, waitForOk: true)
+        input(to: ssnInput, text: ssn, waitForOk: false)
         
         try waitAndAssertExists(saveCredentialsButton, "No save button")
         saveCredentialsButton.tap()
