@@ -652,8 +652,6 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     func repeatGenerateUnscheduledToken(_ cardToUse: String) throws {
-        app.launchArguments.append("-testV3")
-        app.launchArguments.append("-testVerifyUnscheduledToken")
         app.launch()
         print("testing with card: \(cardToUse)")
         
@@ -664,8 +662,11 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     func testGenerateUnscheduledToken() throws {
-        
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testVerifyUnscheduledToken")
+        let args = app.launchArguments
         for config in paymentTestConfigurations {
+            app.launchArguments = args
             app.launchArguments.append("-configName \(config)")
             var success = false
             for cardToUse in scaCards {
