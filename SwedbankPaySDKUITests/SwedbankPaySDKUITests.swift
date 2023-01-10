@@ -80,6 +80,20 @@ private func delayUnlessEnabled(
     }
 }
 
+extension XCUIElement {
+    //Sometimes buttons can't be tapped due to being reported as non-hittable
+    func forceTapElement() {
+        if self.isHittable {
+            self.tap()
+        }
+        else {
+            print("Force hit")
+            let coordinate: XCUICoordinate = self.coordinate(withNormalizedOffset: CGVector(dx:0.5, dy:0.5))
+            coordinate.tap()
+        }
+    }
+}
+
 /// Note that XCUIElements is never equal to anything, not themselves even
 @discardableResult
 private func waitForOne(_ elements: [XCUIElement], _ timeout: Double = defaultTimeout,
@@ -214,7 +228,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         webElement.tap()
         webView.typeText(text)
         if keyboardOkButton.exists || (waitForOk && keyboardOkButton.waitForExistence(timeout: 2)) {
-            keyboardOkButton.tap()
+            print("Found keyboardOkButton, force tap")
+            keyboardOkButton.forceTapElement()
         } else {
             if waitForOk {
                 //This happens from time to time, then there should be a Done key instead
@@ -227,7 +242,8 @@ class SwedbankPaySDKUITests: XCTestCase {
             if !keyboardDoneButton.exists {
                 print("No 'done' keyboard button")
             }
-            keyboardDoneButton.tap()
+            print("Found keyboardDoneButton, force tap")
+            keyboardDoneButton.forceTapElement()
         }
     }
     
@@ -730,7 +746,9 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitAndAssertExists(ssnInput, "No ssn input")
         //it shows up and then has a little animation (which can't be tapped), add a delay to protect from that.
         sleep(1)
+        print("Input ssn number")
         input(to: ssnInput, text: ssn, waitForOk: false)
+        print("Wait for save button")
         
         try waitAndAssertExists(saveCredentialsButton, "No save button")
         saveCredentialsButton.tap()
