@@ -1,18 +1,30 @@
 name: Test
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
+on: [push]
 
 jobs:
   test:
     runs-on: macos-12
-
+    
     steps:
       - uses: actions/checkout@v3
+      # We must use older simulators on Intel macs, otherwise webkit fails to load.
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest
-      - name: Run Tests
-        run: xcodebuild -scheme SwedbankPaySDK -destination 'platform=iOS Simulator,name=iPhone 14 Pro,OS=latest' test
+          xcode-version: "14.1"
+      - name: Prepare iOS 15.5 simulator
+        run: |
+          sudo mkdir -p /Library/Developer/CoreSimulator/Profiles/Runtimes
+          
+          sudo ln -s /Applications/Xcode_13.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime /Library/Developer/CoreSimulator/Profiles/Runtimes/iOS\ 15.5.simruntime
+          xcrun simctl create "iPhone 8 iOS15.5" "com.apple.CoreSimulator.SimDeviceType.iPhone-8" "com.apple.CoreSimulator.SimRuntime.iOS-15-5"
+      
+      - name: Run Unit Tests  #${{ matrix.macOS }}
+        run: xcodebuild -scheme SwedbankPaySDK -destination 'platform=iOS Simulator,name=iPhone 8 iOS15.5,OS=15.5' test
+      
+      # If there are gitHub errors, debug by listing destinations: 
+      #- name: Show Available Destinations
+      #  run: xcodebuild -scheme SwedbankPaySDK -showdestinations
+
+
+#<XCODE_PATH>/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime /Library/Developer/CoreSimulator/Profiles/Runtimes/iOS\ <IOS_VERSION>.simruntime
