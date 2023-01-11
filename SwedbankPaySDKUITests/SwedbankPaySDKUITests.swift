@@ -88,7 +88,7 @@ extension XCUIElement {
         }
         else {
             print("Force hit")
-            let coordinate: XCUICoordinate = self.coordinate(withNormalizedOffset: CGVector(dx:0.5, dy:0.5))
+            let coordinate: XCUICoordinate = self.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
             coordinate.tap()
         }
     }
@@ -100,10 +100,8 @@ private func waitForOne(_ elements: [XCUIElement], _ timeout: Double = defaultTi
                         errorMessage: String) throws -> XCUIElement {
     let start = Date()
     while start.timeIntervalSinceNow > -timeout {
-        for element in elements {
-            if element.waitForExistence(timeout: 1) {
-                return element
-            }
+        for element in elements where element.waitForExistence(timeout: 1) {
+            return element
         }
     }
     throw errorMessage
@@ -268,10 +266,8 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     @discardableResult
     private func retryUntilTrue(closure: () throws -> Bool) rethrows -> Bool {
-        for _ in 0..<retryableActionMaxAttempts {
-            if try closure() {
-                return true
-            }
+        for _ in 0..<retryableActionMaxAttempts where try closure() {
+            return true
         }
         return false
     }
@@ -740,10 +736,13 @@ class SwedbankPaySDKUITests: XCTestCase {
         app.launch()
         
         try waitUntilShown()
-        try waitAndAssertExists(timeout: initialTimeout, webView, "no weview for OneClickEnterprisePayerReference")
+        try waitAndAssertExists(timeout: initialTimeout, webView,
+                                "no weview for OneClickEnterprisePayerReference")
         
-        /// Could be a bug but Swedbank sometimes require additional ssn-input to store cards, sometimes the existing refs are enough.
-        try waitForOne([ssnInput, cardOption], errorMessage: "Neither ssnInput nor card options were found")
+        /// Could be a bug but Swedbank sometimes require additional ssn-
+        /// input to store cards, sometimes the existing refs are enough.
+        try waitForOne([ssnInput, cardOption], errorMessage:
+                        "Neither ssnInput nor card options were found")
         if ssnInput.exists {
             
             //it shows up and then has a little animation (which can't be tapped), add a delay to protect from that.
