@@ -740,18 +740,21 @@ class SwedbankPaySDKUITests: XCTestCase {
         app.launch()
         
         try waitUntilShown()
-        
         try waitAndAssertExists(timeout: initialTimeout, webView, "no weview for OneClickEnterprisePayerReference")
         
-        try waitAndAssertExists(ssnInput, "No ssn input")
-        //it shows up and then has a little animation (which can't be tapped), add a delay to protect from that.
-        sleep(1)
-        print("Input ssn number")
-        input(to: ssnInput, text: ssn, waitForOk: false)
-        print("Wait for save button")
-        
-        try waitAndAssertExists(saveCredentialsButton, "No save button")
-        saveCredentialsButton.tap()
+        /// Could be a bug but Swedbank sometimes require additional ssn-input to store cards, sometimes the existing refs are enough.
+        try waitForOne([ssnInput, cardOption], errorMessage: "Neither ssnInput nor card options were found")
+        if ssnInput.exists {
+            
+            //it shows up and then has a little animation (which can't be tapped), add a delay to protect from that.
+            sleep(1)
+            print("Input ssn number")
+            input(to: ssnInput, text: ssn, waitForOk: false)
+            print("Wait for save button")
+            
+            try waitAndAssertExists(saveCredentialsButton, "No save button")
+            saveCredentialsButton.tap()
+        }
         
         try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
         cardOption.firstMatch.tap()
