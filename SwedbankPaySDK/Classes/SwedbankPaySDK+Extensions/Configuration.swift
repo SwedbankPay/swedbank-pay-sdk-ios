@@ -178,6 +178,7 @@ public protocol SwedbankPaySDKConfiguration {
     func url(_ url: URL, matchesPaymentUrl paymentUrl: URL) -> Bool
 }
 
+///This error is thrown when calling optional methods without implementing them first.
 public struct NotImplementedError: Error {
     
     var description: String {

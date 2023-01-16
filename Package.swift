@@ -25,7 +25,9 @@ let package = Package(
         .library(name: "SwedbankPaySDKMerchantBackend", targets: ["SwedbankPaySDKMerchantBackend"])
     ],
     dependencies: [
-        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.5.0"))
+        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.5.0")),
+        .package(url: "https://github.com/apple/swift-docc-plugin", .upToNextMajor(from: "1.0.0"),
+                 swiftSettings: [.unsafeFlags(["-emit-extension-block-symbols"])]),
     ],
     targets: [
         .target(
