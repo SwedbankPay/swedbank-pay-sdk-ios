@@ -16,7 +16,7 @@ private let stateSavingDelay = 5.0
 private let retryableActionMaxAttempts = 5
 private let ssn = "199710202392"
 
-private let noScaCardNumber = "4111111111111111"
+private let noScaCardNumber = "4581099940323133"
 private let scaCardNumber = "4547781087013329"
 private let oldScaCardNumber = "5226612199533406"
 private let scaCardNumber3DS2 = "4000008000000153"
@@ -122,8 +122,18 @@ class SwedbankPaySDKUITests: XCTestCase {
         let predicate = NSPredicate(format: "label = %@", argumentArray: [label])
         return webView.staticTexts.element(matching: predicate)
     }
-    private func webTextField(label: String) -> XCUIElement {
-        let predicate = NSPredicate(format: "label = %@", argumentArray: [label])
+    private func webTextField(label: String? = nil, contains: String? = nil, identifier: String? = nil) -> XCUIElement {
+        
+        let predicate: NSPredicate
+        if let label {
+            predicate = NSPredicate(format: "label = %@", argumentArray: [label])
+        } else if let contains {
+            predicate = NSPredicate(format: "label CONTAINS[cd] %@", argumentArray: [contains])
+        } else if let identifier {
+            predicate = NSPredicate(format: "identifier = %@", argumentArray: [identifier])
+        } else {
+            fatalError("Missing argument")
+        }
         return webView.textFields.element(matching: predicate)
     }
     
@@ -197,15 +207,17 @@ class SwedbankPaySDKUITests: XCTestCase {
         let input = webText(label: label).exists ? webText(label: label) : webTextField(label: label)
         return input
     }
-    private var expiryInput: XCUIElement {
-        let label = "MM/YY"
-        let input = webText(label: label).exists ? webText(label: label) : webTextField(label: "Expiry date MM/YY")
-        return input
+    private func expiryInput() throws -> XCUIElement {
+        
+        return try waitForOne([webText(label: "MM/YY"), webTextField(label: "expiryInput"),
+                               webTextField(identifier: "expiryInput"),
+                           webTextField(contains: "Expiry date MM/YY")],
+                              errorMessage: "Could not find expiry input (MM/YY")
     }
-    private var cvvInput: XCUIElement {
+    
+    private func cvvInput() throws -> XCUIElement {
         let label = "CVV"
-        let input = webText(label: label).exists ? webText(label: label) : webTextField(label: label)
-        return input
+        return try waitForOne([webTextField(label: "cvcInput"), webTextField(label: "cccvc"), webText(label: label), webTextField(label: label)], errorMessage: "CVV input not found!")
     }
     private var payButton: XCUIElement {
         webView.buttons.element(matching: .init(format: "label BEGINSWITH 'Pay '"))
@@ -310,7 +322,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     private func waitForComplete(timeout: Double = initialTimeout) throws {
-        print("Waiting \(timeout)s for payment result")
+        print("Waiting \(timeout)s for payment complete")
         try messageList.waitForMessage(timeout: timeout, message: .complete)
     }
     
@@ -322,7 +334,7 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     private func waitForResultAndAssertComplete() throws {
         
-        try waitForComplete(timeout: resultTimeout)
+        try waitForResponseOrFailure(resultTimeout)
     }
     
     private func waitForResultAndAssertNil() {
@@ -456,10 +468,10 @@ class SwedbankPaySDKUITests: XCTestCase {
         try waitAndAssertExists(panInput, "PAN input not found")
         input(to: panInput, text: cardNumber)
         
-        try waitAndAssertExists(expiryInput, "Expiry date input not found")
+        let expiryInput = try expiryInput()
         input(to: expiryInput, text: expiryDate)
         
-        try waitAndAssertExists(cvvInput, "CVV input not found")
+        let cvvInput = try cvvInput()
         input(to: cvvInput, text: cvv)
         
         for _ in 0...6 {

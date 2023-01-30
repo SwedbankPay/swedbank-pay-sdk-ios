@@ -51,7 +51,6 @@
 		A515A72B26C51E78001E7F30 /* PaymentOrderExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A515A72A26C51E78001E7F30 /* PaymentOrderExtensions.swift */; };
 		A515A72C26C51EEF001E7F30 /* SwedbankPaySDKMerchantBackend.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A515A71E26C4057C001E7F30 /* SwedbankPaySDKMerchantBackend.framework */; };
 		A515A72D26C51EF5001E7F30 /* SwedbankPaySDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C55262F923706467005E97DC /* SwedbankPaySDK.framework */; };
-		A515A72E26C51F06001E7F30 /* SwedbankPaySDKMerchantBackend.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A515A71E26C4057C001E7F30 /* SwedbankPaySDKMerchantBackend.framework */; };
 		A515A73026C53406001E7F30 /* Preconditions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A542B3492523728800AD8F09 /* Preconditions.swift */; };
 		A515A73126C53D9E001E7F30 /* PinPublicKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50CF69A237AAC99003F79DF /* PinPublicKeys.swift */; };
 		A52E0AC124BC9E0100770286 /* WebViewRedirects.swift in Sources */ = {isa = PBXBuildFile; fileRef = A52E0AC024BC9E0100770286 /* WebViewRedirects.swift */; };
@@ -60,7 +59,6 @@
 		A5494B0E26330207006EB38B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5494B0D26330207006EB38B /* AppDelegate.swift */; };
 		A5494B2926330227006EB38B /* SwedbankPaySDKUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5494B2826330227006EB38B /* SwedbankPaySDKUITests.swift */; };
 		A5494B492633036E006EB38B /* PaymentTestConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5494B482633036E006EB38B /* PaymentTestConfiguration.swift */; };
-		A5494B5E26330545006EB38B /* SwedbankPaySDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C55262F923706467005E97DC /* SwedbankPaySDK.framework */; };
 		A5535E7224754AD000BFD586 /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5535E7124754AD000BFD586 /* TestConstants.swift */; };
 		A5535E7424754AFC00BFD586 /* MockURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5535E7324754AFC00BFD586 /* MockURLProtocol.swift */; };
 		A5535E7624754B2100BFD586 /* MockURLResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5535E7524754B2100BFD586 /* MockURLResult.swift */; };
@@ -179,6 +177,10 @@
 		D511ECB32975599D0059AB05 /* MerchantBackendApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = A577E729251B364400943A8B /* MerchantBackendApi.swift */; };
 		D511ECB42975599D0059AB05 /* RequestDecorator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A577E72D251B547B00943A8B /* RequestDecorator.swift */; };
 		D511ECB629755A290059AB05 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D511ECB529755A290059AB05 /* Alamofire */; };
+		D56A5E5A2981676D00057819 /* SwedbankPaySDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C55262F923706467005E97DC /* SwedbankPaySDK.framework */; };
+		D56A5E5B2981676D00057819 /* SwedbankPaySDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C55262F923706467005E97DC /* SwedbankPaySDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D56A5E5D2981676F00057819 /* SwedbankPaySDKMerchantBackend.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A515A71E26C4057C001E7F30 /* SwedbankPaySDKMerchantBackend.framework */; };
+		D56A5E5E2981676F00057819 /* SwedbankPaySDKMerchantBackend.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A515A71E26C4057C001E7F30 /* SwedbankPaySDKMerchantBackend.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D581EFDF27A92A56001B85A7 /* VersionOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D581EFDE27A92A56001B85A7 /* VersionOptions.swift */; };
 		D5993446291947EB004AB761 /* MockWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5993445291947EB004AB761 /* MockWebViewController.swift */; };
 		D5AE5DA027E0D4DA00BE5468 /* ExpandResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5AE5D9F27E0D4DA00BE5468 /* ExpandResource.swift */; };
@@ -228,6 +230,21 @@
 			remoteInfo = SwedbankPaySDK;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D56A5E5C2981676D00057819 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D56A5E5E2981676F00057819 /* SwedbankPaySDKMerchantBackend.framework in Embed Frameworks */,
+				D56A5E5B2981676D00057819 /* SwedbankPaySDK.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		6367D3EA26F340F700F89F62 /* TestConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConfiguration.swift; sourceTree = "<group>"; };
@@ -367,8 +384,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A515A72E26C51F06001E7F30 /* SwedbankPaySDKMerchantBackend.framework in Frameworks */,
-				A5494B5E26330545006EB38B /* SwedbankPaySDK.framework in Frameworks */,
+				D56A5E5D2981676F00057819 /* SwedbankPaySDKMerchantBackend.framework in Frameworks */,
+				D56A5E5A2981676D00057819 /* SwedbankPaySDK.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -747,6 +764,7 @@
 				A5494B0726330207006EB38B /* Sources */,
 				A5494B0826330207006EB38B /* Frameworks */,
 				A5494B0926330207006EB38B /* Resources */,
+				D56A5E5C2981676D00057819 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -1212,7 +1230,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.swedbank.SwedbankPaySDK;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swedbank.SwedbankPaySDKMerchant;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -1237,7 +1255,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.swedbank.SwedbankPaySDK;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swedbank.SwedbankPaySDKMerchant;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
