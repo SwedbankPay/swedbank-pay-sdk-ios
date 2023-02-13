@@ -3,8 +3,7 @@ import SwedbankPaySDK
 
 let shouldRestoreState = CommandLine.arguments.contains("-restore")
 //we need a different config for each merchant to test
-let configName = CommandLine.arguments.first { $0.contains("-configName")}?.split(separator: " ").last
-    .flatMap { String($0) }
+let configName = CommandLine.arguments.first { $0.contains("-configName")}?.split(separator: " ").last.flatMap { String($0) }
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {

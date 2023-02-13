@@ -207,6 +207,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         let input = webText(label: label).exists ? webText(label: label) : webTextField(label: label)
         return input
     }
+    
     private func expiryInput() throws -> XCUIElement {
         
         return try waitForOne([webText(label: "MM/YY"), webTextField(label: "expiryInput"),
@@ -219,6 +220,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         let label = "CVV"
         return try waitForOne([webTextField(label: "cvcInput"), webTextField(label: "cccvc"), webText(label: label), webTextField(label: label)], errorMessage: "CVV input not found!")
     }
+    
     private var payButton: XCUIElement {
         webView.buttons.element(matching: .init(format: "label BEGINSWITH 'Pay '"))
     }
@@ -621,9 +623,9 @@ class SwedbankPaySDKUITests: XCTestCase {
     }
     
     /// Test monthly invoice payment, we have to run this manually for now since I can't automate bankID yet
-    func manuallyTestV3MonthlyInvoiceInstrument() throws {
+    func manualTestV3MonthlyInvoiceInstrument() throws {
         
-        let config = "paymentsOnly" //currently our test-enterprise does not have the permission to restrict instruments
+        let config = "stage"
         app.launchArguments.append("-configName \(config)")
         //app.launchArguments.append("-testV3")
         app.launch()
@@ -636,6 +638,9 @@ class SwedbankPaySDKUITests: XCTestCase {
         monthlyInvoice.tap()
         
         //we can't automate bankID testing yet.
+        let waiter = expectation(description: "wait for manual testing")
+        waitForExpectations(timeout: 3600 * 2)
+        waiter.fulfill()
     }
     
     func testAbortPayment() throws {

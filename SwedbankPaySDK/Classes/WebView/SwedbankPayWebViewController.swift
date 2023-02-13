@@ -128,7 +128,7 @@ extension SwedbankPayWebViewController: WKNavigationDelegate {
                     
                     // if link has been cancelled due to not beeing able to open, we need to open it as an external app.
                     self.navigationLog(url, "External link opened in browser or app")
-                    self.processHost = .externalApp(openDate: Date())
+                    self.processHost = .browser //since we don't know if this link is to open bankId or perform payment we can't assume it is processing a payment.
                     UIApplication.shared.open(url, options: [.universalLinksOnly: false], completionHandler: nil)
                 }
                 
