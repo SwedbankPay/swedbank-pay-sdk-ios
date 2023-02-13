@@ -18,16 +18,16 @@ private let ssn = "199710202392"
 
 private let noScaCardNumber = "4581099940323133"
 private let scaCardNumber = "4547781087013329"
-private let oldScaCardNumber = "5226612199533406"
+private let scaMasterCardNumber = "5226612199533406"
 private let scaCardNumber3DS2 = "4000008000000153"
 private let otherScaCardNumber = "4761739001010416"
-private let ccaV2CardNumbers = ["5226612199533406", "4761739001010416", ]
+private let ccaV2CardNumbers = [scaMasterCardNumber, "4761739001010416"]
 
-//the new scaCard that always work, but has the strange input: "5226612199533406"
 //used to be 3DS but not anymore: "4111111111111111",
-private let scaCards = ["4547781087013329", "4761739001010416",
-                        "4581097032723517", "4000008000000153",
-                        "4111111111111111"] //note the manual line-breaks
+private let scaCards = [scaMasterCardNumber, "4547781087013329",
+                        "4761739001010416",
+                        "4581097032723517", "4000008000000153"
+]
 
 private struct NoSCAContinueButtonFound: Error {
     
@@ -100,11 +100,26 @@ private func waitForOne(_ elements: [XCUIElement], _ timeout: Double = defaultTi
                         errorMessage: String) throws -> XCUIElement {
     let start = Date()
     while start.timeIntervalSinceNow > -timeout {
-        for element in elements where element.waitForExistence(timeout: 1) {
+        for element in elements where element.waitForExistence(timeout: 0.2) {
             return element
         }
     }
     throw errorMessage
+}
+
+/// Wait until all elements are gone
+private func waitUntilGone(_ elements: [XCUIElement], _ timeout: Double = defaultTimeout,
+                           errorMessage: String) throws {
+    let start = Date()
+    
+    for element in elements {
+        while element.exists && start.timeIntervalSinceNow > -timeout {
+            usleep(200)
+        }
+        if element.exists {
+            throw errorMessage
+        }
+    }
 }
 
 class SwedbankPaySDKUITests: XCTestCase {
@@ -502,18 +517,12 @@ class SwedbankPaySDKUITests: XCTestCase {
     
     /// Check that a payment with SCA v2 works
     func testItShouldSucceedAtPaymentWithSca() throws {
-        app.launch()
-        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
         
-        try waitAndAssertExists(
-            timeout: scaTimeout,
-            continueButton, "Continue button not found"
-        )
-        retryUntilTrue {
-            continueButton.tap()
-            return messageList.waitForFirst(timeout: resultTimeout) != nil
+        try rerunXTimes(scaCards.count) { index in
+            
+            try waitUntilShown()
+            try scaPaymentRun(cardNumber: scaCards[index])
         }
-        try waitForResultAndAssertComplete()
     }
     
     /// Check that a regular payment without checkin works in V3
@@ -559,10 +568,12 @@ class SwedbankPaySDKUITests: XCTestCase {
     ///Will throw if purchase is not successfull
     private func scaApproveCard() throws {
         
+        try waitUntilGone([confirmButton, payButton], errorMessage: "Approve page fails to load")
+        
         let otpPage = webView.staticTexts.contains(label: "Challenge Form")
         let otpCode = webView.staticTexts.contains(label: "OTP Code")
         _ = try? waitForOne([otpPage, otpCode, continueButton, successMessage, unknownErrorMessage],
-                            shortTimeout, errorMessage: "No known 3ds challange page detected")
+                            defaultTimeout, errorMessage: "No known 3ds challange page detected")
 
         if continueButton.exists {
             print("sca aproving with continue button")
@@ -901,17 +912,10 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testOneClickPayments")
-        app.launch()
         
-        try waitUntilShown()
-        try beginPayment(cardNumber: scaCardNumber, cvv: scaCvv)
-        try waitAndAssertExists(
-            timeout: scaTimeoutShort,
-            continueButton, "Continue button not found"
-        )
-        retryUntilTrue {
-            continueButton.tap()
-            return messageList.waitForFirst(timeout: resultTimeout) != nil
+        try rerunXTimes(scaCards.count) { index in
+            
+            try scaPaymentRun(cardNumber: scaCards[index])
         }
         
         //just wait until payment is verified
