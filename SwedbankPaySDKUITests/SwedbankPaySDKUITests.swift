@@ -518,9 +518,8 @@ class SwedbankPaySDKUITests: XCTestCase {
     /// Check that a payment with SCA v2 works
     func testItShouldSucceedAtPaymentWithSca() throws {
         
-        try rerunXTimes(scaCards.count) { index in
+        try rerunXTimesWithConfigs(scaCards.count) { index in
             
-            try waitUntilShown()
             try scaPaymentRun(cardNumber: scaCards[index])
         }
     }
@@ -529,30 +528,10 @@ class SwedbankPaySDKUITests: XCTestCase {
     /// Temporarily disabled since sca-cards doesn't work anymore
     func testV3ScaPayment() throws {
         
-        let originalArguments = app.launchArguments
-        var args = originalArguments
-        for config in paymentTestConfigurations {
-            args = originalArguments
-            args.append(contentsOf: ["-configName \(config)", "-testV3", "-testModalController"])
-            app.launchArguments = args
-            
-            for card in scaCards {
-                app.launch()
-                
-                do {
-                    try scaPaymentRun(cardNumber: card)
-                    return
-                } catch {
-                    app.terminate()
-                }
-            }
+        app.launchArguments.append(contentsOf: ["-testV3", "-testModalController"])
+        try rerunXTimesWithConfigs(scaCards.count) { index in
+            try scaPaymentRun(cardNumber: scaCards[index])
         }
-        
-        //all failed so this will also fail...
-        app.launchArguments = args
-        app.launch()
-        
-        try scaPaymentRun(cardNumber: scaCards.first!)
     }
     
     func scaPaymentRun(cardNumber: String) throws {
@@ -613,24 +592,24 @@ class SwedbankPaySDKUITests: XCTestCase {
     /// Check that instrument-mode works in V3 and we can update payments with a new instrument
     func testV3Instruments() throws {
         
-        //for config in paymentTestConfigurations {
-            let config = "paymentsOnly" //currently our test-enterprise does not have the permission to restrict instruments
-            app.launchArguments.append("-configName \(config)")
-            app.launchArguments.append("-testV3")
-            app.launchArguments.append("-testInstrument")
-            app.launch()
-            
-            try waitUntilShown()
-            
-            //switch instrument, this calls viewController.updatePaymentOrder(updateInfo: instrument!)
-            testMenuButton.tap()
-            
-            //just wait until instrument select-change
-            try waitFor(.instrumentSelected, timeout: resultTimeout)
-            
-            //start over with next merchant
-            app.terminate()
-        //}
+        
+        let config = "paymentsOnly" //currently our test-enterprise does not have the permission to restrict instruments
+        app.launchArguments.append("-configName \(config)")
+        app.launchArguments.append("-testV3")
+        app.launchArguments.append("-testInstrument")
+        app.launch()
+        
+        try waitUntilShown()
+        
+        //switch instrument, this calls viewController.updatePaymentOrder(updateInfo: instrument!)
+        testMenuButton.tap()
+        
+        //just wait until instrument select-change
+        try waitFor(.instrumentSelected, timeout: resultTimeout)
+        
+        //start over with next merchant
+        app.terminate()
+        
     }
     
     /// Test monthly invoice payment, we have to run this manually for now since I can't automate bankID yet
@@ -658,41 +637,18 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testAbortPayment")
-        let originalArguments = app.launchArguments
-        for config in paymentTestConfigurations {
+        try rerunXTimesWithConfigs(1) { _ in
+            try waitUntilShown()
             
-            app.launchArguments = originalArguments
-            app.launchArguments.append("-configName \(config)")
-            app.launch()
+            //switch instrument, this calls viewController.abortPayment()
+            testMenuButton.tap()
             
-            do {
-                try waitUntilShown()
-                
-                //switch instrument, this calls viewController.abortPayment()
-                testMenuButton.tap()
-                
-                //just wait until instrument select-change
-                try waitFor(.canceled, timeout: resultTimeout)
-                return
-            } catch {
-                //start over with next merchant
-                app.terminate()
-            }
+            //just wait until instrument select-change
+            try waitFor(.canceled, timeout: resultTimeout)
         }
-        
-        //try one last time
-        app.launch()
-        try waitUntilShown()
-        
-        //switch instrument, this calls viewController.abortPayment()
-        testMenuButton.tap()
-        
-        //just wait until instrument select-change
-        try waitFor(.canceled, timeout: resultTimeout)
     }
     
     func repeatGenerateUnscheduledToken(_ cardToUse: String) throws {
-        app.launch()
         print("testing with card: \(cardToUse)")
         
         try waitUntilShown()
@@ -704,44 +660,22 @@ class SwedbankPaySDKUITests: XCTestCase {
     func testGenerateUnscheduledToken() throws {
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testVerifyUnscheduledToken")
-        let args = app.launchArguments
-        for config in paymentTestConfigurations {
-            app.launchArguments = args
-            app.launchArguments.append("-configName \(config)")
-            var success = false
-            for cardToUse in scaCards {
-                do {
-                    try repeatGenerateUnscheduledToken(cardToUse)
-                    if unknownErrorMessage.exists {
-                        print("error!")
-                    }
-                    success = true
-                    break
-                } catch {
-                    print("May be service error, let's try again")
-                    app.terminate()
-                }
-            }
-            if !success {
-                try repeatGenerateUnscheduledToken(scaCardNumber)
-            }
+        try rerunXTimesWithConfigs(scaCards.count) { index in
             
-            //just wait until payment is verified
-            try waitFor(.complete, timeout: resultTimeout)
+            try repeatGenerateUnscheduledToken(scaCards[index])
+        }
             
-            testMenuButton.tap()
-            
-            let result = messageList.waitForFirst(timeout: resultTimeout)
-            if case .error(errorMessage: let message) = result {
-                print("got error message that should be a paymentOrder")
-                XCTFail(message)
-            } else if case .complete = result {
-                print("we did it!")
-            }
-            else {
-                XCTFail("Unknown message after token-tap")
-            }
-            app.terminate()
+        testMenuButton.tap()
+        
+        let result = messageList.waitForFirst(timeout: resultTimeout)
+        if case .error(errorMessage: let message) = result {
+            print("got error message that should be a paymentOrder")
+            XCTFail(message)
+        } else if case .complete = result {
+            print("GenerateUnscheduledToken was a success!")
+        }
+        else {
+            XCTFail("Unknown message after token-tap")
         }
     }
     
@@ -890,18 +824,49 @@ class SwedbankPaySDKUITests: XCTestCase {
         }
     }
     
-    ///Rerun the test a few times to make testing more robust.
+    ///Rerun the test a few times to make testing more robust. E.g. trying different cards.
     private func rerunXTimes(_ count: Int, ignoreLaunch: Bool = false, _ closure: (Int) throws -> Void) rethrows {
         for index in 0..<count {
             do {
                 if !ignoreLaunch {
                     app.launch()
                 }
+                app.activate()
                 try closure(index)
                 return
             } catch {
                 app.terminate()
                 if index == count - 1 {
+                    throw error
+                }
+            }
+        }
+    }
+    
+    /**
+     Rerun the same test with different configurations. Set endIfSuccess = false to run the same test with all confifurations.
+     Usage:
+     try rerunXTimesWithConfigs(scaCards.count) { index in
+        try performTest(cardNumber: scaCards[index])
+     }
+    **/
+    private func rerunXTimesWithConfigs(_ count: Int, configurations: [String] = paymentTestConfigurations,
+        endIfSuccess: Bool = true, _ closure: (Int) throws -> Void) rethrows {
+        let originalArguments = app.launchArguments
+        var args = originalArguments
+        for config in configurations {
+            args = originalArguments
+            print("Running test with config: \(config)")
+            args.append("-configName \(config)")
+            app.launchArguments = args
+            
+            do {
+                try rerunXTimes(count, closure)
+                if endIfSuccess {
+                    return
+                }
+            } catch {
+                if config == configurations.last {
                     throw error
                 }
             }
