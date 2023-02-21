@@ -18,16 +18,15 @@ private let ssn = "199710202392"
 
 private let noScaCardNumber = "4581099940323133"
 private let scaCardNumber = "4547781087013329"
-private let scaMasterCardNumber = "5226612199533406"
+private let scaMasterCardNumber = "5226612199533406"    //5453010000084616
 private let scaCardNumber3DS2 = "4000008000000153"
 private let otherScaCardNumber = "4761739001010416"
 private let ccaV2CardNumbers = [scaMasterCardNumber, "4761739001010416"]
 
 //used to be 3DS but not anymore: "4111111111111111",
-private let scaCards = [scaMasterCardNumber, "4547781087013329",
-                        "4761739001010416",
-                        "4581097032723517", "4000008000000153"
-]
+private let scaCards = ["4547781087013329", "5453010000084616", "4761739001010416",
+                        "4581097032723517", "4000008000000153",
+                        scaMasterCardNumber]
 
 private struct NoSCAContinueButtonFound: Error {
     
@@ -664,7 +663,9 @@ class SwedbankPaySDKUITests: XCTestCase {
             
             try repeatGenerateUnscheduledToken(scaCards[index])
         }
-            
+        
+        //clear current messages
+        _ = messageList.getMessages()
         testMenuButton.tap()
         
         let result = messageList.waitForFirst(timeout: resultTimeout)
@@ -675,7 +676,7 @@ class SwedbankPaySDKUITests: XCTestCase {
             print("GenerateUnscheduledToken was a success!")
         }
         else {
-            XCTFail("Unknown message after token-tap")
+            XCTFail("Unknown message after token-tap: \(String(describing: result))")
         }
     }
     
