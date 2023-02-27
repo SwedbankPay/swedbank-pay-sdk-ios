@@ -59,7 +59,12 @@ class ViewController: UINavigationController {
         }
         var payment = getPaymentOrder(withCheckin, nonMerchant)
         createTestButton(viewController) {
-            print("no commands")
+            
+            if let order = viewController.currentPaymentOrder {
+                print("Current payment order: \n\(order)")
+            } else {
+                print("No payment order set")
+            }
         }
         
         if isV3 {

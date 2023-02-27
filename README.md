@@ -55,6 +55,8 @@ Please refer to the [Developer Portal][dev-portal-sdk] for usage instructions.
 
 To explore a working app using the SDK, see the [Example Project][example-app].
 
+To import API-documentation to Xcode, to browse types and functions inside the Documentation window, double click one of the `.doccarchive`s in the Documentation folder. Choose `SwedbankPaySDK+MerchantDocumentation` for the full set, and the other if you are not using the BackendMerchant.
+
 ## Walkthrough / integration into an existing app
 
 To start making payments you need four things:

@@ -382,11 +382,12 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
     }
     
     /// Starts a new payment using V3 API.
-    ///
+    /// 
     /// Calling this when a payment is already started has no effect.
     ///
-    /// - parameter paymentOrder: the `PaymentOrder` to use to create the payment
-    /// - parameter userData: any additional data you may need for the identification and/or payment
+    /// - Parameters:
+    ///     - paymentOrder: The `PaymentOrder` to use to create the payment
+    ///     - userData: any additional data you may need for the identification and/or payment
     public func startPayment(
         paymentOrder: SwedbankPaySDK.PaymentOrder?,
         userData: Any? = nil

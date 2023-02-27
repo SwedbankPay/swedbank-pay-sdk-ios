@@ -11,6 +11,16 @@ let paymentTestConfigurationPaymentsOnly = SwedbankPaySDK.MerchantBackendConfigu
     ]
 )
 
+let paymentTestConfigurationStage = SwedbankPaySDK.MerchantBackendConfiguration(
+    backendUrl: URL(string: "https://stage-dot-payex-merchant-samples.ey.r.appspot.com/")!,
+    callbackScheme: "com.swedbankpay.mobilesdk.test",
+    headers: [
+        "x-payex-sample-apikey": "c339f53d-8a36-4ea9-9695-75048e592cc0",
+        "x-payex-sample-access-token": "token123"
+    ]
+)
+
+
 let paymentTestConfigurationEnterprise = SwedbankPaySDK.MerchantBackendConfiguration(
     backendUrl: URL(string: "https://enterprise-dev-dot-payex-merchant-samples.ey.r.appspot.com")!,
     callbackScheme: "com.swedbankpay.mobilesdk.test",
@@ -24,10 +34,15 @@ enum TestConfigurations: String {
     case enterprise
     case paymentsOnly
     case nonMerchantConfig
+    case stage
 }
 var activeConfig: TestConfigurations = .paymentsOnly
 
-let paymentTestConfigurations: [TestConfigurations: SwedbankPaySDK.MerchantBackendConfiguration] = [.enterprise: paymentTestConfigurationEnterprise, .paymentsOnly: paymentTestConfigurationPaymentsOnly]
+let paymentTestConfigurations: [TestConfigurations: SwedbankPaySDK.MerchantBackendConfiguration] = [
+    .enterprise: paymentTestConfigurationEnterprise,
+    .paymentsOnly: paymentTestConfigurationPaymentsOnly,
+    .stage: paymentTestConfigurationStage
+]
 var currentConfig = paymentTestConfigurationPaymentsOnly
 
 let testPaymentOrder = SwedbankPaySDK.PaymentOrder(
