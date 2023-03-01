@@ -636,10 +636,15 @@ class SwedbankPaySDKUITests: XCTestCase {
         
         app.launchArguments.append("-testV3")
         app.launchArguments.append("-testAbortPayment")
-        try rerunXTimesWithConfigs(1) { _ in
+        try rerunXTimes(2) { _ in
             try waitUntilShown()
             
-            //switch instrument, this calls viewController.abortPayment()
+            //abort payment will fail if you try to abort it too soon (before the payment exists), when tapping card it is made sure the payment exists.
+            try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
+            cardOption.tap()
+            try waitAndAssertExists(panInput, "PAN input not found")
+            
+            //tap MenuButton, this calls viewController.abortPayment()
             testMenuButton.tap()
             
             //just wait until instrument select-change
