@@ -639,7 +639,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         try rerunXTimes(2) { _ in
             try waitUntilShown()
             
-            //abort payment will fail if you try to abort it too soon (before the payment exists), when tapping card it is made sure the payment exists.
+            //abort payment will fail if you try to abort it too soon (before the payment exists),
+            //when tapping card it is made sure the payment exists.
             try waitAndAssertExists(timeout: initialTimeout, cardOption, "Card option not found")
             cardOption.tap()
             try waitAndAssertExists(panInput, "PAN input not found")
