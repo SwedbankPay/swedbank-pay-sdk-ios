@@ -556,7 +556,9 @@ class SwedbankPaySDKUITests: XCTestCase {
         if continueButton.exists {
             print("sca aproving with continue button")
             try retryUntilSuccess {
-                continueButton.tap()
+                if continueButton.exists {
+                    continueButton.tap()
+                }
                 try waitForResponseOrFailure()
             }
         } else if successMessage.exists {
@@ -660,6 +662,7 @@ class SwedbankPaySDKUITests: XCTestCase {
         try beginPayment(cardNumber: cardToUse, cvv: scaCvv)
         //tap continue button or do the otp dance.
         try scaApproveCard()
+        print("repeatGenerateUnscheduledToken worked")
     }
     
     func testGenerateUnscheduledToken() throws {
