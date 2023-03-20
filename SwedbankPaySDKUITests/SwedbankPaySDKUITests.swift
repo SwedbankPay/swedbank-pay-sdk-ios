@@ -24,9 +24,9 @@ private let otherScaCardNumber = "4761739001010416"
 private let ccaV2CardNumbers = [scaMasterCardNumber, "4761739001010416"]
 
 //used to be 3DS but not anymore: "4111111111111111",
-private let scaCards = ["4547781087013329", "5453010000084616", "4761739001010416",
-                        "4581097032723517", "4000008000000153",
-                        scaMasterCardNumber]
+private let scaCards = ["4761739001010416", scaMasterCardNumber,
+                        "4547781087013329", "5453010000084616",
+                        "4581097032723517", "4000008000000153"]
 
 private struct NoSCAContinueButtonFound: Error {
     
@@ -249,11 +249,14 @@ class SwedbankPaySDKUITests: XCTestCase {
         app.buttons.element(matching: .init(format: "label = 'Done'"))
     }
     
-    private func input(to webElement: XCUIElement, text: String, waitForOk: Bool = false) {
+    private func input(to webElement: XCUIElement, text: String, waitForOk: Bool = false, useDoneButton: Bool = false) {
         _ = webElement.waitForExistence(timeout: 5)
         webElement.tap()
         webView.typeText(text)
-        if keyboardOkButton.exists || (waitForOk && keyboardOkButton.waitForExistence(timeout: 2)) {
+        if useDoneButton {
+            keyboardDoneButton.forceTapElement()
+        }
+        else if keyboardOkButton.exists || (waitForOk && keyboardOkButton.waitForExistence(timeout: 2)) {
             print("Found keyboardOkButton, force tap")
             keyboardOkButton.forceTapElement()
         } else {
@@ -568,7 +571,11 @@ class SwedbankPaySDKUITests: XCTestCase {
         } else {
             print("sca aproving with otp text field")
             //whitelistThisMerchant.tap() it also does not matter!
-            input(to: otpTextField, text: "1234", waitForOk: true)
+            input(to: otpTextField, text: "1234", useDoneButton: true)
+            
+            let payButton = app.buttons.contains(label: "Pay")
+            payButton.forceTapElement()
+            
             try waitForResponseOrFailure()
         }
     }
