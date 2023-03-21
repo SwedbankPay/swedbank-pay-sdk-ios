@@ -543,7 +543,6 @@ class SwedbankPaySDKUITests: XCTestCase {
         try beginPayment(cardNumber: cardNumber, cvv: scaCvv)
         
         try scaApproveCard()
-        //else "Continue button not found"
     }
     
     ///Will throw if purchase is not successfull
@@ -928,12 +927,8 @@ class SwedbankPaySDKUITests: XCTestCase {
         //now it should only show us the purchase button and card-info snippet.
         try waitAndAssertExists(timeout: resultTimeout, payButton, "payButton not found")
         payButton.tap()
-        try waitAndAssertExists(timeout: defaultTimeout, continueButton, "Can't find continue button")
         
-        retryUntilTrue {
-            continueButton.tap()
-            return messageList.waitForFirst(timeout: resultTimeout) != nil
-        }
+        try scaApproveCard()
     }
     
     private func restartAndRestoreState() {
