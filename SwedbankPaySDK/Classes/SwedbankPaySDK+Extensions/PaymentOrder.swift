@@ -137,7 +137,9 @@ public extension SwedbankPaySDK {
         /// was generated.
         public var paymentToken: String?
         
-        @available(*, unavailable, message: "Only part of the responce, this can not be set by the client")
+        /// The initiating system User-Agent
+        ///
+        /// Only part of the response, this can not be set by the client
         public var initiatingSystemUserAgent: String?
         
         public init(
