@@ -28,15 +28,33 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
 }
 
 extension SwedbankPayAPIEnpointRouter {
-    func makeRequest(handler: @escaping (Result<Void, Error>) -> Void) {
+    func makeRequest(handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
         requestWithDataResponse { result in
             switch result {
-            case .success:
-                handler(.success(()))
+            case .success(let data):
+                do {
+                    let result: PaymentOutputModel = try Self.parseData(data: data)
+                    handler(.success(result))
+                } catch {
+                    handler(.success(nil))
+                }
             case .failure(let error):
                 handler(.failure(error))
             }
         }
+    }
+
+
+    private static func parseData<T: Decodable>(data: Data) throws -> T {
+        let decodedData: T
+
+        do {
+            decodedData = try JSONDecoder().decode(T.self, from: data)
+        } catch {
+            throw error
+        }
+
+        return decodedData
     }
 
     private func requestWithDataResponse(handler: @escaping (Result<Data, Error>) -> Void) {

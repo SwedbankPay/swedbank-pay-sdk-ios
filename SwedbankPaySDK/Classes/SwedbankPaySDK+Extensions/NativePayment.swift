@@ -34,8 +34,11 @@ public extension SwedbankPaySDK {
         public func startPaymentSession(with sessionApi: String) {
             sessionIsOngoing = true
 
-            let model = OperationOutputModel(href: sessionApi,
-                                             method: "GET")
+            let model = OperationOutputModel(rel: nil,
+                                             href: sessionApi,
+                                             method: "GET",
+                                             next: nil,
+                                             tasks: nil)
 
             makeRequest(model: model)
         }

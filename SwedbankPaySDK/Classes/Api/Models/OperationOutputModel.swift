@@ -13,7 +13,78 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-struct OperationOutputModel: Codable, Hashable {
+public struct OperationOutputModel: Codable, Hashable {
+    let rel: OperationRel?
     let href: String?
     let method: String?
+    let next: Bool?
+    let tasks: [IntegrationTask]?
+}
+
+extension OperationOutputModel {
+    func firstTask(with rel: IntegrationTaskRel) -> IntegrationTask? {
+        if let task = tasks?.first(where: { $0.rel == rel }) {
+            return task
+        }
+
+        return nil
+    }
+}
+
+enum OperationRel: Codable, Equatable, Hashable {
+    case expandMethod
+    case startPaymentAttempt
+    case createAuthentication
+    case completeAuthentication
+    case getPayment
+    case preparePayment
+    case redirectPayer
+    case acknowledgeFailedAttempt
+    case abortPayment
+
+    case unknown(String)
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let type = try container.decode(String.self)
+
+        switch type {
+        case Self.expandMethod.rawValue:                self = .expandMethod
+        case Self.startPaymentAttempt.rawValue:         self = .startPaymentAttempt
+        case Self.createAuthentication.rawValue:        self = .createAuthentication
+        case Self.completeAuthentication.rawValue:      self = .completeAuthentication
+        case Self.getPayment.rawValue:                  self = .getPayment
+        case Self.preparePayment.rawValue:              self = .preparePayment
+        case Self.redirectPayer.rawValue:               self = .redirectPayer
+        case Self.acknowledgeFailedAttempt.rawValue:    self = .acknowledgeFailedAttempt
+        case Self.abortPayment.rawValue:                self = .abortPayment
+        default:                                        self = .unknown(type)
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+
+    var rawValue: String {
+        switch self {
+        case .expandMethod:             "expand-method"
+        case .startPaymentAttempt:      "start-payment-attempt"
+        case .createAuthentication:     "create-authentication"
+        case .completeAuthentication:   "complete-authentication"
+        case .getPayment:               "get-payment"
+        case .preparePayment:           "prepare-payment"
+        case .redirectPayer:            "redirect-payer"
+        case .acknowledgeFailedAttempt: "acknowledge-failed-attempt"
+        case .abortPayment:             "abort-payment"
+        case .unknown(let value):       value
+        }
+    }
+
+    var isUnknown: Bool {
+        if case .unknown = self { return true }
+
+        return false
+    }
 }
