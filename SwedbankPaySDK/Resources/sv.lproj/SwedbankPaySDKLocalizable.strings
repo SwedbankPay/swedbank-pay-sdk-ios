@@ -28,3 +28,6 @@
 "swedbankpaysdk_problem_system_error" = "Internt fel på tjänsten. Försök igen.";
 "swedbankpaysdk_problem_configuration_error" = "Felaktig konfiguration.";
 "swedbankpaysdk_problem_unknown" = "Oväntat fel.";
+
+"swedbankpaysdk_native_invalid_url" = "Ogiltig URL har angetts.";
+"swedbankpaysdk_native_unknown" = "Oväntat fel.";

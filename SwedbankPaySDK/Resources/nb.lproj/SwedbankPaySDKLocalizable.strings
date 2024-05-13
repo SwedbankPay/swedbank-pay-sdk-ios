@@ -28,3 +28,6 @@
 "swedbankpaysdk_problem_system_error" = "Intern feil på tjenesten. Vennligst prøv igjen.";
 "swedbankpaysdk_problem_configuration_error" = "Oppsettet er ugyldig.";
 "swedbankpaysdk_problem_unknown" = "Det skjedde en uventet feil";
+
+"swedbankpaysdk_native_invalid_url" = "Ugyldig URL ble oppgitt.";
+"swedbankpaysdk_native_unknown" = "Det skjedde en uventet feil.";
