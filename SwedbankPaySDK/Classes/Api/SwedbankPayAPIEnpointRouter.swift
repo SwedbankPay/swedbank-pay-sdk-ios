@@ -14,6 +14,7 @@
 // limitations under the License.
 
 import Foundation
+import UIKit
 
 protocol EndpointRouterProtocol {
     var body: [String: Any?]? { get }
@@ -23,7 +24,26 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     let model: OperationOutputModel
 
     var body: [String: Any?]? {
-        return nil
+        switch model.rel {
+        case .preparePayment:
+            let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
+
+            return ["initiatingSystem": "swedbank-pay-sdk-ios",
+                    "initiatingSystemVersion": appVersion,
+                    "integration": "HostedView",
+                    "deviceAcceptedWallets": "",
+                    "client": ["userAgent": "swedbank-pay-sdk-ios/\(appVersion)",
+                               "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""],
+                    "browser": ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                "languageHeader": Locale.current.identifier,
+                                "timeZoneOffset": TimeZone.current.offsetFromGMT(),
+                                "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
+                                "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
+                                "colorDepth": String(24)]
+            ]
+        default:
+            return nil
+        }
     }
 }
 
