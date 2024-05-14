@@ -31,6 +31,8 @@
 		45C100AE2BF2622E00AA3523 /* NetworkStatusProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C100AB2BF2622E00AA3523 /* NetworkStatusProvider.swift */; };
 		45C100AF2BF2622E00AA3523 /* TimeZone+OffsetFromGMT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C100AC2BF2622E00AA3523 /* TimeZone+OffsetFromGMT.swift */; };
 		45C100B02BF2622E00AA3523 /* TimeZone+OffsetFromGMT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C100AC2BF2622E00AA3523 /* TimeZone+OffsetFromGMT.swift */; };
+		45C100B32BF34EED00AA3523 /* PaymentAttemptInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C100B22BF34EED00AA3523 /* PaymentAttemptInstrument.swift */; };
+		45C100B42BF34EED00AA3523 /* PaymentAttemptInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C100B22BF34EED00AA3523 /* PaymentAttemptInstrument.swift */; };
 		6367D3EB26F340F700F89F62 /* TestConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6367D3EA26F340F700F89F62 /* TestConfiguration.swift */; };
 		637E94A82733F00000879C71 /* SwedbankPaySDKLocalizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 637E94AA2733F00000879C71 /* SwedbankPaySDKLocalizable.strings */; };
 		637E94AE2733F5E300879C71 /* SwedbankPaySDKResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637E94AD2733F5E300879C71 /* SwedbankPaySDKResources.swift */; };
@@ -283,6 +285,7 @@
 		45C100A72BF2598D00AA3523 /* ProblemDetails.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProblemDetails.swift; sourceTree = "<group>"; };
 		45C100AB2BF2622E00AA3523 /* NetworkStatusProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkStatusProvider.swift; sourceTree = "<group>"; };
 		45C100AC2BF2622E00AA3523 /* TimeZone+OffsetFromGMT.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TimeZone+OffsetFromGMT.swift"; sourceTree = "<group>"; };
+		45C100B22BF34EED00AA3523 /* PaymentAttemptInstrument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentAttemptInstrument.swift; sourceTree = "<group>"; };
 		6367D3EA26F340F700F89F62 /* TestConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConfiguration.swift; sourceTree = "<group>"; };
 		637E94A92733F00000879C71 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/SwedbankPaySDKLocalizable.strings; sourceTree = "<group>"; };
 		637E94AB2733F00300879C71 /* nb */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nb; path = nb.lproj/SwedbankPaySDKLocalizable.strings; sourceTree = "<group>"; };
@@ -477,6 +480,7 @@
 				45C100A12BF2584E00AA3523 /* IntegrationTask.swift */,
 				45C1009C2BF2583D00AA3523 /* MethodBaseModel.swift */,
 				45C1008D2BF247F300AA3523 /* OperationOutputModel.swift */,
+				45C100B22BF34EED00AA3523 /* PaymentAttemptInstrument.swift */,
 				45C100A42BF2597B00AA3523 /* PaymentOutputModel.swift */,
 				45C1009B2BF2583D00AA3523 /* PaymentSessionModel.swift */,
 				45C100A72BF2598D00AA3523 /* ProblemDetails.swift */,
@@ -1114,6 +1118,7 @@
 				45C1009D2BF2583D00AA3523 /* PaymentSessionModel.swift in Sources */,
 				45C100A52BF2597B00AA3523 /* PaymentOutputModel.swift in Sources */,
 				A57170DA25011F8500AC28BE /* FileLines.swift in Sources */,
+				45C100B32BF34EED00AA3523 /* PaymentAttemptInstrument.swift in Sources */,
 				63EECFD0270730C800C37B69 /* CodableUserData.swift in Sources */,
 				A59AEE9D25372C9A00255A3A /* Instrument.swift in Sources */,
 				C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */,
@@ -1203,6 +1208,7 @@
 				45C100A32BF2584E00AA3523 /* IntegrationTask.swift in Sources */,
 				D511ECA52975599D0059AB05 /* BackendOperation.swift in Sources */,
 				D511ECA62975599D0059AB05 /* TopLevelResources.swift in Sources */,
+				45C100B42BF34EED00AA3523 /* PaymentAttemptInstrument.swift in Sources */,
 				D511ECA72975599D0059AB05 /* ConsumersLink.swift in Sources */,
 				D511ECA82975599D0059AB05 /* PayerOwnedPaymentTokensResponse.swift in Sources */,
 				D511ECA92975599D0059AB05 /* PayerOwnedPaymentTokens.swift in Sources */,

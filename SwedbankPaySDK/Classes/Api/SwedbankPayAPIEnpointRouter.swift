@@ -22,9 +22,27 @@ protocol EndpointRouterProtocol {
 
 struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     let model: OperationOutputModel
+    let culture: String?
+    let instrument: SwedbankPaySDK.PaymentAttemptInstrument?
 
     var body: [String: Any?]? {
         switch model.rel {
+        case .expandMethod:
+            return ["instrumentName": instrument?.name]
+        case .startPaymentAttempt:
+            switch instrument {
+            case .swish(let msisdn):
+                return ["culture": culture,
+                        "msisdn": msisdn,
+                        "client": ["ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""]]
+            case .creditCard(let paymentToken):
+                return ["culture": culture,
+                        "paymentToken": paymentToken,
+                        "client": ["ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""]]
+            case .none:
+                return ["culture": culture,
+                        "client": ["ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""]]
+            }
         case .preparePayment:
             return ["integration": "HostedView",
                     "deviceAcceptedWallets": "",
