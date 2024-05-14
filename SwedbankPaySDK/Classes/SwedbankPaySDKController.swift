@@ -43,7 +43,12 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     
     func paymentComplete()
     func paymentCanceled()
-    
+
+    /// Called when an list of available instruments is known.
+    ///
+    /// - parameter availableInstruments: List of different instruments
+    func availableInstrumentsFetched(_ availableInstruments: [SwedbankPaySDK.MethodBaseModel])
+
     /// Called if there is an error in performing the payment.
     /// The error may be SwedbankPaySDKController.WebContentError,
     /// or any error reported by your SwedbankPaySDKConfiguration.

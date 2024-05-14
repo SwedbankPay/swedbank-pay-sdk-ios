@@ -28,6 +28,8 @@ public extension SwedbankPaySDK {
         private var sessionIsOngoing: Bool = false
         private var instrument: SwedbankPaySDK.PaymentAttemptInstrument? = nil
 
+        private var hasLaunchClientApp: [URL] = []
+
         public init(orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo) {
             self.orderInfo = orderInfo
         }
@@ -35,6 +37,8 @@ public extension SwedbankPaySDK {
         public func startPaymentSession(with sessionApi: String) {
             sessionIsOngoing = true
             instrument = nil
+            ongoingModel = nil
+            hasLaunchClientApp = []
 
             let model = OperationOutputModel(rel: nil,
                                              href: sessionApi,
@@ -62,8 +66,10 @@ public extension SwedbankPaySDK {
         private func makeRequest(model: OperationOutputModel, culture: String? = nil) {
             SwedbankPayAPIEnpointRouter(model: model, culture: culture, instrument: instrument).makeRequest { result in
                 switch result {
-                case .success:
-                    break
+                case .success(let success):
+                    if let model = success {
+                        self.sessionOperationHandling(model: model, culture: model.paymentSession.culture)
+                    }
                 case .failure(let failure):
                     self.delegate?.paymentFailed(error: failure)
                     self.sessionIsOngoing = false
@@ -87,7 +93,49 @@ public extension SwedbankPaySDK {
 
             if let url = components.url {
                 DispatchQueue.main.async {
+                    self.hasLaunchClientApp.append(url)
                     UIApplication.shared.open(url)
+                }
+            }
+        }
+
+        private func sessionOperationHandling(model: PaymentOutputModel, culture: String? = nil) {
+            ongoingModel = model
+
+            var operations = model.operations ?? []
+            operations.append(contentsOf: model.paymentSession.allMethodOperations)
+
+            operations = operations.filter({ $0.rel?.isUnknown == false })
+
+            if operations.contains(where: { $0.next == true }) {
+                operations = operations.filter({ $0.next == true })
+            }
+
+            if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
+                makeRequest(model: preparePayment, culture: culture)
+            } else if let startPaymentAttempt = operations.first(where: { $0.rel == .startPaymentAttempt }) {
+                if instrument != nil {
+                    makeRequest(model: startPaymentAttempt, culture: culture)
+                    instrument = nil
+                } else {
+                    delegate?.availableInstrumentsFetched(model.paymentSession.methods ?? [])
+                }
+            } else if let launchClientApp = operations.first(where: { $0.firstTask(with: .launchClientApp) != nil }),
+                      let tasks = launchClientApp.firstTask(with: .launchClientApp),
+                      !hasLaunchClientApp.contains(where: { $0.absoluteString == tasks.href }) {
+                self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
+            } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
+                if redirectPayer.href == orderInfo.cancelUrl?.absoluteString {
+                    delegate?.paymentCanceled()
+                } else if redirectPayer.href == orderInfo.completeUrl.absoluteString {
+                    delegate?.paymentComplete()
+                }
+                sessionIsOngoing = false
+            } else if let _ = operations.first(where: { $0.rel == .expandMethod }) {
+                delegate?.availableInstrumentsFetched(model.paymentSession.methods ?? [])
+            } else if let getPayment = operations.first(where: { $0.rel == .getPayment }) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    self.makeRequest(model: getPayment, culture: culture)
                 }
             }
         }
