@@ -69,6 +69,17 @@ public extension SwedbankPaySDK {
             }
         }
 
+        public func abortPaymentSession() {
+            guard let ongoingModel = ongoingModel else {
+                return
+            }
+
+            if let operation = ongoingModel.operations?
+                .first(where: { $0.rel == .abortPayment }) {
+                makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
+            }
+        }
+
         private func makeRequest(model: OperationOutputModel, culture: String? = nil) {
             SwedbankPayAPIEnpointRouter(model: model, culture: culture, instrument: instrument).makeRequest { result in
                 switch result {
