@@ -17,7 +17,7 @@ import Foundation
 import UIKit
 
 public extension SwedbankPaySDK {
-    class NativePayment {
+    class NativePayment: CallbackUrlDelegate {
         /// Order information that provides `NativePayment` with callback URLs.
         public var orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo
 
@@ -32,6 +32,12 @@ public extension SwedbankPaySDK {
 
         public init(orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo) {
             self.orderInfo = orderInfo
+
+            SwedbankPaySDK.addCallbackUrlDelegate(self)
+        }
+
+        deinit {
+            SwedbankPaySDK.removeCallbackUrlDelegate(self)
         }
 
         public func startPaymentSession(with sessionApi: String) {
@@ -122,7 +128,7 @@ public extension SwedbankPaySDK {
                 }
             } else if let launchClientApp = operations.first(where: { $0.firstTask(with: .launchClientApp) != nil }),
                       let tasks = launchClientApp.firstTask(with: .launchClientApp),
-                      !hasLaunchClientApp.contains(where: { $0.absoluteString == tasks.href }) {
+                      !hasLaunchClientApp.contains(where: { $0.absoluteString.contains(tasks.href ?? "") }) {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
             } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
                 if redirectPayer.href == orderInfo.cancelUrl?.absoluteString {
@@ -138,6 +144,21 @@ public extension SwedbankPaySDK {
                     self.makeRequest(model: getPayment, culture: culture)
                 }
             }
+        }
+
+        func handleCallbackUrl(_ url: URL) -> Bool {
+            guard url == orderInfo.paymentUrl else {
+                return false
+            }
+
+            if let ongoingModel = ongoingModel {
+                if let operation = ongoingModel.paymentSession.allMethodOperations
+                    .first(where: { $0.rel == .getPayment }) {
+                    makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
+                }
+            }
+
+            return true
         }
     }
 }
