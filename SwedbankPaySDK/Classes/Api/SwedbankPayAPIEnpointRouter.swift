@@ -26,20 +26,19 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     var body: [String: Any?]? {
         switch model.rel {
         case .preparePayment:
-            let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
-
-            return ["initiatingSystem": "swedbank-pay-sdk-ios",
-                    "initiatingSystemVersion": appVersion,
-                    "integration": "HostedView",
+            return ["integration": "HostedView",
                     "deviceAcceptedWallets": "",
-                    "client": ["userAgent": "swedbank-pay-sdk-ios/\(appVersion)",
-                               "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""],
+                    "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
+                               "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
+                               "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
+                               "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
+                               "screenColorDepth": String(24)],
                     "browser": ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                                 "languageHeader": Locale.current.identifier,
                                 "timeZoneOffset": TimeZone.current.offsetFromGMT(),
-                                "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
-                                "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
-                                "colorDepth": String(24)]
+                                "javascriptEnabled": true],
+                    "service": ["name": "SwedbankPaySDK-iOS",
+                                "version": SwedbankPaySDK.VersionReporter.currentVersion]
             ]
         default:
             return nil
