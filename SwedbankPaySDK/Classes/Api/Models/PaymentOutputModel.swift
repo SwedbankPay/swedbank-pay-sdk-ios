@@ -20,6 +20,24 @@ struct PaymentOutputModel: Codable, Hashable {
 }
 
 extension PaymentOutputModel {
+    var prioritisedOperations: [OperationOutputModel] {
+        if let problemOperation = problem?.operation,
+           problemOperation.rel?.isUnknown == false {
+            return [problemOperation]
+        }
+
+        var operations = operations ?? []
+        operations.append(contentsOf: paymentSession.allMethodOperations)
+
+        operations = operations.filter({ $0.rel?.isUnknown == false })
+
+        if operations.contains(where: { $0.next == true }) {
+            operations = operations.filter({ $0.next == true })
+        }
+
+        return operations
+    }
+
     func firstTask(with rel: IntegrationTaskRel) -> IntegrationTask? {
         guard let operations = operations else {
             return nil

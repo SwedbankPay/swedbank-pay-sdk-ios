@@ -108,16 +108,13 @@ public extension SwedbankPaySDK {
         private func sessionOperationHandling(model: PaymentOutputModel, culture: String? = nil) {
             ongoingModel = model
 
-            var operations = model.operations ?? []
-            operations.append(contentsOf: model.paymentSession.allMethodOperations)
+            let operations = model.prioritisedOperations
 
-            operations = operations.filter({ $0.rel?.isUnknown == false })
-
-            if operations.contains(where: { $0.next == true }) {
-                operations = operations.filter({ $0.next == true })
-            }
-
-            if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
+            if let acknowledgeFailedAttempt = operations.first(where: { $0.rel == .acknowledgeFailedAttempt }),
+               let problem = model.problem {
+                delegate?.paymentFailed(problem: problem)
+                makeRequest(model: acknowledgeFailedAttempt, culture: culture)
+            } else if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
                 makeRequest(model: preparePayment, culture: culture)
             } else if let startPaymentAttempt = operations.first(where: { $0.rel == .startPaymentAttempt }) {
                 if instrument != nil {
