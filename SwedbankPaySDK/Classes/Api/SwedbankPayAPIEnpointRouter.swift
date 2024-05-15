@@ -34,14 +34,29 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
             case .swish(let msisdn):
                 return ["culture": culture,
                         "msisdn": msisdn,
-                        "client": ["ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""]]
+                        "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
+                                   "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
+                                   "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
+                                   "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
+                                   "screenColorDepth": String(24)]
+                ]
             case .creditCard(let paymentToken):
                 return ["culture": culture,
                         "paymentToken": paymentToken,
-                        "client": ["ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""]]
+                        "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
+                                   "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
+                                   "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
+                                   "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
+                                   "screenColorDepth": String(24)]
+                ]
             case .none:
                 return ["culture": culture,
-                        "client": ["ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""]]
+                        "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
+                                   "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
+                                   "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
+                                   "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
+                                   "screenColorDepth": String(24)]
+                ]
             }
         case .preparePayment:
             return ["integration": "HostedView",
