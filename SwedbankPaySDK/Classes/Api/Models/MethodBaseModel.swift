@@ -15,8 +15,8 @@
 
 extension SwedbankPaySDK {
     public enum MethodBaseModel: Codable, Equatable, Hashable {
-        case swish(prefills: [[SwishMethodPrefillModel]]?, operations: [OperationOutputModel]?)
-        case creditCard(prefills: [[CreditCardMethodPrefillModel]]?, operations: [OperationOutputModel]?, cardBrands: [String]?)
+        case swish(prefills: [SwishMethodPrefillModel]?, operations: [OperationOutputModel]?)
+        case creditCard(prefills: [CreditCardMethodPrefillModel]?, operations: [OperationOutputModel]?, cardBrands: [String]?)
 
         case unknown(String)
 
@@ -31,12 +31,12 @@ extension SwedbankPaySDK {
             switch type {
             case "Swish":
                 self = .swish(
-                    prefills: try? container.decode([[SwishMethodPrefillModel]]?.self, forKey: CodingKeys.prefills),
+                    prefills: try? container.decode([SwishMethodPrefillModel]?.self, forKey: CodingKeys.prefills),
                     operations: try? container.decode([OperationOutputModel]?.self, forKey: CodingKeys.operations)
                 )
             case "CreditCard":
                 self = .creditCard(
-                    prefills: try? container.decode([[CreditCardMethodPrefillModel]].self, forKey: CodingKeys.prefills),
+                    prefills: try? container.decode([CreditCardMethodPrefillModel].self, forKey: CodingKeys.prefills),
                     operations: try? container.decode([OperationOutputModel]?.self, forKey: CodingKeys.operations),
                     cardBrands: try? container.decode([String]?.self, forKey: CodingKeys.cardBrands)
                 )
