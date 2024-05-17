@@ -28,7 +28,8 @@ public extension SwedbankPaySDK {
         private var sessionIsOngoing: Bool = false
         private var instrument: SwedbankPaySDK.PaymentAttemptInstrument? = nil
 
-        private var hasLaunchClientApp: [URL] = []
+        private var hasLaunchClientAppURLs: [URL] = []
+        private var hasShownProblemDetails: [ProblemDetails] = []
 
         public init(orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo) {
             self.orderInfo = orderInfo
@@ -44,7 +45,8 @@ public extension SwedbankPaySDK {
             sessionIsOngoing = true
             instrument = nil
             ongoingModel = nil
-            hasLaunchClientApp = []
+            hasLaunchClientAppURLs = []
+            hasShownProblemDetails = []
 
             let model = OperationOutputModel(rel: nil,
                                              href: sessionApi,
@@ -89,7 +91,6 @@ public extension SwedbankPaySDK {
                     }
                 case .failure(let failure):
                     self.delegate?.paymentFailed(error: failure)
-                    self.sessionIsOngoing = false
                 }
             }
         }
@@ -110,7 +111,7 @@ public extension SwedbankPaySDK {
 
             if let url = components.url {
                 DispatchQueue.main.async {
-                    self.hasLaunchClientApp.append(url)
+                    self.hasLaunchClientAppURLs.append(url)
                     UIApplication.shared.open(url)
                 }
             }
@@ -123,7 +124,11 @@ public extension SwedbankPaySDK {
 
             if let acknowledgeFailedAttempt = operations.first(where: { $0.rel == .acknowledgeFailedAttempt }),
                let problem = model.problem {
-                delegate?.paymentFailed(problem: problem)
+                if !hasShownProblemDetails.contains(where: { $0.operation?.href == problem.operation?.href }) {
+                    hasShownProblemDetails.append(problem)
+                    delegate?.paymentFailed(problem: problem)
+                }
+            
                 makeRequest(model: acknowledgeFailedAttempt, culture: culture)
             } else if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
                 makeRequest(model: preparePayment, culture: culture)
@@ -136,7 +141,7 @@ public extension SwedbankPaySDK {
                 }
             } else if let launchClientApp = operations.first(where: { $0.firstTask(with: .launchClientApp) != nil }),
                       let tasks = launchClientApp.firstTask(with: .launchClientApp),
-                      !hasLaunchClientApp.contains(where: { $0.absoluteString.contains(tasks.href ?? "") }) {
+                      !hasLaunchClientAppURLs.contains(where: { $0.absoluteString.contains(tasks.href ?? "") }) {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
             } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
                 if redirectPayer.href == orderInfo.cancelUrl?.absoluteString {
@@ -145,6 +150,8 @@ public extension SwedbankPaySDK {
                     delegate?.paymentComplete()
                 }
                 sessionIsOngoing = false
+                hasLaunchClientAppURLs = []
+                hasShownProblemDetails = []
             } else if let _ = operations.first(where: { $0.rel == .expandMethod }) {
                 delegate?.availableInstrumentsFetched(model.paymentSession.methods ?? [])
             } else if let getPayment = operations.first(where: { $0.rel == .getPayment }) {
