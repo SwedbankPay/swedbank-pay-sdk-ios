@@ -18,6 +18,9 @@ struct SwedbankPayAPIConstants {
         HTTPHeaderField.acceptType.rawValue: ContentType.json.rawValue,
         HTTPHeaderField.contentType.rawValue: ContentType.json.rawValue
     ]
+
+    static var requestTimeoutInterval = 10.0
+    static var sessionTimeoutInterval = 20.0
 }
 
 private enum HTTPHeaderField: String {

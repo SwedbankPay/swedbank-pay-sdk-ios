@@ -24,6 +24,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     let model: OperationOutputModel
     let culture: String?
     let instrument: SwedbankPaySDK.PaymentAttemptInstrument?
+    let sessionStartTimestamp: Date
 
     var body: [String: Any?]? {
         switch model.rel {
@@ -81,7 +82,9 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
 
 extension SwedbankPayAPIEnpointRouter {
     func makeRequest(handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
-        requestWithDataResponse { result in
+        let requestStartTimestamp: Date = Date()
+
+        requestWithDataResponse(requestStartTimestamp: requestStartTimestamp) { result in
             switch result {
             case .success(let data):
                 do {
@@ -109,7 +112,7 @@ extension SwedbankPayAPIEnpointRouter {
         return decodedData
     }
 
-    private func requestWithDataResponse(handler: @escaping (Result<Data, Error>) -> Void) {
+    private func requestWithDataResponse(requestStartTimestamp: Date, handler: @escaping (Result<Data, Error>) -> Void) {
         guard let href = model.href,
               var components = URLComponents(string: href) else {
             handler(.failure(SwedbankPayAPIError.invalidUrl))
@@ -134,13 +137,17 @@ extension SwedbankPayAPIEnpointRouter {
         }
 
         URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let response = response as? HTTPURLResponse, 200...299 ~= response.statusCode else {
-                handler(.failure(error ?? SwedbankPayAPIError.unknown))
-                return
-            }
+            guard let data, let response = response as? HTTPURLResponse, !(500...599 ~= response.statusCode) else {
+                guard Date().timeIntervalSince(requestStartTimestamp) < SwedbankPayAPIConstants.requestTimeoutInterval &&
+                      Date().timeIntervalSince(sessionStartTimestamp) < SwedbankPayAPIConstants.sessionTimeoutInterval else {
+                    handler(.failure(error ?? SwedbankPayAPIError.unknown))
+                    return
+                }
 
-            guard let data else {
-                handler(.failure(error ?? SwedbankPayAPIError.unknown))
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    requestWithDataResponse(requestStartTimestamp: requestStartTimestamp, handler: handler)
+                }
+
                 return
             }
 

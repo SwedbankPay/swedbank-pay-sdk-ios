@@ -31,6 +31,8 @@ public extension SwedbankPaySDK {
         private var hasLaunchClientAppURLs: [URL] = []
         private var hasShownProblemDetails: [ProblemDetails] = []
 
+        private var sessionStartTimestamp = Date()
+
         public init(orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo) {
             self.orderInfo = orderInfo
 
@@ -54,6 +56,7 @@ public extension SwedbankPaySDK {
                                              next: nil,
                                              tasks: nil)
 
+            sessionStartTimestamp = Date()
             makeRequest(model: model)
         }
 
@@ -67,6 +70,7 @@ public extension SwedbankPaySDK {
             if let operation = ongoingModel.paymentSession.methods?
                 .first(where: { $0.name == instrument.name })?.operations?
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
+                sessionStartTimestamp = Date()
                 makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
             }
         }
@@ -78,12 +82,13 @@ public extension SwedbankPaySDK {
 
             if let operation = ongoingModel.operations?
                 .first(where: { $0.rel == .abortPayment }) {
+                sessionStartTimestamp = Date()
                 makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
             }
         }
 
         private func makeRequest(model: OperationOutputModel, culture: String? = nil) {
-            SwedbankPayAPIEnpointRouter(model: model, culture: culture, instrument: instrument).makeRequest { result in
+            SwedbankPayAPIEnpointRouter(model: model, culture: culture, instrument: instrument, sessionStartTimestamp: sessionStartTimestamp).makeRequest { result in
                 switch result {
                 case .success(let success):
                     if let model = success {
@@ -156,6 +161,7 @@ public extension SwedbankPaySDK {
                 delegate?.availableInstrumentsFetched(model.paymentSession.methods ?? [])
             } else if let getPayment = operations.first(where: { $0.rel == .getPayment }) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    self.sessionStartTimestamp = Date()
                     self.makeRequest(model: getPayment, culture: culture)
                 }
             }
@@ -169,6 +175,7 @@ public extension SwedbankPaySDK {
             if let ongoingModel = ongoingModel {
                 if let operation = ongoingModel.paymentSession.allMethodOperations
                     .first(where: { $0.rel == .getPayment }) {
+                    sessionStartTimestamp = Date()
                     makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
                 }
             }
