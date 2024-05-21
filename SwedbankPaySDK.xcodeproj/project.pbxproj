@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		456900812BFB9AA5009475A5 /* NativePaymentProblem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456900802BFB9AA5009475A5 /* NativePaymentProblem.swift */; };
+		456900822BFB9AA5009475A5 /* NativePaymentProblem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456900802BFB9AA5009475A5 /* NativePaymentProblem.swift */; };
 		45C100902BF247F300AA3523 /* SwedbankPayAPIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C1008B2BF247F300AA3523 /* SwedbankPayAPIError.swift */; };
 		45C100912BF247F300AA3523 /* SwedbankPayAPIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C1008B2BF247F300AA3523 /* SwedbankPayAPIError.swift */; };
 		45C100922BF247F300AA3523 /* OperationOutputModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C1008D2BF247F300AA3523 /* OperationOutputModel.swift */; };
@@ -273,6 +275,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		456900802BFB9AA5009475A5 /* NativePaymentProblem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativePaymentProblem.swift; sourceTree = "<group>"; };
 		45C1008B2BF247F300AA3523 /* SwedbankPayAPIError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPayAPIError.swift; sourceTree = "<group>"; };
 		45C1008D2BF247F300AA3523 /* OperationOutputModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OperationOutputModel.swift; sourceTree = "<group>"; };
 		45C1008E2BF247F300AA3523 /* SwedbankPayAPIEnpointRouter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPayAPIEnpointRouter.swift; sourceTree = "<group>"; };
@@ -665,6 +668,7 @@
 				A59AEE9C25372C9A00255A3A /* Instrument.swift */,
 				A5F3416823FD9293005D65BA /* PaymentOrder.swift */,
 				C50CF6A6237AAF85003F79DF /* ClientProblem.swift */,
+				456900802BFB9AA5009475A5 /* NativePaymentProblem.swift */,
 				C50CF696237AA8ED003F79DF /* Configuration.swift */,
 				C50CF69C237AACC3003F79DF /* Consumer.swift */,
 				C50CF6A8237AAFBF003F79DF /* ServerProblem.swift */,
@@ -1148,6 +1152,7 @@
 				45C100AD2BF2622E00AA3523 /* NetworkStatusProvider.swift in Sources */,
 				A5C3D01E23A23BC900B45085 /* SwedbankPayWebViewController.swift in Sources */,
 				A5808B05261C942A00FF7EC1 /* SwedbankPayWebViewControllerBase.swift in Sources */,
+				456900812BFB9AA5009475A5 /* NativePaymentProblem.swift in Sources */,
 				A560BE432420C7CE00C1D023 /* TerminalFailure.swift in Sources */,
 				A5F3416923FD9293005D65BA /* PaymentOrder.swift in Sources */,
 				D5AE5DA027E0D4DA00BE5468 /* ExpandResource.swift in Sources */,
@@ -1227,6 +1232,7 @@
 				D511ECB32975599D0059AB05 /* MerchantBackendApi.swift in Sources */,
 				D511ECB42975599D0059AB05 /* RequestDecorator.swift in Sources */,
 				D511EC702975591B0059AB05 /* WKWebViewCanOpen.swift in Sources */,
+				456900822BFB9AA5009475A5 /* NativePaymentProblem.swift in Sources */,
 				D511EC712975591B0059AB05 /* SwedbankPaySubProblem.swift in Sources */,
 				D511EC722975591B0059AB05 /* WebViewRedirects.swift in Sources */,
 				D511EC732975591B0059AB05 /* SwedbankPayWebContent.swift in Sources */,

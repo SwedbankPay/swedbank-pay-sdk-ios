@@ -21,11 +21,6 @@ struct PaymentOutputModel: Codable, Hashable {
 
 extension PaymentOutputModel {
     var prioritisedOperations: [OperationOutputModel] {
-        if let problemOperation = problem?.operation,
-           problemOperation.rel?.isUnknown == false {
-            return [problemOperation]
-        }
-
         var operations = operations ?? []
         operations.append(contentsOf: paymentSession.allMethodOperations)
 

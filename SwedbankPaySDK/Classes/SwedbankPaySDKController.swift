@@ -61,10 +61,15 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     /// - parameter error: The error that caused the failure
     func paymentFailed(error: Error)
 
-    /// Called if there is a problem with performing the payment.
+    /// Called if there is a session problem with performing the payment.
     ///
     /// - parameter problem: The problem that caused the failure
-    func paymentFailed(problem: SwedbankPaySDK.ProblemDetails)
+    func sessionProblemOccurred(problem: SwedbankPaySDK.ProblemDetails)
+
+    /// Called if there is a SDK problem with performing the payment.
+    ///
+    /// - parameter problem: The problem that caused the failure
+    func sdkProblemOccurred(problem: SwedbankPaySDK.NativePaymentProblem)
 
     /// Called when the user taps on the Terms of Service Link
     /// in the Payment Menu.

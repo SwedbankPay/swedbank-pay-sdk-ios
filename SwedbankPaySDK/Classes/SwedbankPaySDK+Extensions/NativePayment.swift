@@ -95,7 +95,13 @@ public extension SwedbankPaySDK {
                         self.sessionOperationHandling(model: model, culture: model.paymentSession.culture)
                     }
                 case .failure(let failure):
-                    self.delegate?.paymentFailed(error: failure)
+                    DispatchQueue.main.async {
+                        self.delegate?.sdkProblemOccurred(problem: .paymentSessionAPIRequestFailed(error: failure,
+                                                                                                   retry: {
+                            self.sessionStartTimestamp = Date()
+                            self.makeRequest(model: model, culture: culture)
+                        }))
+                    }
                 }
             }
         }
@@ -116,53 +122,74 @@ public extension SwedbankPaySDK {
 
             if let url = components.url {
                 DispatchQueue.main.async {
-                    self.hasLaunchClientAppURLs.append(url)
-                    UIApplication.shared.open(url)
+                    UIApplication.shared.open(url) { complete in
+                        if complete {
+                            self.hasLaunchClientAppURLs.append(url)
+                            self.instrument = nil
+                        } else {
+                            self.delegate?.sdkProblemOccurred(problem: .clientAppLaunchFailed)
+                        }
+                    }
                 }
             }
         }
 
         private func sessionOperationHandling(model: PaymentOutputModel, culture: String? = nil) {
             ongoingModel = model
+            
+            if let modelProblem = model.problem,
+               let problemOperation = modelProblem.operation,
+                   problemOperation.rel == .acknowledgeFailedAttempt {
+                if !hasShownProblemDetails.contains(where: { $0.operation?.href == problemOperation.href }) {
+                    hasShownProblemDetails.append(modelProblem)
+                    DispatchQueue.main.async {
+                        self.delegate?.sessionProblemOccurred(problem: modelProblem)
+                    }
+                }
+                
+                makeRequest(model: problemOperation, culture: culture)
+            }
 
             let operations = model.prioritisedOperations
-
-            if let acknowledgeFailedAttempt = operations.first(where: { $0.rel == .acknowledgeFailedAttempt }),
-               let problem = model.problem {
-                if !hasShownProblemDetails.contains(where: { $0.operation?.href == problem.operation?.href }) {
-                    hasShownProblemDetails.append(problem)
-                    delegate?.paymentFailed(problem: problem)
-                }
             
-                makeRequest(model: acknowledgeFailedAttempt, culture: culture)
-            } else if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
+            if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
                 makeRequest(model: preparePayment, culture: culture)
             } else if let startPaymentAttempt = operations.first(where: { $0.rel == .startPaymentAttempt }) {
                 if instrument != nil {
                     makeRequest(model: startPaymentAttempt, culture: culture)
-                    instrument = nil
+                    self.instrument = nil
                 } else {
-                    delegate?.availableInstrumentsFetched(model.paymentSession.methods ?? [])
+                    DispatchQueue.main.async {
+                        self.delegate?.availableInstrumentsFetched(model.paymentSession.methods ?? [])
+                    }
                 }
             } else if let launchClientApp = operations.first(where: { $0.firstTask(with: .launchClientApp) != nil }),
                       let tasks = launchClientApp.firstTask(with: .launchClientApp),
                       !hasLaunchClientAppURLs.contains(where: { $0.absoluteString.contains(tasks.href ?? "") }) {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
             } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
-                if redirectPayer.href == orderInfo.cancelUrl?.absoluteString {
-                    delegate?.paymentCanceled()
-                } else if redirectPayer.href == orderInfo.completeUrl.absoluteString {
-                    delegate?.paymentComplete()
+                DispatchQueue.main.async {
+                    if redirectPayer.href == self.orderInfo.cancelUrl?.absoluteString {
+                        self.delegate?.paymentCanceled()
+                    } else if redirectPayer.href == self.orderInfo.completeUrl.absoluteString {
+                        self.delegate?.paymentComplete()
+                    }
                 }
                 sessionIsOngoing = false
                 hasLaunchClientAppURLs = []
                 hasShownProblemDetails = []
             } else if let _ = operations.first(where: { $0.rel == .expandMethod }) {
-                delegate?.availableInstrumentsFetched(model.paymentSession.methods ?? [])
+                DispatchQueue.main.async {
+                    self.delegate?.availableInstrumentsFetched(model.paymentSession.methods ?? [])
+                }
             } else if let getPayment = operations.first(where: { $0.rel == .getPayment }) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     self.sessionStartTimestamp = Date()
                     self.makeRequest(model: getPayment, culture: culture)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.delegate?.sdkProblemOccurred(problem: .paymentSessionEndStateReached)
                 }
             }
         }
