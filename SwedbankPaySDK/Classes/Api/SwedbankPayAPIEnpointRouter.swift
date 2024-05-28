@@ -137,6 +137,25 @@ extension SwedbankPayAPIEnpointRouter {
         }
 
         URLSession.shared.dataTask(with: request) { data, response, error in
+
+            var responseStatusCode: Int?
+            if let response = response as? HTTPURLResponse {
+                responseStatusCode = response.statusCode
+            }
+
+            var values: [String: Any]?
+            if let error = error as? NSError {
+                values = ["errorDescription": error.localizedDescription,
+                          "errorCode": error.code,
+                          "errorDomain": error.domain]
+            }
+
+            BeaconService.shared.log(type: .httpRequest(duration: Int32((Date().timeIntervalSince(requestStartTimestamp) * 1000.0).rounded()),
+                                                         requestUrl: model.href ?? "",
+                                                         method: model.method ?? "",
+                                                         responseStatusCode: responseStatusCode,
+                                                         values: values))
+
             guard let data, let response = response as? HTTPURLResponse, !(500...599 ~= response.statusCode) else {
                 guard Date().timeIntervalSince(requestStartTimestamp) < SwedbankPayAPIConstants.requestTimeoutInterval &&
                       Date().timeIntervalSince(sessionStartTimestamp) < SwedbankPayAPIConstants.sessionTimeoutInterval else {
@@ -145,6 +164,8 @@ extension SwedbankPayAPIEnpointRouter {
                 }
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    let requestStartTimestamp: Date = Date()
+
                     requestWithDataResponse(requestStartTimestamp: requestStartTimestamp, handler: handler)
                 }
 

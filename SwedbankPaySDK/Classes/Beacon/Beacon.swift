@@ -13,18 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extension SwedbankPaySDK {
-    public enum PaymentAttemptInstrument {
-        case swish(msisdn: String?)
-        case creditCard(paymentToken: String)
+import Foundation
 
-        var name: String {
-            switch self {
-            case .swish:
-                return "Swish"
-            case .creditCard:
-                return "CreditCard"
-            }
-        }
-    }
+struct Beacon {
+    let actionType: BeaconType
+    let created: Date
 }

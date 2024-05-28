@@ -63,11 +63,11 @@ extension SwedbankPaySDK {
         var name: String {
             switch self {
             case .swish:
-                return "swish"
+                return "Swish"
             case .creditCard:
-                return "creditCard"
+                return "CreditCard"
             case .unknown:
-                return "unknown"
+                return "Unknown"
             }
         }
 
@@ -80,6 +80,12 @@ extension SwedbankPaySDK {
             case .unknown:
                 return nil
             }
+        }
+
+        var isUnknown: Bool {
+            if case .unknown = self { return true }
+
+            return false
         }
     }
 
