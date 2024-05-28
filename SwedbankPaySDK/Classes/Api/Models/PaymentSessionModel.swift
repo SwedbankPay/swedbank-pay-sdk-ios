@@ -15,7 +15,7 @@
 
 struct PaymentSessionModel: Codable, Hashable {
     let culture: String?
-    let methods: [SwedbankPaySDK.MethodBaseModel]?
+    let methods: [MethodBaseModel]?
 }
 
 extension PaymentSessionModel {

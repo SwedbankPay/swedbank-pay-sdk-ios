@@ -80,7 +80,7 @@ public extension SwedbankPaySDK {
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
                 sessionStartTimestamp = Date()
                 makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
-                var succeeded = true
+                succeeded = true
             }
 
             switch instrument {
@@ -243,11 +243,22 @@ public extension SwedbankPaySDK {
                 hasShownProblemDetails = []
             } else if let _ = operations.first(where: { $0.rel == .expandMethod }) {
                 DispatchQueue.main.async {
-                    self.delegate?.availableInstrumentsFetched(model.paymentSession.methods ?? [])
+                    let availableInstruments: [AvailableInstrument] = model.paymentSession.methods?.compactMap({ model in
+                        switch model {
+                        case .swish(let prefills, _):
+                            return AvailableInstrument.swish(prefills: prefills)
+                        case .creditCard(_, _, _):
+                            return nil
+                        case .unknown(_):
+                            return nil
+                        }
+                    }) ?? []
+
+                    self.delegate?.availableInstrumentsFetched(availableInstruments)
 
                     BeaconService.shared.log(type: .sdkCallbackInvoked(name: "availableInstrumentsFetched",
                                                                        succeeded: self.delegate != nil,
-                                                                       values: ["instruments": model.paymentSession.methods?.filter({ !$0.isUnknown }).compactMap({ $0.name }).joined(separator: ";")]))
+                                                                       values: ["instruments": availableInstruments.compactMap({ $0.name }).joined(separator: ";")]))
                 }
             } else if let getPayment = operations.first(where: { $0.rel == .getPayment }) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {

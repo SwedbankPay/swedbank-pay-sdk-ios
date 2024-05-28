@@ -47,7 +47,7 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     /// Called when an list of available instruments is known.
     ///
     /// - parameter availableInstruments: List of different instruments
-    func availableInstrumentsFetched(_ availableInstruments: [SwedbankPaySDK.MethodBaseModel])
+    func availableInstrumentsFetched(_ availableInstruments: [SwedbankPaySDK.AvailableInstrument])
 
     /// Called if there is an error in performing the payment.
     /// The error may be SwedbankPaySDKController.WebContentError,

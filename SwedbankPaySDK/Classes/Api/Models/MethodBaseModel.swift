@@ -13,79 +13,90 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+public enum MethodBaseModel: Codable, Equatable, Hashable {
+    case swish(prefills: [SwedbankPaySDK.SwishMethodPrefillModel]?, operations: [OperationOutputModel]?)
+    case creditCard(prefills: [SwedbankPaySDK.CreditCardMethodPrefillModel]?, operations: [OperationOutputModel]?, cardBrands: [String]?)
+
+    case unknown(String)
+
+    private enum CodingKeys: String, CodingKey {
+        case instrument, prefills, operations, cardBrands
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        let type = try container.decode(String.self, forKey: .instrument)
+        switch type {
+        case "Swish":
+            self = .swish(
+                prefills: try? container.decode([SwedbankPaySDK.SwishMethodPrefillModel]?.self, forKey: CodingKeys.prefills),
+                operations: try? container.decode([OperationOutputModel]?.self, forKey: CodingKeys.operations)
+            )
+        case "CreditCard":
+            self = .creditCard(
+                prefills: try? container.decode([SwedbankPaySDK.CreditCardMethodPrefillModel].self, forKey: CodingKeys.prefills),
+                operations: try? container.decode([OperationOutputModel]?.self, forKey: CodingKeys.operations),
+                cardBrands: try? container.decode([String]?.self, forKey: CodingKeys.cardBrands)
+            )
+        default:
+            self = .unknown(type)
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .swish(let prefills, let operations):
+            try container.encode(prefills)
+            try container.encode(operations)
+        case .creditCard(let prefills, let operations, let cardBrands):
+            try container.encode(prefills)
+            try container.encode(operations)
+            try container.encode(cardBrands)
+        case .unknown(let type):
+            try container.encode(type)
+        }
+    }
+
+    var name: String {
+        switch self {
+        case .swish:
+            return "Swish"
+        case .creditCard:
+            return "CreditCard"
+        case .unknown:
+            return "Unknown"
+        }
+    }
+
+    var operations: [OperationOutputModel]? {
+        switch self {
+        case .swish(_, let opertations):
+            return opertations
+        case .creditCard(_, let opertations, _):
+            return opertations
+        case .unknown:
+            return nil
+        }
+    }
+
+    var isUnknown: Bool {
+        if case .unknown = self { return true }
+
+        return false
+    }
+}
+
 extension SwedbankPaySDK {
-    public enum MethodBaseModel: Codable, Equatable, Hashable {
-        case swish(prefills: [SwishMethodPrefillModel]?, operations: [OperationOutputModel]?)
-        case creditCard(prefills: [CreditCardMethodPrefillModel]?, operations: [OperationOutputModel]?, cardBrands: [String]?)
-
-        case unknown(String)
-
-        private enum CodingKeys: String, CodingKey {
-            case instrument, prefills, operations, cardBrands
-        }
-
-        public init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-
-            let type = try container.decode(String.self, forKey: .instrument)
-            switch type {
-            case "Swish":
-                self = .swish(
-                    prefills: try? container.decode([SwishMethodPrefillModel]?.self, forKey: CodingKeys.prefills),
-                    operations: try? container.decode([OperationOutputModel]?.self, forKey: CodingKeys.operations)
-                )
-            case "CreditCard":
-                self = .creditCard(
-                    prefills: try? container.decode([CreditCardMethodPrefillModel].self, forKey: CodingKeys.prefills),
-                    operations: try? container.decode([OperationOutputModel]?.self, forKey: CodingKeys.operations),
-                    cardBrands: try? container.decode([String]?.self, forKey: CodingKeys.cardBrands)
-                )
-            default:
-                self = .unknown(type)
-            }
-        }
-
-        public func encode(to encoder: Encoder) throws {
-            var container = encoder.singleValueContainer()
-            switch self {
-            case .swish(let prefills, let operations):
-                try container.encode(prefills)
-                try container.encode(operations)
-            case .creditCard(let prefills, let operations, let cardBrands):
-                try container.encode(prefills)
-                try container.encode(operations)
-                try container.encode(cardBrands)
-            case .unknown(let type):
-                try container.encode(type)
-            }
-        }
+    public enum AvailableInstrument: Codable, Equatable, Hashable {
+        case swish(prefills: [SwishMethodPrefillModel]?)
 
         var name: String {
             switch self {
             case .swish:
                 return "Swish"
-            case .creditCard:
-                return "CreditCard"
-            case .unknown:
-                return "Unknown"
             }
-        }
-
-        var operations: [OperationOutputModel]? {
-            switch self {
-            case .swish(_, let opertations):
-                return opertations
-            case .creditCard(_, let opertations, _):
-                return opertations
-            case .unknown:
-                return nil
-            }
-        }
-
-        var isUnknown: Bool {
-            if case .unknown = self { return true }
-
-            return false
         }
     }
 
