@@ -228,8 +228,12 @@ public extension SwedbankPaySDK {
 
             if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
                 makeRequest(model: preparePayment, culture: culture)
-            } else if let startPaymentAttempt = operations.first(where: { $0.rel == .startPaymentAttempt }),
-                      instrument != nil {
+            } else if operations.contains(where: { $0.rel == .startPaymentAttempt }),
+                      let instrument = instrument,
+                      let startPaymentAttempt = ongoingModel?.paymentSession.methods?
+                .first(where: { $0.name == instrument.name })?.operations?
+                .first(where: { $0.rel == .startPaymentAttempt }) {
+
                 makeRequest(model: startPaymentAttempt, culture: culture)
                 self.instrument = nil
             } else if let launchClientApp = operations.first(where: { $0.firstTask(with: .launchClientApp) != nil }),
