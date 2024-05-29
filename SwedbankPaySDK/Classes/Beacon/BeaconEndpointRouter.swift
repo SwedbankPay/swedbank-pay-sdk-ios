@@ -33,7 +33,8 @@ struct BeaconEndpointRouter: EndpointRouterProtocol {
 
     // MARK: - Body
     var body: [String: Any?]? {
-        var body: [String: Any?] = ["client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
+        var body: [String: Any?] = ["type": 0,
+                                    "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                                "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
                                                "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
                                                "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
