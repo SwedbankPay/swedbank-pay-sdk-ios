@@ -27,6 +27,7 @@ public extension SwedbankPaySDK {
         private var ongoingModel: PaymentOutputModel? = nil
         private var sessionIsOngoing: Bool = false
         private var instrument: SwedbankPaySDK.PaymentAttemptInstrument? = nil
+        private var hasShownAvailableInstruments: Bool = false
 
         private var hasLaunchClientAppURLs: [URL] = []
         private var hasShownProblemDetails: [ProblemDetails] = []
@@ -49,6 +50,7 @@ public extension SwedbankPaySDK {
             ongoingModel = nil
             hasLaunchClientAppURLs = []
             hasShownProblemDetails = []
+            hasShownAvailableInstruments = false
 
             let model = OperationOutputModel(rel: nil,
                                              href: sessionApi,
@@ -253,7 +255,9 @@ public extension SwedbankPaySDK {
                 sessionIsOngoing = false
                 hasLaunchClientAppURLs = []
                 hasShownProblemDetails = []
-            } else if let _ = operations.first(where: { $0.rel == .expandMethod }) {
+                hasShownAvailableInstruments = false
+            } else if (operations.contains(where: { $0.rel == .expandMethod }) || operations.contains(where: { $0.rel == .startPaymentAttempt })) &&
+                        hasShownAvailableInstruments == false {
                 DispatchQueue.main.async {
                     let availableInstruments: [AvailableInstrument] = model.paymentSession.methods?.compactMap({ model in
                         switch model {
@@ -265,6 +269,8 @@ public extension SwedbankPaySDK {
                             return nil
                         }
                     }) ?? []
+
+                    self.hasShownAvailableInstruments = true
 
                     self.delegate?.availableInstrumentsFetched(availableInstruments)
 
