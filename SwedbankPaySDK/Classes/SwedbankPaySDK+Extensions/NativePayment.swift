@@ -69,6 +69,10 @@ public extension SwedbankPaySDK {
             guard let ongoingModel = ongoingModel else {
                 self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
 
+                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                   succeeded: self.delegate != nil,
+                                                                   values: ["problem": "internalInconsistencyError"]))
+
                 return
             }
 
@@ -101,6 +105,10 @@ public extension SwedbankPaySDK {
         public func abortPaymentSession() {
             guard let ongoingModel = ongoingModel else {
                 self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
+
+                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                   succeeded: self.delegate != nil,
+                                                                   values: ["problem": "internalInconsistencyError"]))
 
                 return
             }
@@ -153,6 +161,10 @@ public extension SwedbankPaySDK {
         private func launchClientApp(task: IntegrationTask) {
             guard let href = task.href, var components = URLComponents(string: href) else {
                 self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
+
+                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                   succeeded: self.delegate != nil,
+                                                                   values: ["problem": "internalInconsistencyError"]))
 
                 return
             }
