@@ -62,6 +62,8 @@ public extension SwedbankPaySDK {
 
         public func makePaymentAttempt(with instrument: SwedbankPaySDK.PaymentAttemptInstrument) {
             guard let ongoingModel = ongoingModel else {
+                self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
+
                 return
             }
 
@@ -77,6 +79,8 @@ public extension SwedbankPaySDK {
 
         public func abortPaymentSession() {
             guard let ongoingModel = ongoingModel else {
+                self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
+
                 return
             }
 
@@ -108,6 +112,8 @@ public extension SwedbankPaySDK {
 
         private func launchClientApp(task: IntegrationTask) {
             guard let href = task.href, var components = URLComponents(string: href) else {
+                self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
+
                 return
             }
 

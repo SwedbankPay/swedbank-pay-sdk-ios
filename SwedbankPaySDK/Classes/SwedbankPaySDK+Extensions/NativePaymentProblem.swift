@@ -20,5 +20,6 @@ public extension SwedbankPaySDK {
         case paymentSessionEndStateReached
         case paymentSessionAPIRequestFailed(error: Error, retry: ()->Void)
         case clientAppLaunchFailed
+        case internalInconsistencyError
     }
 }
