@@ -16,6 +16,7 @@
 import Foundation
 
 public extension SwedbankPaySDK {
+    /// Native payment problem returned with `sdkProblemOccurred`
     enum NativePaymentProblem {
         case paymentSessionEndStateReached
         case paymentSessionAPIRequestFailed(error: Error, retry: ()->Void)

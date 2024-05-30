@@ -14,6 +14,7 @@
 // limitations under the License.
 
 extension SwedbankPaySDK {
+    /// Instrument with needed values to make a payment attempt.
     public enum PaymentAttemptInstrument {
         case swish(msisdn: String?)
         case creditCard(paymentToken: String)

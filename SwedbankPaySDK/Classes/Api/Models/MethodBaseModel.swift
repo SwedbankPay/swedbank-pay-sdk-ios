@@ -89,7 +89,10 @@ public enum MethodBaseModel: Codable, Equatable, Hashable {
 }
 
 extension SwedbankPaySDK {
+    /// Avilable instrument for Native Payment.
     public enum AvailableInstrument: Codable, Equatable, Hashable {
+
+        /// Swish native payment with a list of prefills
         case swish(prefills: [SwishMethodPrefillModel]?)
 
         var name: String {
@@ -100,6 +103,7 @@ extension SwedbankPaySDK {
         }
     }
 
+    /// Prefill information for Swish payment.
     public struct SwishMethodPrefillModel: Codable, Hashable {
         let rank: Int32?
         public let msisdn: String?

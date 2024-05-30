@@ -17,6 +17,7 @@ import Foundation
 import UIKit
 
 public extension SwedbankPaySDK {
+    /// Object that handles native payments
     class NativePayment: CallbackUrlDelegate {
         /// Order information that provides `NativePayment` with callback URLs.
         public var orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo
@@ -44,7 +45,12 @@ public extension SwedbankPaySDK {
             SwedbankPaySDK.removeCallbackUrlDelegate(self)
         }
 
-        public func startPaymentSession(with sessionApi: String) {
+        /// Starts a new native payment session.
+        ///
+        /// Calling this when a payment is already started will throw out the old payment.
+        ///
+        /// - parameter with sessionURL: Session URL needed to start the native payment session
+        public func startPaymentSession(with sessionURL: String) {
             sessionIsOngoing = true
             instrument = nil
             ongoingModel = nil
@@ -53,7 +59,7 @@ public extension SwedbankPaySDK {
             hasShownAvailableInstruments = false
 
             let model = OperationOutputModel(rel: nil,
-                                             href: sessionApi,
+                                             href: sessionURL,
                                              method: "GET",
                                              next: nil,
                                              tasks: nil)
@@ -67,6 +73,11 @@ public extension SwedbankPaySDK {
                                                              values: nil))
         }
 
+        /// Make a payment attempt with a specific instrument.
+        ///
+        /// There needs to be an active payment session before an payment attempt can be made.
+        ///
+        /// - parameter with instrument: Payment attempt instrument
         public func makePaymentAttempt(with instrument: SwedbankPaySDK.PaymentAttemptInstrument) {
             guard let ongoingModel = ongoingModel else {
                 self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
@@ -104,6 +115,9 @@ public extension SwedbankPaySDK {
 
         }
 
+        /// Abort an active payment session.
+        ///
+        /// Does nothing if there isn't an active payment session.
         public func abortPaymentSession() {
             guard let ongoingModel = ongoingModel else {
                 self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)

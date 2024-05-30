@@ -14,6 +14,7 @@
 // limitations under the License.
 
 public extension SwedbankPaySDK {
+    /// Problem details returned with `sessionProblemOccurred`
     struct ProblemDetails: Codable, Hashable {
         public let title: String?
         public let status: Int32?
