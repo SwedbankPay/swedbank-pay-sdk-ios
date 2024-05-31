@@ -16,6 +16,7 @@
 public extension SwedbankPaySDK {
     /// Problem details returned with `sessionProblemOccurred`
     struct ProblemDetails: Codable, Hashable {
+        public let type: String
         public let title: String?
         public let status: Int32?
         public let detail: String?

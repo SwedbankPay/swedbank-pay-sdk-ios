@@ -22,8 +22,8 @@ public extension SwedbankPaySDK {
         /// Order information that provides `NativePayment` with callback URLs.
         public var orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo
 
-        /// A delegate to receive callbacks as the state of SwedbankPaySDKController changes.
-        public weak var delegate: SwedbankPaySDKDelegate?
+        /// A delegate to receive callbacks as the native payment changes.
+        public weak var delegate: SwedbankPaySDKNativePaymentDelegate?
 
         private var ongoingModel: PaymentOutputModel? = nil
         private var sessionIsOngoing: Bool = false
@@ -50,7 +50,7 @@ public extension SwedbankPaySDK {
         /// Calling this when a payment is already started will throw out the old payment.
         ///
         /// - parameter with sessionURL: Session URL needed to start the native payment session
-        public func startPaymentSession(with sessionURL: String) {
+        public func startPaymentSession(sessionURL: URL) {
             sessionIsOngoing = true
             instrument = nil
             ongoingModel = nil
@@ -59,7 +59,7 @@ public extension SwedbankPaySDK {
             hasShownAvailableInstruments = false
 
             let model = OperationOutputModel(rel: nil,
-                                             href: sessionURL,
+                                             href: sessionURL.absoluteString,
                                              method: "GET",
                                              next: nil,
                                              tasks: nil)
@@ -77,14 +77,14 @@ public extension SwedbankPaySDK {
         ///
         /// There needs to be an active payment session before an payment attempt can be made.
         ///
-        /// - parameter with instrument: Payment attempt instrument
-        public func makePaymentAttempt(with instrument: SwedbankPaySDK.PaymentAttemptInstrument) {
+        /// - parameter instrument: Payment attempt instrument
+        public func makePaymentAttempt(instrument: SwedbankPaySDK.PaymentAttemptInstrument) {
             guard let ongoingModel = ongoingModel else {
                 self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
 
                 BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                    succeeded: self.delegate != nil,
-                                                                   values: ["problem": "internalInconsistencyError"]))
+                                                                   values: ["problem": SwedbankPaySDK.NativePaymentProblem.internalInconsistencyError.rawValue]))
 
                 return
             }
@@ -104,12 +104,12 @@ public extension SwedbankPaySDK {
             case .swish(let msisdn):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
                                                                  succeeded: succeeded,
-                                                                 values: ["instrument": "Swish",
+                                                                 values: ["instrument": instrument.name,
                                                                           "msisdn": msisdn]))
             case .creditCard(let paymentToken):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
                                                                  succeeded: succeeded,
-                                                                 values: ["instrument": "CreditCard",
+                                                                 values: ["instrument": instrument.name,
                                                                           "paymentToken": paymentToken]))
             }
 
@@ -124,7 +124,7 @@ public extension SwedbankPaySDK {
 
                 BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                    succeeded: self.delegate != nil,
-                                                                   values: ["problem": "internalInconsistencyError"]))
+                                                                   values: ["problem": SwedbankPaySDK.NativePaymentProblem.internalInconsistencyError.rawValue]))
 
                 return
             }
@@ -155,17 +155,19 @@ public extension SwedbankPaySDK {
                     }
                 case .failure(let failure):
                     DispatchQueue.main.async {
-                        self.delegate?.sdkProblemOccurred(problem: .paymentSessionAPIRequestFailed(error: failure,
-                                                                                                   retry: {
+                        let problem = SwedbankPaySDK.NativePaymentProblem.paymentSessionAPIRequestFailed(error: failure,
+                                                                                                         retry: {
                             self.sessionStartTimestamp = Date()
                             self.makeRequest(model: model, culture: culture)
-                        }))
+                        })
+
+                        self.delegate?.sdkProblemOccurred(problem: problem)
 
                         let error = failure as NSError
 
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                            succeeded: self.delegate != nil,
-                                                                           values: ["problem": "paymentSessionAPIRequestFailed",
+                                                                           values: ["problem": problem.rawValue,
                                                                                     "errorDescription": error.localizedDescription,
                                                                                     "errorCode": error.code,
                                                                                     "errorDomain": error.domain]))
@@ -180,7 +182,7 @@ public extension SwedbankPaySDK {
 
                 BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                    succeeded: self.delegate != nil,
-                                                                   values: ["problem": "internalInconsistencyError"]))
+                                                                   values: ["problem": SwedbankPaySDK.NativePaymentProblem.internalInconsistencyError.rawValue]))
 
                 return
             }
@@ -205,7 +207,7 @@ public extension SwedbankPaySDK {
 
                             BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                                succeeded: self.delegate != nil,
-                                                                               values: ["problem": "clientAppLaunchFailed"]))
+                                                                               values: ["problem": SwedbankPaySDK.NativePaymentProblem.clientAppLaunchFailed.rawValue]))
                         }
 
                         BeaconService.shared.log(type: .launchClientApp(values: ["callbackUrl": self.orderInfo.paymentUrl?.absoluteString ?? "",
@@ -307,7 +309,7 @@ public extension SwedbankPaySDK {
 
                     BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                        succeeded: self.delegate != nil,
-                                                                       values: ["problem": "paymentSessionEndStateReached"]))
+                                                                       values: ["problem": SwedbankPaySDK.NativePaymentProblem.paymentSessionEndStateReached.rawValue]))
                 }
             }
         }

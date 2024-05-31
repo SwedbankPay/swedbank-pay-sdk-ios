@@ -105,8 +105,8 @@ extension SwedbankPaySDK {
 
     /// Prefill information for Swish payment.
     public struct SwishMethodPrefillModel: Codable, Hashable {
-        let rank: Int32?
-        public let msisdn: String?
+        public let rank: Int32
+        public let msisdn: String
     }
 
     public struct CreditCardMethodPrefillModel: Codable, Hashable {
