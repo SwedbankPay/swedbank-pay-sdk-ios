@@ -221,11 +221,15 @@ public extension SwedbankPaySDK {
         private func sessionOperationHandling(model: PaymentOutputModel, culture: String? = nil) {
             ongoingModel = model
 
+            var hasShowedError = false
+            
             if let modelProblem = model.problem,
                let problemOperation = modelProblem.operation,
                problemOperation.rel == .acknowledgeFailedAttempt {
                 if !hasShownProblemDetails.contains(where: { $0.operation?.href == problemOperation.href }) {
                     hasShownProblemDetails.append(modelProblem)
+                    hasShowedError = true
+
                     DispatchQueue.main.async {
                         self.delegate?.sessionProblemOccurred(problem: modelProblem)
 
@@ -270,6 +274,12 @@ public extension SwedbankPaySDK {
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentComplete",
                                                                            succeeded: self.delegate != nil,
                                                                            values: nil))
+                    } else {
+                        self.delegate?.sdkProblemOccurred(problem: .paymentSessionEndStateReached)
+                        
+                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                           succeeded: self.delegate != nil,
+                                                                           values: ["problem": SwedbankPaySDK.NativePaymentProblem.paymentSessionEndStateReached.rawValue]))
                     }
                 }
                 sessionIsOngoing = false
@@ -303,7 +313,7 @@ public extension SwedbankPaySDK {
                     self.sessionStartTimestamp = Date()
                     self.makeRequest(model: getPayment, culture: culture)
                 }
-            } else {
+            } else if !hasShowedError {
                 DispatchQueue.main.async {
                     self.delegate?.sdkProblemOccurred(problem: .paymentSessionEndStateReached)
 
