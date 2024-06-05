@@ -20,7 +20,7 @@ protocol BeaconEndpointRouterProtocol {
     var body: [String: Any?]? { get }
 }
 
-struct BeaconEndpointRouter: EndpointRouterProtocol {
+struct BeaconEndpointRouter: BeaconEndpointRouterProtocol {
     let href: String?
     let beacon: Beacon
 

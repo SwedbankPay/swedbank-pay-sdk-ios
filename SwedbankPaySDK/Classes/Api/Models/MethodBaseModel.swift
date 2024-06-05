@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
+
 public enum MethodBaseModel: Codable, Equatable, Hashable {
     case swish(prefills: [SwedbankPaySDK.SwishMethodPrefillModel]?, operations: [OperationOutputModel]?)
     case creditCard(prefills: [SwedbankPaySDK.CreditCardMethodPrefillModel]?, operations: [OperationOutputModel]?, cardBrands: [String]?)
@@ -95,10 +97,14 @@ extension SwedbankPaySDK {
         /// Swish native payment with a list of prefills
         case swish(prefills: [SwishMethodPrefillModel]?)
 
+        case creditCard(prefills: [CreditCardMethodPrefillModel]?)
+
         var name: String {
             switch self {
             case .swish:
                 return "Swish"
+            case .creditCard:
+                return "CreditCard"
             }
         }
     }
@@ -109,11 +115,32 @@ extension SwedbankPaySDK {
         public let msisdn: String
     }
 
+    /// Prefill information for Credit Card payment.
     public struct CreditCardMethodPrefillModel: Codable, Hashable {
-        let rank: Int32?
-        let paymentToken: String?
-        let cardBrand: String?
-        let maskedPan: String?
-        let expiryDate: String?
+        public let rank: Int32
+        public let paymentToken: String
+        public let cardBrand: String
+        public let maskedPan: String
+        public let expiryDate: Date
+
+        public var expiryMonth: String {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MM"
+            formatter.timeZone = TimeZone(identifier: "UTC")
+
+            return formatter.string(from: expiryDate)
+        }
+
+        public var expiryYear: String {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "YY"
+            formatter.timeZone = TimeZone(identifier: "UTC")
+
+            return formatter.string(from: expiryDate)
+        }
+
+        public var expiryString: String {
+            return expiryMonth + "/" + expiryYear
+        }
     }
 }

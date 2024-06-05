@@ -21,6 +21,7 @@ struct SwedbankPayAPIConstants {
 
     static var requestTimeoutInterval = 10.0
     static var sessionTimeoutInterval = 20.0
+    static var creditCardTimoutInterval = 30.0
 }
 
 private enum HTTPHeaderField: String {

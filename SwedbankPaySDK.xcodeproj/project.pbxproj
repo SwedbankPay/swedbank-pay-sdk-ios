@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4517A24A2C10467A000BB7A8 /* CustomDateDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517A2492C10467A000BB7A8 /* CustomDateDecoder.swift */; };
+		4517A24B2C104702000BB7A8 /* CustomDateDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517A2492C10467A000BB7A8 /* CustomDateDecoder.swift */; };
 		4517C6A02BFF6B7E001687E7 /* BeaconEndpointRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */; };
 		4517C6A12BFF8980001687E7 /* BeaconEndpointRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */; };
 		4517C6A32BFF928B001687E7 /* BeaconService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C6A22BFF928B001687E7 /* BeaconService.swift */; };
@@ -285,6 +287,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4517A2492C10467A000BB7A8 /* CustomDateDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDateDecoder.swift; sourceTree = "<group>"; };
 		4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconEndpointRouter.swift; sourceTree = "<group>"; };
 		4517C6A22BFF928B001687E7 /* BeaconService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconService.swift; sourceTree = "<group>"; };
 		456900802BFB9AA5009475A5 /* NativePaymentProblem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativePaymentProblem.swift; sourceTree = "<group>"; };
@@ -522,6 +525,7 @@
 			children = (
 				45C100AB2BF2622E00AA3523 /* NetworkStatusProvider.swift */,
 				45C100AC2BF2622E00AA3523 /* TimeZone+OffsetFromGMT.swift */,
+				4517A2492C10467A000BB7A8 /* CustomDateDecoder.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -1172,6 +1176,7 @@
 				A52E0ACB24BCAA6D00770286 /* GoodWebViewRedirects.swift in Sources */,
 				45C100A82BF2598D00AA3523 /* ProblemDetails.swift in Sources */,
 				A5808B09261C980000FF7EC1 /* SwedbankPayWebViewControllerDelegate.swift in Sources */,
+				4517A24A2C10467A000BB7A8 /* CustomDateDecoder.swift in Sources */,
 				45C100AF2BF2622E00AA3523 /* TimeZone+OffsetFromGMT.swift in Sources */,
 				4517C6A02BFF6B7E001687E7 /* BeaconEndpointRouter.swift in Sources */,
 				A5DC2CAA251A2DFA0037C7DA /* ViewPaymentOrderInfo.swift in Sources */,
@@ -1237,6 +1242,7 @@
 				45B4495F2C05F51B00A1F46D /* BeaconService.swift in Sources */,
 				D511EC9E2975599D0059AB05 /* PaymentOrdersLink.swift in Sources */,
 				D511EC9F2975599D0059AB05 /* ConsumerSession.swift in Sources */,
+				4517A24B2C104702000BB7A8 /* CustomDateDecoder.swift in Sources */,
 				D511ECA02975599D0059AB05 /* DeletePaymentTokenLink.swift in Sources */,
 				45C100A02BF2583D00AA3523 /* MethodBaseModel.swift in Sources */,
 				D511ECA12975599D0059AB05 /* RootLink.swift in Sources */,

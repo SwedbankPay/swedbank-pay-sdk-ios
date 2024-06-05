@@ -18,6 +18,8 @@ import UIKit
 
 protocol EndpointRouterProtocol {
     var body: [String: Any?]? { get }
+    var requestTimeoutInterval: TimeInterval { get }
+    var sessionTimeoutInterval: TimeInterval { get }
 }
 
 struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
@@ -41,9 +43,12 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                    "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
                                    "screenColorDepth": String(24)]
                 ]
-            case .creditCard(let paymentToken):
+            case .creditCard(let prefill):
                 return ["culture": culture,
-                        "paymentToken": paymentToken,
+                        "paymentToken": prefill.paymentToken,
+                        "cardNumber": prefill.maskedPan,
+                        "cardExpiryMonth": prefill.expiryMonth,
+                        "cardExpiryYear": prefill.expiryYear,
                         "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                    "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
                                    "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
@@ -78,6 +83,34 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
             return nil
         }
     }
+
+    var requestTimeoutInterval: TimeInterval {
+        switch model.rel {
+        case .startPaymentAttempt:
+            switch instrument {
+            case .creditCard:
+                return SwedbankPayAPIConstants.creditCardTimoutInterval
+            default:
+                return SwedbankPayAPIConstants.requestTimeoutInterval
+            }
+        default:
+            return SwedbankPayAPIConstants.requestTimeoutInterval
+        }
+    }
+
+    var sessionTimeoutInterval: TimeInterval {
+        switch model.rel {
+        case .startPaymentAttempt:
+            switch instrument {
+            case .creditCard:
+                return SwedbankPayAPIConstants.creditCardTimoutInterval
+            default:
+                return SwedbankPayAPIConstants.sessionTimeoutInterval
+            }
+        default:
+            return SwedbankPayAPIConstants.sessionTimeoutInterval
+        }
+    }
 }
 
 extension SwedbankPayAPIEnpointRouter {
@@ -104,7 +137,7 @@ extension SwedbankPayAPIEnpointRouter {
         let decodedData: T
 
         do {
-            decodedData = try JSONDecoder().decode(T.self, from: data)
+            decodedData = try CustomDateDecoder().decode(T.self, from: data)
         } catch {
             throw error
         }
@@ -151,14 +184,14 @@ extension SwedbankPayAPIEnpointRouter {
             }
 
             BeaconService.shared.log(type: .httpRequest(duration: Int32((Date().timeIntervalSince(requestStartTimestamp) * 1000.0).rounded()),
-                                                         requestUrl: model.href ?? "",
-                                                         method: model.method ?? "",
-                                                         responseStatusCode: responseStatusCode,
-                                                         values: values))
+                                                        requestUrl: model.href ?? "",
+                                                        method: model.method ?? "",
+                                                        responseStatusCode: responseStatusCode,
+                                                        values: values))
 
             guard let data, let response = response as? HTTPURLResponse, !(500...599 ~= response.statusCode) else {
-                guard Date().timeIntervalSince(requestStartTimestamp) < SwedbankPayAPIConstants.requestTimeoutInterval &&
-                      Date().timeIntervalSince(sessionStartTimestamp) < SwedbankPayAPIConstants.sessionTimeoutInterval else {
+                guard Date().timeIntervalSince(requestStartTimestamp) < requestTimeoutInterval &&
+                        Date().timeIntervalSince(sessionStartTimestamp) < sessionTimeoutInterval else {
                     handler(.failure(error ?? SwedbankPayAPIError.unknown))
                     return
                 }

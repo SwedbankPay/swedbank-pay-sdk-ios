@@ -13,19 +13,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extension SwedbankPaySDK {
-    /// Instrument with needed values to make a payment attempt.
-    public enum PaymentAttemptInstrument {
-        case swish(msisdn: String?)
-        case creditCard(prefill: CreditCardMethodPrefillModel)
+import Foundation
 
-        var name: String {
-            switch self {
-            case .swish:
-                return "Swish"
-            case .creditCard:
-                return "CreditCard"
+class CustomDateDecoder: JSONDecoder {
+    let dateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        return formatter
+    }()
+
+    override init() {
+        super.init()
+
+        dateDecodingStrategy = .custom({ (decoder) -> Date in
+            let container = try decoder.singleValueContainer()
+            let dateStr = try container.decode(String.self)
+
+            if let date = self.dateFormatter.date(from: dateStr) {
+                return date
             }
-        }
+
+            return Date.distantPast
+        })
     }
 }

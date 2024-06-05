@@ -106,11 +106,14 @@ public extension SwedbankPaySDK {
                                                                  succeeded: succeeded,
                                                                  values: ["instrument": instrument.name,
                                                                           "msisdn": msisdn]))
-            case .creditCard(let paymentToken):
+            case .creditCard(let prefill):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
                                                                  succeeded: succeeded,
                                                                  values: ["instrument": instrument.name,
-                                                                          "paymentToken": paymentToken]))
+                                                                          "paymentToken": prefill.paymentToken,
+                                                                          "cardNumber": prefill.maskedPan,
+                                                                          "cardExpiryMonth": prefill.expiryMonth,
+                                                                          "cardExpiryYear": prefill.expiryYear]))
             }
 
         }
@@ -293,8 +296,8 @@ public extension SwedbankPaySDK {
                         switch model {
                         case .swish(let prefills, _):
                             return AvailableInstrument.swish(prefills: prefills)
-                        case .creditCard(_, _, _):
-                            return nil
+                        case .creditCard(let prefills, _, _):
+                            return AvailableInstrument.creditCard(prefills: prefills)
                         case .unknown(_):
                             return nil
                         }
