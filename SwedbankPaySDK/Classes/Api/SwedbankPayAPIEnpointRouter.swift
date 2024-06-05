@@ -79,6 +79,20 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                     "service": ["name": "SwedbankPaySDK-iOS",
                                 "version": SwedbankPaySDK.VersionReporter.currentVersion]
             ]
+        case .createAuthentication:
+            return ["methodCompletionIndicator": "Y",
+                    "notificationUrl": "https://fake.payex.com/notification",
+                    "requestWindowSize": "FULLSCREEN",
+                    "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
+                               "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
+                               "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
+                               "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
+                               "screenColorDepth": String(24)],
+                    "browser": ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                "languageHeader": Locale.current.identifier,
+                                "timeZoneOffset": TimeZone.current.offsetFromGMT(),
+                                "javascriptEnabled": true]
+            ]
         default:
             return nil
         }
@@ -93,6 +107,8 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
             default:
                 return SwedbankPayAPIConstants.requestTimeoutInterval
             }
+        case .createAuthentication:
+            return SwedbankPayAPIConstants.creditCardTimoutInterval
         default:
             return SwedbankPayAPIConstants.requestTimeoutInterval
         }
@@ -107,6 +123,8 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
             default:
                 return SwedbankPayAPIConstants.sessionTimeoutInterval
             }
+        case .createAuthentication:
+            return SwedbankPayAPIConstants.creditCardTimoutInterval
         default:
             return SwedbankPayAPIConstants.sessionTimeoutInterval
         }
@@ -164,6 +182,7 @@ extension SwedbankPayAPIEnpointRouter {
         var request = URLRequest(url: url)
         request.httpMethod = model.method
         request.allHTTPHeaderFields = SwedbankPayAPIConstants.commonHeaders
+        request.timeoutInterval = requestTimeoutInterval
 
         if let body = body, let jsonData = try? JSONSerialization.data(withJSONObject: body) {
             request.httpBody = jsonData

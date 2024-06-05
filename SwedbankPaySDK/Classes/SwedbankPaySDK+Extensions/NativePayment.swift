@@ -263,6 +263,8 @@ public extension SwedbankPaySDK {
                       let tasks = launchClientApp.firstTask(with: .launchClientApp),
                       !hasLaunchClientAppURLs.contains(where: { $0.absoluteString.contains(tasks.href ?? "") }) {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
+            } else if let createAuthentication = operations.first(where: { $0.rel == .createAuthentication }) {
+                makeRequest(model: createAuthentication, culture: culture)
             } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
                 DispatchQueue.main.async {
                     if redirectPayer.href == self.orderInfo.cancelUrl?.absoluteString {
