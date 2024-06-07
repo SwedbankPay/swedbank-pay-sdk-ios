@@ -32,6 +32,7 @@ public extension SwedbankPaySDK {
 
         private var hasLaunchClientAppURLs: [URL] = []
         private var hasShownProblemDetails: [ProblemDetails] = []
+        private var hasSCAMethodRequest: [URL] = []
 
         private var sessionStartTimestamp = Date()
 
@@ -263,6 +264,18 @@ public extension SwedbankPaySDK {
                       let tasks = launchClientApp.firstTask(with: .launchClientApp),
                       !hasLaunchClientAppURLs.contains(where: { $0.absoluteString.contains(tasks.href ?? "") }) {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
+            } else if let launchClientApp = operations.first(where: { $0.firstTask(with: .scaMethodRequest) != nil }),
+                      let task = launchClientApp.firstTask(with: .scaMethodRequest),
+                      !hasSCAMethodRequest.contains(where: { $0.absoluteString.contains(task.href ?? "") }) { // Should not be URL
+                let webViewService = SCAWebViewService()
+                webViewService.load(task: task) { result in
+                    switch result {
+                    case .success:
+                        print("success")
+                    case .failure(let error):
+                        print("error \(error)")
+                    }
+                }
             } else if let createAuthentication = operations.first(where: { $0.rel == .createAuthentication }) {
                 makeRequest(model: createAuthentication, culture: culture)
             } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {

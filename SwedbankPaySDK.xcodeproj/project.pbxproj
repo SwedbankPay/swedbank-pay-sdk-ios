@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		4517A24A2C10467A000BB7A8 /* CustomDateDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517A2492C10467A000BB7A8 /* CustomDateDecoder.swift */; };
 		4517A24B2C104702000BB7A8 /* CustomDateDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517A2492C10467A000BB7A8 /* CustomDateDecoder.swift */; };
+		4517A24D2C1324AC000BB7A8 /* SCAWebViewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517A24C2C1324AC000BB7A8 /* SCAWebViewService.swift */; };
+		4517A24E2C132F21000BB7A8 /* SCAWebViewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517A24C2C1324AC000BB7A8 /* SCAWebViewService.swift */; };
 		4517C6A02BFF6B7E001687E7 /* BeaconEndpointRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */; };
 		4517C6A12BFF8980001687E7 /* BeaconEndpointRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */; };
 		4517C6A32BFF928B001687E7 /* BeaconService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C6A22BFF928B001687E7 /* BeaconService.swift */; };
@@ -288,6 +290,7 @@
 
 /* Begin PBXFileReference section */
 		4517A2492C10467A000BB7A8 /* CustomDateDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDateDecoder.swift; sourceTree = "<group>"; };
+		4517A24C2C1324AC000BB7A8 /* SCAWebViewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SCAWebViewService.swift; sourceTree = "<group>"; };
 		4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconEndpointRouter.swift; sourceTree = "<group>"; };
 		4517C6A22BFF928B001687E7 /* BeaconService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconService.swift; sourceTree = "<group>"; };
 		456900802BFB9AA5009475A5 /* NativePaymentProblem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativePaymentProblem.swift; sourceTree = "<group>"; };
@@ -659,6 +662,7 @@
 				A5808B04261C942A00FF7EC1 /* SwedbankPayWebViewControllerBase.swift */,
 				A5808B08261C980000FF7EC1 /* SwedbankPayWebViewControllerDelegate.swift */,
 				A5808B10261CA8B500FF7EC1 /* WKWebViewCanOpen.swift */,
+				4517A24C2C1324AC000BB7A8 /* SCAWebViewService.swift */,
 			);
 			path = WebView;
 			sourceTree = "<group>";
@@ -1186,6 +1190,7 @@
 				45C100922BF247F300AA3523 /* OperationOutputModel.swift in Sources */,
 				D581EFDF27A92A56001B85A7 /* VersionOptions.swift in Sources */,
 				D50CA69B27D23EE000FC6007 /* Operation.swift in Sources */,
+				4517A24D2C1324AC000BB7A8 /* SCAWebViewService.swift in Sources */,
 				C50CF699237AAC73003F79DF /* WhitelistedDomain.swift in Sources */,
 				45C100AD2BF2622E00AA3523 /* NetworkStatusProvider.swift in Sources */,
 				A5C3D01E23A23BC900B45085 /* SwedbankPayWebViewController.swift in Sources */,
@@ -1309,6 +1314,7 @@
 				D511EC892975591B0059AB05 /* WhitelistedDomain.swift in Sources */,
 				D511EC8A2975591B0059AB05 /* SwedbankPayWebViewController.swift in Sources */,
 				D511EC8B2975591B0059AB05 /* SwedbankPayWebViewControllerBase.swift in Sources */,
+				4517A24E2C132F21000BB7A8 /* SCAWebViewService.swift in Sources */,
 				D511EC8C2975591B0059AB05 /* TerminalFailure.swift in Sources */,
 				D511EC8D2975591B0059AB05 /* PaymentOrder.swift in Sources */,
 				D511EC8E2975591B0059AB05 /* ExpandResource.swift in Sources */,
