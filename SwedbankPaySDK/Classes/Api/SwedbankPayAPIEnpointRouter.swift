@@ -26,6 +26,8 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     let model: OperationOutputModel
     let culture: String?
     let instrument: SwedbankPaySDK.PaymentAttemptInstrument?
+    let methodCompletionIndicator: String?
+
     let sessionStartTimestamp: Date
 
     var body: [String: Any?]? {
@@ -80,7 +82,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                 "version": SwedbankPaySDK.VersionReporter.currentVersion]
             ]
         case .createAuthentication:
-            return ["methodCompletionIndicator": "Y",
+            return ["methodCompletionIndicator": methodCompletionIndicator ?? "N",
                     "notificationUrl": "https://fake.payex.com/notification",
                     "requestWindowSize": "FULLSCREEN",
                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,

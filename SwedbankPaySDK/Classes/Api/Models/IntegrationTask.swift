@@ -57,5 +57,6 @@ enum IntegrationTaskRel: Codable, Equatable, Hashable {
 
 struct ExpectationModel: Codable, Hashable {
     let name: String?
+    let type: String?
     let value: String?
 }

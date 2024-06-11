@@ -10,32 +10,39 @@ import Foundation
 import WebKit
 
 class SCAWebViewService: NSObject, WKNavigationDelegate {
-    let webView: WKWebView
-
     var handler: ((Result<Void, Error>) -> Void)?
 
-    override init() {
-        self.webView = WKWebView()
-
-        super.init()
-
-        self.webView.navigationDelegate = self
-    }
+    private var webView: WKWebView?
 
     func load(task: IntegrationTask, handler: @escaping (Result<Void, Error>) -> Void) {
-        self.webView.stopLoading()
+        guard let taskHref = task.href, 
+              let url = URL(string: taskHref) else {
+            handler(.failure(SwedbankPayAPIError.invalidUrl))
+
+            return
+        }
+
+        webView?.stopLoading()
+        webView = nil
+
+        let preferences = WKPreferences()
+        preferences.javaScriptEnabled = true
+        let configuration = WKWebViewConfiguration()
+        configuration.preferences = preferences
+        webView = WKWebView(frame: .zero, configuration: configuration)
+
         self.handler = handler
 
-        var request = URLRequest(url: URL(string: task.href!)!)
+        var request = URLRequest(url: url)
         request.httpMethod = task.method
         request.allHTTPHeaderFields = ["Content-Type": task.contentType ?? ""]
-        request.timeoutInterval = 30
+        request.timeoutInterval = 5
 
         var body: [String: Any?] = [:]
 
         if let expects = task.expects {
             for expect in expects {
-                if let name = expect.name {
+                if expect.type == "string", let name = expect.name {
                     body[name] = expect.value
                 }
             }
@@ -45,14 +52,37 @@ class SCAWebViewService: NSObject, WKNavigationDelegate {
             request.httpBody = jsonData
         }
 
-        self.webView.load(request)
+        webView?.navigationDelegate = self
+        webView?.load(request)
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        self.handler?(.success(()))
+        handler?(.success(()))
+        self.webView?.stopLoading()
+        self.webView = nil
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        self.handler?(.failure(error))
+        handler?(.failure(error))
+        self.webView?.stopLoading()
+        self.webView = nil
+    }
+
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        handler?(.failure(error))
+        self.webView?.stopLoading()
+        self.webView = nil
+    }
+
+    func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+        if let response = navigationResponse.response as? HTTPURLResponse {
+            if 400...599 ~= response.statusCode {
+                decisionHandler(.cancel)
+
+                return
+            }
+        }
+
+        decisionHandler(.allow)
     }
 }

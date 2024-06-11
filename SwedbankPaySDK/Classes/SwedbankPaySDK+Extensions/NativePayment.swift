@@ -17,6 +17,12 @@ import Foundation
 import UIKit
 
 public extension SwedbankPaySDK {
+
+    struct SCAMethod {
+        var value: String
+        var result: String
+    }
+
     /// Object that handles native payments
     class NativePayment: CallbackUrlDelegate {
         /// Order information that provides `NativePayment` with callback URLs.
@@ -32,9 +38,11 @@ public extension SwedbankPaySDK {
 
         private var hasLaunchClientAppURLs: [URL] = []
         private var hasShownProblemDetails: [ProblemDetails] = []
-        private var hasSCAMethodRequest: [URL] = []
+        private var scaMethodRequestDataPerformed: [SCAMethod] = []
 
         private var sessionStartTimestamp = Date()
+
+        private var webViewService = SCAWebViewService()
 
         public init(orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo) {
             self.orderInfo = orderInfo
@@ -146,8 +154,12 @@ public extension SwedbankPaySDK {
                                                              values: nil))
         }
 
-        private func makeRequest(model: OperationOutputModel, culture: String? = nil) {
-            SwedbankPayAPIEnpointRouter(model: model, culture: culture, instrument: instrument, sessionStartTimestamp: sessionStartTimestamp).makeRequest { result in
+        private func makeRequest(model: OperationOutputModel, culture: String? = nil, methodCompletionIndicator: String? = nil) {
+            SwedbankPayAPIEnpointRouter(model: model,
+                                        culture: culture,
+                                        instrument: instrument,
+                                        methodCompletionIndicator: methodCompletionIndicator,
+                                        sessionStartTimestamp: sessionStartTimestamp).makeRequest { result in
                 switch result {
                 case .success(let success):
                     if let model = success {
@@ -264,20 +276,27 @@ public extension SwedbankPaySDK {
                       let tasks = launchClientApp.firstTask(with: .launchClientApp),
                       !hasLaunchClientAppURLs.contains(where: { $0.absoluteString.contains(tasks.href ?? "") }) {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
-            } else if let launchClientApp = operations.first(where: { $0.firstTask(with: .scaMethodRequest) != nil }),
-                      let task = launchClientApp.firstTask(with: .scaMethodRequest),
-                      !hasSCAMethodRequest.contains(where: { $0.absoluteString.contains(task.href ?? "") }) { // Should not be URL
-                let webViewService = SCAWebViewService()
-                webViewService.load(task: task) { result in
-                    switch result {
-                    case .success:
-                        print("success")
-                    case .failure(let error):
-                        print("error \(error)")
+            } else if let scaMethodRequest = operations.first(where: { $0.firstTask(with: .scaMethodRequest) != nil }),
+                      let task = scaMethodRequest.firstTask(with: .scaMethodRequest),
+                      !scaMethodRequestDataPerformed.contains(where: { $0.value == task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value }) {
+                DispatchQueue.main.async {
+                    self.webViewService.load(task: task) { result in
+                        switch result {
+                        case .success:
+                            self.scaMethodRequestDataPerformed.append(SCAMethod(value: task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value ?? "", result: "Y"))
+                        case .failure(let error):
+                            self.scaMethodRequestDataPerformed.append(SCAMethod(value: task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value ?? "", result: "N"))
+                        }
+
+                        if let model = self.ongoingModel {
+                            self.sessionOperationHandling(model: model, culture: culture)
+                        }
                     }
                 }
-            } else if let createAuthentication = operations.first(where: { $0.rel == .createAuthentication }) {
-                makeRequest(model: createAuthentication, culture: culture)
+            } else if let createAuthentication = operations.first(where: { $0.rel == .createAuthentication }),
+                      let task = createAuthentication.firstTask(with: .scaMethodRequest),
+                      let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.value == task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value }) {
+                makeRequest(model: createAuthentication, culture: culture, methodCompletionIndicator: scaMethod.result)
             } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
                 DispatchQueue.main.async {
                     if redirectPayer.href == self.orderInfo.cancelUrl?.absoluteString {
