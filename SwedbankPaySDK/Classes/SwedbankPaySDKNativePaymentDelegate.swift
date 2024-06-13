@@ -6,6 +6,8 @@
 //  Copyright © 2024 Swedbank. All rights reserved.
 //
 
+import UIKit
+
 /// Swedbank Pay SDK protocol, conform to this to get the result of the payment process
 public protocol SwedbankPaySDKNativePaymentDelegate: AnyObject {
     /// Called whenever the payment has been completed.
@@ -28,4 +30,8 @@ public protocol SwedbankPaySDKNativePaymentDelegate: AnyObject {
     ///
     /// - parameter problem: The problem that caused the failure
     func sdkProblemOccurred(problem: SwedbankPaySDK.NativePaymentProblem)
+
+    func showViewController(viewController: UIViewController)
+
+    func finishedWithViewController()
 }

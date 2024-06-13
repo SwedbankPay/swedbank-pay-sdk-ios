@@ -10,7 +10,7 @@ import Foundation
 import WebKit
 
 class SCAWebViewService: NSObject, WKNavigationDelegate {
-    var handler: ((Result<Void, Error>) -> Void)?
+    private var handler: ((Result<Void, Error>) -> Void)?
 
     private var webView: WKWebView?
 

@@ -15,14 +15,9 @@
 
 import Foundation
 import UIKit
+import WebKit
 
 public extension SwedbankPaySDK {
-
-    struct SCAMethod {
-        var value: String
-        var result: String
-    }
-
     /// Object that handles native payments
     class NativePayment: CallbackUrlDelegate {
         /// Order information that provides `NativePayment` with callback URLs.
@@ -38,11 +33,13 @@ public extension SwedbankPaySDK {
 
         private var hasLaunchClientAppURLs: [URL] = []
         private var hasShownProblemDetails: [ProblemDetails] = []
-        private var scaMethodRequestDataPerformed: [SCAMethod] = []
+        private var scaMethodRequestDataPerformed: [ExpectationModel] = []
+        private var scaRedirectDataPerformed: [ExpectationModel] = []
 
         private var sessionStartTimestamp = Date()
 
         private var webViewService = SCAWebViewService()
+        private lazy var webViewController = SwedbankPaySCAWebViewController()
 
         public init(orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo) {
             self.orderInfo = orderInfo
@@ -65,6 +62,8 @@ public extension SwedbankPaySDK {
             ongoingModel = nil
             hasLaunchClientAppURLs = []
             hasShownProblemDetails = []
+            scaMethodRequestDataPerformed = []
+            scaRedirectDataPerformed = []
             hasShownAvailableInstruments = false
 
             let model = OperationOutputModel(rel: nil,
@@ -107,6 +106,16 @@ public extension SwedbankPaySDK {
                 sessionStartTimestamp = Date()
                 makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
                 succeeded = true
+            } else {
+                DispatchQueue.main.async {
+                    self.delegate?.sdkProblemOccurred(problem: .paymentSessionEndStateReached)
+
+                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                       succeeded: self.delegate != nil,
+                                                                       values: ["problem": SwedbankPaySDK.NativePaymentProblem.paymentSessionEndStateReached.rawValue]))
+                }
+
+                return
             }
 
             switch instrument {
@@ -154,11 +163,12 @@ public extension SwedbankPaySDK {
                                                              values: nil))
         }
 
-        private func makeRequest(model: OperationOutputModel, culture: String? = nil, methodCompletionIndicator: String? = nil) {
+        private func makeRequest(model: OperationOutputModel, culture: String? = nil, methodCompletionIndicator: String? = nil, cRes: String? = nil) {
             SwedbankPayAPIEnpointRouter(model: model,
                                         culture: culture,
                                         instrument: instrument,
                                         methodCompletionIndicator: methodCompletionIndicator,
+                                        cRes: cRes,
                                         sessionStartTimestamp: sessionStartTimestamp).makeRequest { result in
                 switch result {
                 case .success(let success):
@@ -174,7 +184,11 @@ public extension SwedbankPaySDK {
                         let problem = SwedbankPaySDK.NativePaymentProblem.paymentSessionAPIRequestFailed(error: failure,
                                                                                                          retry: {
                             self.sessionStartTimestamp = Date()
-                            self.makeRequest(model: model, culture: culture)
+                            self.makeRequest(model: model,
+                                             culture: culture,
+                                             methodCompletionIndicator:
+                                                methodCompletionIndicator,
+                                             cRes: cRes)
                         })
 
                         self.delegate?.sdkProblemOccurred(problem: problem)
@@ -278,14 +292,14 @@ public extension SwedbankPaySDK {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
             } else if let scaMethodRequest = operations.first(where: { $0.firstTask(with: .scaMethodRequest) != nil }),
                       let task = scaMethodRequest.firstTask(with: .scaMethodRequest),
-                      !scaMethodRequestDataPerformed.contains(where: { $0.value == task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value }) {
+                      !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value }) {
                 DispatchQueue.main.async {
                     self.webViewService.load(task: task) { result in
                         switch result {
                         case .success:
-                            self.scaMethodRequestDataPerformed.append(SCAMethod(value: task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value ?? "", result: "Y"))
+                            self.scaMethodRequestDataPerformed.append(ExpectationModel(name: task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value ?? "", type: "string", value: "Y"))
                         case .failure(let error):
-                            self.scaMethodRequestDataPerformed.append(SCAMethod(value: task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value ?? "", result: "N"))
+                            self.scaMethodRequestDataPerformed.append(ExpectationModel(name: task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value ?? "", type: "string", value: "N"))
                         }
 
                         if let model = self.ongoingModel {
@@ -295,8 +309,38 @@ public extension SwedbankPaySDK {
                 }
             } else if let createAuthentication = operations.first(where: { $0.rel == .createAuthentication }),
                       let task = createAuthentication.firstTask(with: .scaMethodRequest),
-                      let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.value == task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value }) {
-                makeRequest(model: createAuthentication, culture: culture, methodCompletionIndicator: scaMethod.result)
+                      let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value }) {
+                makeRequest(model: createAuthentication, culture: culture, methodCompletionIndicator: scaMethod.value)
+            } else if let operation = operations.first(where: { $0.firstTask(with: .scaRedirect) != nil }),
+                      let task = operation.firstTask(with: .scaRedirect),
+                      !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "CReq" })?.value }) {
+                DispatchQueue.main.async {
+                    self.delegate?.showViewController(viewController: self.webViewController)
+
+                    self.webViewController.load(task: task) { result in
+                        switch result {
+                        case .success(let value):
+                            if !self.scaRedirectDataPerformed.contains(where: { $0.value == value }) {
+                                print("success \(value)")
+                                self.scaRedirectDataPerformed.append(ExpectationModel(name: task.expects!.first(where: { $0.name == "CReq" })!.value!, type: "string", value: value))
+
+                                self.delegate?.finishedWithViewController()
+                            } else {
+                                print("success old")
+                            }
+                        case .failure(let error):
+                            print("success \(error)")
+                        }
+
+                        if let model = self.ongoingModel {
+                            self.sessionOperationHandling(model: model, culture: culture)
+                        }
+                    }
+                }
+            } else if let completeAuthentication = operations.first(where: { $0.rel == .completeAuthentication }),
+                      let task = completeAuthentication.tasks?.first(where: { $0.expects?.contains(where: { $0.name == "CReq" } ) ?? false } ),
+                      let scaRedirect = scaRedirectDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "CReq" })?.value }) {
+                makeRequest(model: completeAuthentication, culture: culture, cRes: scaRedirect.value)
             } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
                 DispatchQueue.main.async {
                     if redirectPayer.href == self.orderInfo.cancelUrl?.absoluteString {
@@ -322,6 +366,8 @@ public extension SwedbankPaySDK {
                 sessionIsOngoing = false
                 hasLaunchClientAppURLs = []
                 hasShownProblemDetails = []
+                scaMethodRequestDataPerformed = []
+                scaRedirectDataPerformed = []
                 hasShownAvailableInstruments = false
             } else if (operations.contains(where: { $0.rel == .expandMethod }) || operations.contains(where: { $0.rel == .startPaymentAttempt })) &&
                         hasShownAvailableInstruments == false {

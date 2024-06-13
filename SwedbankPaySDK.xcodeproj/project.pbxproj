@@ -18,6 +18,8 @@
 		456900822BFB9AA5009475A5 /* NativePaymentProblem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456900802BFB9AA5009475A5 /* NativePaymentProblem.swift */; };
 		457C9C5F2C08C27C00420B4F /* SwedbankPaySDKNativePaymentDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457C9C5E2C08C27C00420B4F /* SwedbankPaySDKNativePaymentDelegate.swift */; };
 		457C9C602C08C2F900420B4F /* SwedbankPaySDKNativePaymentDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457C9C5E2C08C27C00420B4F /* SwedbankPaySDKNativePaymentDelegate.swift */; };
+		45B429942C18687100620A0A /* SwedbankPaySCAWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B429932C18687100620A0A /* SwedbankPaySCAWebViewController.swift */; };
+		45B429952C18687100620A0A /* SwedbankPaySCAWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B429932C18687100620A0A /* SwedbankPaySCAWebViewController.swift */; };
 		45B4495B2C05F34F00A1F46D /* BeaconType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B4495A2C05F34F00A1F46D /* BeaconType.swift */; };
 		45B4495D2C05F46200A1F46D /* Beacon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B4495C2C05F46200A1F46D /* Beacon.swift */; };
 		45B4495E2C05F51500A1F46D /* Beacon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B4495C2C05F46200A1F46D /* Beacon.swift */; };
@@ -295,6 +297,7 @@
 		4517C6A22BFF928B001687E7 /* BeaconService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconService.swift; sourceTree = "<group>"; };
 		456900802BFB9AA5009475A5 /* NativePaymentProblem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativePaymentProblem.swift; sourceTree = "<group>"; };
 		457C9C5E2C08C27C00420B4F /* SwedbankPaySDKNativePaymentDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKNativePaymentDelegate.swift; sourceTree = "<group>"; };
+		45B429932C18687100620A0A /* SwedbankPaySCAWebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPaySCAWebViewController.swift; sourceTree = "<group>"; };
 		45B4495A2C05F34F00A1F46D /* BeaconType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconType.swift; sourceTree = "<group>"; };
 		45B4495C2C05F46200A1F46D /* Beacon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Beacon.swift; sourceTree = "<group>"; };
 		45C1008B2BF247F300AA3523 /* SwedbankPayAPIError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPayAPIError.swift; sourceTree = "<group>"; };
@@ -663,6 +666,7 @@
 				A5808B08261C980000FF7EC1 /* SwedbankPayWebViewControllerDelegate.swift */,
 				A5808B10261CA8B500FF7EC1 /* WKWebViewCanOpen.swift */,
 				4517A24C2C1324AC000BB7A8 /* SCAWebViewService.swift */,
+				45B429932C18687100620A0A /* SwedbankPaySCAWebViewController.swift */,
 			);
 			path = WebView;
 			sourceTree = "<group>";
@@ -1189,6 +1193,7 @@
 				C50CF697237AA8ED003F79DF /* Configuration.swift in Sources */,
 				45C100922BF247F300AA3523 /* OperationOutputModel.swift in Sources */,
 				D581EFDF27A92A56001B85A7 /* VersionOptions.swift in Sources */,
+				45B429942C18687100620A0A /* SwedbankPaySCAWebViewController.swift in Sources */,
 				D50CA69B27D23EE000FC6007 /* Operation.swift in Sources */,
 				4517A24D2C1324AC000BB7A8 /* SCAWebViewService.swift in Sources */,
 				C50CF699237AAC73003F79DF /* WhitelistedDomain.swift in Sources */,
@@ -1296,6 +1301,7 @@
 				D511EC7B2975591B0059AB05 /* SwedbankPaySDKResources.swift in Sources */,
 				D511EC7C2975591B0059AB05 /* TypeAliases.swift in Sources */,
 				457C9C602C08C2F900420B4F /* SwedbankPaySDKNativePaymentDelegate.swift in Sources */,
+				45B429952C18687100620A0A /* SwedbankPaySCAWebViewController.swift in Sources */,
 				45C100932BF247F300AA3523 /* OperationOutputModel.swift in Sources */,
 				D511EC7D2975591B0059AB05 /* SwedbankPayExtraWebViewController.swift in Sources */,
 				45C100B02BF2622E00AA3523 /* TimeZone+OffsetFromGMT.swift in Sources */,

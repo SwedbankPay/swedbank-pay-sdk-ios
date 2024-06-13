@@ -27,6 +27,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     let culture: String?
     let instrument: SwedbankPaySDK.PaymentAttemptInstrument?
     let methodCompletionIndicator: String?
+    let cRes: String?
 
     let sessionStartTimestamp: Date
 
@@ -83,7 +84,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
             ]
         case .createAuthentication:
             return ["methodCompletionIndicator": methodCompletionIndicator ?? "N",
-                    "notificationUrl": "https://fake.payex.com/notification",
+                    "notificationUrl": SwedbankPayAPIConstants.notificationUrl,
                     "requestWindowSize": "FULLSCREEN",
                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
@@ -94,6 +95,11 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                 "languageHeader": Locale.current.identifier,
                                 "timeZoneOffset": TimeZone.current.offsetFromGMT(),
                                 "javascriptEnabled": true]
+            ]
+        case .completeAuthentication:
+            return ["cRes": cRes ?? "",
+                    "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
+                               "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""],
             ]
         default:
             return nil
@@ -109,7 +115,8 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
             default:
                 return SwedbankPayAPIConstants.requestTimeoutInterval
             }
-        case .createAuthentication:
+        case .createAuthentication,
+             .completeAuthentication:
             return SwedbankPayAPIConstants.creditCardTimoutInterval
         default:
             return SwedbankPayAPIConstants.requestTimeoutInterval
@@ -125,7 +132,8 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
             default:
                 return SwedbankPayAPIConstants.sessionTimeoutInterval
             }
-        case .createAuthentication:
+        case .createAuthentication,
+             .completeAuthentication:
             return SwedbankPayAPIConstants.creditCardTimoutInterval
         default:
             return SwedbankPayAPIConstants.sessionTimeoutInterval
@@ -210,7 +218,7 @@ extension SwedbankPayAPIEnpointRouter {
                                                         responseStatusCode: responseStatusCode,
                                                         values: values))
 
-            guard let data, let response = response as? HTTPURLResponse, !(500...599 ~= response.statusCode) else {
+            guard let response = response as? HTTPURLResponse, !(500...599 ~= response.statusCode) else {
                 guard Date().timeIntervalSince(requestStartTimestamp) < requestTimeoutInterval &&
                         Date().timeIntervalSince(sessionStartTimestamp) < sessionTimeoutInterval else {
                     handler(.failure(error ?? SwedbankPayAPIError.unknown))
@@ -222,6 +230,12 @@ extension SwedbankPayAPIEnpointRouter {
 
                     requestWithDataResponse(requestStartTimestamp: requestStartTimestamp, handler: handler)
                 }
+
+                return
+            }
+
+            guard let data, 200...204 ~= response.statusCode else {
+                handler(.failure(error ?? SwedbankPayAPIError.unknown))
 
                 return
             }
