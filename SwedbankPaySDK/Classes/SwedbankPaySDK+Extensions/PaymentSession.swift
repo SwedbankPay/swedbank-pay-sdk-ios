@@ -18,13 +18,13 @@ import UIKit
 import WebKit
 
 public extension SwedbankPaySDK {
-    /// Object that handles native payments
-    class NativePayment: CallbackUrlDelegate {
-        /// Order information that provides `NativePayment` with callback URLs.
-        public var orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo
+    /// Object that handles payment sessions
+    class PaymentSession: CallbackUrlDelegate {
+        /// Order information that provides `PaymentSession` with callback URLs.
+        public var orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo?
 
         /// A delegate to receive callbacks as the native payment changes.
-        public weak var delegate: SwedbankPaySDKNativePaymentDelegate?
+        public weak var delegate: SwedbankPaySDKPaymentSessionDelegate?
 
         private var ongoingModel: PaymentOutputModel? = nil
         private var sessionIsOngoing: Bool = false
@@ -41,8 +41,13 @@ public extension SwedbankPaySDK {
         private var webViewService = SCAWebViewService()
         private lazy var webViewController = SwedbankPaySCAWebViewController()
 
-        public init(orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo) {
-            self.orderInfo = orderInfo
+        private var automaticConfiguration: Bool = true
+
+        public init(orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo? = nil) {
+            if let orderInfo {
+                self.orderInfo = orderInfo
+                self.automaticConfiguration = false
+            }
 
             SwedbankPaySDK.addCallbackUrlDelegate(self)
         }
@@ -66,6 +71,10 @@ public extension SwedbankPaySDK {
             scaRedirectDataPerformed = []
             hasShownAvailableInstruments = false
 
+            if automaticConfiguration {
+                orderInfo = nil
+            }
+
             let model = OperationOutputModel(rel: nil,
                                              href: sessionURL.absoluteString,
                                              method: "GET",
@@ -73,7 +82,7 @@ public extension SwedbankPaySDK {
                                              tasks: nil)
 
             sessionStartTimestamp = Date()
-            makeRequest(model: model)
+            makeRequest(operationOutputModel: model)
 
             BeaconService.shared.clear()
             BeaconService.shared.log(type: .sdkMethodInvoked(name: "startPaymentSession",
@@ -92,7 +101,7 @@ public extension SwedbankPaySDK {
 
                 BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                    succeeded: self.delegate != nil,
-                                                                   values: ["problem": SwedbankPaySDK.NativePaymentProblem.internalInconsistencyError.rawValue]))
+                                                                   values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
 
                 return
             }
@@ -105,7 +114,7 @@ public extension SwedbankPaySDK {
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
 
                 sessionStartTimestamp = Date()
-                makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
+                makeRequest(operationOutputModel: operation, culture: ongoingModel.paymentSession.culture)
 
                 if operation.rel == .startPaymentAttempt {
                     self.instrument = nil
@@ -118,7 +127,7 @@ public extension SwedbankPaySDK {
 
                     BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                        succeeded: self.delegate != nil,
-                                                                       values: ["problem": SwedbankPaySDK.NativePaymentProblem.paymentSessionEndStateReached.rawValue]))
+                                                                       values: ["problem": SwedbankPaySDK.PaymentSessionProblem.paymentSessionEndStateReached.rawValue]))
                 }
 
                 return
@@ -151,7 +160,7 @@ public extension SwedbankPaySDK {
 
                 BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                    succeeded: self.delegate != nil,
-                                                                   values: ["problem": SwedbankPaySDK.NativePaymentProblem.internalInconsistencyError.rawValue]))
+                                                                   values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
 
                 return
             }
@@ -160,7 +169,7 @@ public extension SwedbankPaySDK {
             if let operation = ongoingModel.operations?
                 .first(where: { $0.rel == .abortPayment }) {
                 sessionStartTimestamp = Date()
-                makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
+                makeRequest(operationOutputModel: operation, culture: ongoingModel.paymentSession.culture)
                 succeeded = true
             }
 
@@ -169,8 +178,8 @@ public extension SwedbankPaySDK {
                                                              values: nil))
         }
 
-        private func makeRequest(model: OperationOutputModel, culture: String? = nil, methodCompletionIndicator: String? = nil, cRes: String? = nil) {
-            SwedbankPayAPIEnpointRouter(model: model,
+        private func makeRequest(operationOutputModel: OperationOutputModel, culture: String? = nil, methodCompletionIndicator: String? = nil, cRes: String? = nil) {
+            SwedbankPayAPIEnpointRouter(model: operationOutputModel,
                                         culture: culture,
                                         instrument: instrument,
                                         methodCompletionIndicator: methodCompletionIndicator,
@@ -178,19 +187,39 @@ public extension SwedbankPaySDK {
                                         sessionStartTimestamp: sessionStartTimestamp).makeRequest { result in
                 switch result {
                 case .success(let success):
-                    if let model = success {
-                        if let eventLogging = model.operations?.first(where: { $0.rel == .eventLogging  }) {
+                    if let paymentOutputModel = success {
+                        if self.automaticConfiguration, operationOutputModel.rel == nil {
+                            guard let urls = paymentOutputModel.paymentSession.urls, urls.completeUrl != nil, urls.hostUrls != nil else {
+                                self.delegate?.sdkProblemOccurred(problem: .automaticConfigurationFailed)
+
+                                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                                   succeeded: self.delegate != nil,
+                                                                                   values: ["problem": SwedbankPaySDK.PaymentSessionProblem.automaticConfigurationFailed.rawValue]))
+
+                                return
+                            }
+
+                            self.orderInfo = SwedbankPaySDK.ViewPaymentOrderInfo(isV3: true,
+                                                                                 webViewBaseURL: nil,
+                                                                                 viewPaymentLink: URL(string: "https://")!,
+                                                                                 completeUrl: urls.completeUrl!,
+                                                                                 cancelUrl: urls.cancelUrl,
+                                                                                 paymentUrl: urls.paymentUrl,
+                                                                                 termsOfServiceUrl: urls.termsOfServiceUrl)
+                        }
+
+                        if let eventLogging = paymentOutputModel.operations?.first(where: { $0.rel == .eventLogging  }) {
                             BeaconService.shared.href = eventLogging.href
                         }
 
-                        self.sessionOperationHandling(model: model, culture: model.paymentSession.culture)
+                        self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
                     }
                 case .failure(let failure):
                     DispatchQueue.main.async {
-                        let problem = SwedbankPaySDK.NativePaymentProblem.paymentSessionAPIRequestFailed(error: failure,
+                        let problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: failure,
                                                                                                          retry: {
                             self.sessionStartTimestamp = Date()
-                            self.makeRequest(model: model,
+                            self.makeRequest(operationOutputModel: operationOutputModel,
                                              culture: culture,
                                              methodCompletionIndicator:
                                                 methodCompletionIndicator,
@@ -218,7 +247,7 @@ public extension SwedbankPaySDK {
 
                 BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                    succeeded: self.delegate != nil,
-                                                                   values: ["problem": SwedbankPaySDK.NativePaymentProblem.internalInconsistencyError.rawValue]))
+                                                                   values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
 
                 return
             }
@@ -227,7 +256,7 @@ public extension SwedbankPaySDK {
             if components.scheme == "swish",
                components.queryItems?.contains(where: { $0.name == "callbackurl" }) == false ||
                components.queryItems?.contains(where: { $0.name == "callbackurl" && ($0.value == nil || $0.value?.isEmpty == true) }) == true {
-                if let paymentUrl = orderInfo.paymentUrl?.absoluteString {
+                if let paymentUrl = orderInfo?.paymentUrl?.absoluteString {
                     components.queryItems?.append(URLQueryItem(name: "callbackurl", value: paymentUrl.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)))
                 }
             }
@@ -243,10 +272,10 @@ public extension SwedbankPaySDK {
 
                             BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                                succeeded: self.delegate != nil,
-                                                                               values: ["problem": SwedbankPaySDK.NativePaymentProblem.clientAppLaunchFailed.rawValue]))
+                                                                               values: ["problem": SwedbankPaySDK.PaymentSessionProblem.clientAppLaunchFailed.rawValue]))
                         }
 
-                        BeaconService.shared.log(type: .launchClientApp(values: ["callbackUrl": self.orderInfo.paymentUrl?.absoluteString ?? "",
+                        BeaconService.shared.log(type: .launchClientApp(values: ["callbackUrl": self.orderInfo?.paymentUrl?.absoluteString ?? "",
                                                                                  "clientAppLaunchUrl": url.absoluteString,
                                                                                  "launchSucceeded": complete]))
                     }
@@ -254,12 +283,12 @@ public extension SwedbankPaySDK {
             }
         }
 
-        private func sessionOperationHandling(model: PaymentOutputModel, culture: String? = nil) {
-            ongoingModel = model
+        private func sessionOperationHandling(paymentOutputModel: PaymentOutputModel, culture: String? = nil) {
+            ongoingModel = paymentOutputModel
 
             var hasShowedError = false
             
-            if let modelProblem = model.problem,
+            if let modelProblem = paymentOutputModel.problem,
                let problemOperation = modelProblem.operation,
                problemOperation.rel == .acknowledgeFailedAttempt {
                 if !hasShownProblemDetails.contains(where: { $0.operation?.href == problemOperation.href }) {
@@ -277,20 +306,22 @@ public extension SwedbankPaySDK {
                     }
                 }
 
-                makeRequest(model: problemOperation, culture: culture)
+                makeRequest(operationOutputModel: problemOperation, culture: culture)
             }
 
-            let operations = model.prioritisedOperations
+            let operations = paymentOutputModel.prioritisedOperations
+
+            print("\(operations.compactMap({ $0.rel }))")
 
             if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
-                makeRequest(model: preparePayment, culture: culture)
+                makeRequest(operationOutputModel: preparePayment, culture: culture)
             } else if operations.contains(where: { $0.rel == .startPaymentAttempt }),
                       let instrument = instrument,
                       let startPaymentAttempt = ongoingModel?.paymentSession.methods?
                 .first(where: { $0.name == instrument.name })?.operations?
                 .first(where: { $0.rel == .startPaymentAttempt }) {
 
-                makeRequest(model: startPaymentAttempt, culture: culture)
+                makeRequest(operationOutputModel: startPaymentAttempt, culture: culture)
                 self.instrument = nil
             } else if let launchClientApp = operations.first(where: { $0.firstTask(with: .launchClientApp) != nil }),
                       let tasks = launchClientApp.firstTask(with: .launchClientApp),
@@ -309,14 +340,14 @@ public extension SwedbankPaySDK {
                         }
 
                         if let model = self.ongoingModel {
-                            self.sessionOperationHandling(model: model, culture: culture)
+                            self.sessionOperationHandling(paymentOutputModel: model, culture: culture)
                         }
                     }
                 }
             } else if let createAuthentication = operations.first(where: { $0.rel == .createAuthentication }),
                       let task = createAuthentication.firstTask(with: .scaMethodRequest),
                       let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value }) {
-                makeRequest(model: createAuthentication, culture: culture, methodCompletionIndicator: scaMethod.value)
+                makeRequest(operationOutputModel: createAuthentication, culture: culture, methodCompletionIndicator: scaMethod.value)
             } else if let operation = operations.first(where: { $0.firstTask(with: .scaRedirect) != nil }),
                       let task = operation.firstTask(with: .scaRedirect),
                       !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
@@ -324,16 +355,16 @@ public extension SwedbankPaySDK {
             } else if let completeAuthentication = operations.first(where: { $0.rel == .completeAuthentication }),
                       let task = completeAuthentication.tasks?.first(where: { $0.expects?.contains(where: { $0.name == "creq" } ) ?? false } ),
                       let scaRedirect = scaRedirectDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
-                makeRequest(model: completeAuthentication, culture: culture, cRes: scaRedirect.value)
+                makeRequest(operationOutputModel: completeAuthentication, culture: culture, cRes: scaRedirect.value)
             } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
                 DispatchQueue.main.async {
-                    if redirectPayer.href == self.orderInfo.cancelUrl?.absoluteString {
+                    if redirectPayer.href == self.orderInfo?.cancelUrl?.absoluteString {
                         self.delegate?.paymentCanceled()
 
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentCanceled",
                                                                            succeeded: self.delegate != nil,
                                                                            values: nil))
-                    } else if redirectPayer.href == self.orderInfo.completeUrl.absoluteString {
+                    } else if redirectPayer.href == self.orderInfo?.completeUrl.absoluteString {
                         self.delegate?.paymentComplete()
 
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentComplete",
@@ -344,7 +375,7 @@ public extension SwedbankPaySDK {
                         
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                            succeeded: self.delegate != nil,
-                                                                           values: ["problem": SwedbankPaySDK.NativePaymentProblem.paymentSessionEndStateReached.rawValue]))
+                                                                           values: ["problem": SwedbankPaySDK.PaymentSessionProblem.paymentSessionEndStateReached.rawValue]))
                     }
                 }
                 sessionIsOngoing = false
@@ -356,7 +387,7 @@ public extension SwedbankPaySDK {
             } else if (operations.contains(where: { $0.rel == .expandMethod }) || operations.contains(where: { $0.rel == .startPaymentAttempt })) &&
                         hasShownAvailableInstruments == false {
                 DispatchQueue.main.async {
-                    let availableInstruments: [AvailableInstrument] = model.paymentSession.methods?.compactMap({ model in
+                    let availableInstruments: [AvailableInstrument] = paymentOutputModel.paymentSession.methods?.compactMap({ model in
                         switch model {
                         case .swish(let prefills, _):
                             return AvailableInstrument.swish(prefills: prefills)
@@ -369,16 +400,16 @@ public extension SwedbankPaySDK {
 
                     self.hasShownAvailableInstruments = true
 
-                    self.delegate?.availableInstrumentsFetched(availableInstruments)
+                    self.delegate?.paymentSessionFetched(availableInstruments: availableInstruments)
 
-                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "availableInstrumentsFetched",
+                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionFetched",
                                                                        succeeded: self.delegate != nil,
                                                                        values: ["instruments": availableInstruments.compactMap({ $0.name }).joined(separator: ";")]))
                 }
             } else if let getPayment = operations.first(where: { $0.rel == .getPayment }) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     self.sessionStartTimestamp = Date()
-                    self.makeRequest(model: getPayment, culture: culture)
+                    self.makeRequest(operationOutputModel: getPayment, culture: culture)
                 }
             } else if !hasShowedError {
                 DispatchQueue.main.async {
@@ -386,13 +417,13 @@ public extension SwedbankPaySDK {
 
                     BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                        succeeded: self.delegate != nil,
-                                                                       values: ["problem": SwedbankPaySDK.NativePaymentProblem.paymentSessionEndStateReached.rawValue]))
+                                                                       values: ["problem": SwedbankPaySDK.PaymentSessionProblem.paymentSessionEndStateReached.rawValue]))
                 }
             }
         }
 
         func handleCallbackUrl(_ url: URL) -> Bool {
-            guard url == orderInfo.paymentUrl else {
+            guard url == orderInfo?.paymentUrl else {
                 return false
             }
 
@@ -400,7 +431,7 @@ public extension SwedbankPaySDK {
                 if let operation = ongoingModel.paymentSession.allMethodOperations
                     .first(where: { $0.rel == .getPayment }) {
                     sessionStartTimestamp = Date()
-                    makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
+                    makeRequest(operationOutputModel: operation, culture: ongoingModel.paymentSession.culture)
                 }
             }
 
@@ -430,7 +461,7 @@ public extension SwedbankPaySDK {
                                                                                values: nil))
 
                             if let model = self.ongoingModel {
-                                self.sessionOperationHandling(model: model, culture: culture)
+                                self.sessionOperationHandling(paymentOutputModel: model, culture: culture)
                             }
                         }
                     case .failure(let error):
