@@ -38,18 +38,19 @@ class SCAWebViewService: NSObject, WKNavigationDelegate {
         request.allHTTPHeaderFields = ["Content-Type": task.contentType ?? ""]
         request.timeoutInterval = 5
 
-        var body: [String: Any?] = [:]
-
-        if let expects = task.expects {
-            for expect in expects {
-                if expect.type == "string", let name = expect.name {
-                    body[name] = expect.value
+        if let bodyString = task.expects?
+            .filter({ $0.type == "string" })
+            .compactMap({ 
+                guard let name = $0.name, 
+                      let value = $0.value?.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) else {
+                    return nil
                 }
-            }
-        }
 
-        if let jsonData = try? JSONSerialization.data(withJSONObject: body) {
-            request.httpBody = jsonData
+                return name + "=" + value
+            })
+                .joined(separator: "&") {
+
+            request.httpBody = bodyString.data(using: .utf8)
         }
 
         webView?.navigationDelegate = self

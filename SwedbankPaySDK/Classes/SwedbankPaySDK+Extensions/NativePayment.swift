@@ -292,14 +292,14 @@ public extension SwedbankPaySDK {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
             } else if let scaMethodRequest = operations.first(where: { $0.firstTask(with: .scaMethodRequest) != nil }),
                       let task = scaMethodRequest.firstTask(with: .scaMethodRequest),
-                      !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value }) {
+                      !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value }) {
                 DispatchQueue.main.async {
                     self.webViewService.load(task: task) { result in
                         switch result {
                         case .success:
-                            self.scaMethodRequestDataPerformed.append(ExpectationModel(name: task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value ?? "", type: "string", value: "Y"))
+                            self.scaMethodRequestDataPerformed.append(ExpectationModel(name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "", type: "string", value: "Y"))
                         case .failure(let error):
-                            self.scaMethodRequestDataPerformed.append(ExpectationModel(name: task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value ?? "", type: "string", value: "N"))
+                            self.scaMethodRequestDataPerformed.append(ExpectationModel(name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "", type: "string", value: "N"))
                         }
 
                         if let model = self.ongoingModel {
@@ -309,11 +309,11 @@ public extension SwedbankPaySDK {
                 }
             } else if let createAuthentication = operations.first(where: { $0.rel == .createAuthentication }),
                       let task = createAuthentication.firstTask(with: .scaMethodRequest),
-                      let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "ThreeDsMethodData" })?.value }) {
+                      let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value }) {
                 makeRequest(model: createAuthentication, culture: culture, methodCompletionIndicator: scaMethod.value)
             } else if let operation = operations.first(where: { $0.firstTask(with: .scaRedirect) != nil }),
                       let task = operation.firstTask(with: .scaRedirect),
-                      !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "CReq" })?.value }) {
+                      !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
                 DispatchQueue.main.async {
                     self.delegate?.showViewController(viewController: self.webViewController)
 
@@ -322,7 +322,7 @@ public extension SwedbankPaySDK {
                         case .success(let value):
                             if !self.scaRedirectDataPerformed.contains(where: { $0.value == value }) {
                                 print("success \(value)")
-                                self.scaRedirectDataPerformed.append(ExpectationModel(name: task.expects!.first(where: { $0.name == "CReq" })!.value!, type: "string", value: value))
+                                self.scaRedirectDataPerformed.append(ExpectationModel(name: task.expects!.first(where: { $0.name == "creq" })!.value!, type: "string", value: value))
 
                                 self.delegate?.finishedWithViewController()
                             } else {
@@ -338,8 +338,8 @@ public extension SwedbankPaySDK {
                     }
                 }
             } else if let completeAuthentication = operations.first(where: { $0.rel == .completeAuthentication }),
-                      let task = completeAuthentication.tasks?.first(where: { $0.expects?.contains(where: { $0.name == "CReq" } ) ?? false } ),
-                      let scaRedirect = scaRedirectDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "CReq" })?.value }) {
+                      let task = completeAuthentication.tasks?.first(where: { $0.expects?.contains(where: { $0.name == "creq" } ) ?? false } ),
+                      let scaRedirect = scaRedirectDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
                 makeRequest(model: completeAuthentication, culture: culture, cRes: scaRedirect.value)
             } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
                 DispatchQueue.main.async {

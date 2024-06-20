@@ -67,29 +67,31 @@ class SwedbankPaySCAWebViewController: UIViewController {
 
     func load(task: IntegrationTask, handler: @escaping (Result<String, Error>) -> Void) {
         guard let taskHref = task.href,
-              let url = URL(string: "https://firebasestorage.googleapis.com/v0/b/consid-beta.appspot.com/o/fake-3ds.html?alt=media") else {
+              let url = URL(string: taskHref) else {
             return
         }
 
         self.handler = handler
 
         var request = URLRequest(url: url)
-//        request.httpMethod = task.method
-//        request.allHTTPHeaderFields = ["Content-Type": task.contentType ?? ""]
-//
-//        var body: [String: Any?] = [:]
-//
-//        if let expects = task.expects {
-//            for expect in expects {
-//                if expect.type == "string", let name = expect.name {
-//                    body[name] = expect.value
-//                }
-//            }
-//        }
+        request.httpMethod = task.method
+        request.allHTTPHeaderFields = ["Content-Type": task.contentType ?? ""]
+        request.timeoutInterval = 5
 
-//        if let jsonData = try? JSONSerialization.data(withJSONObject: body) {
-//            request.httpBody = jsonData
-//        }
+        if let bodyString = task.expects?
+            .filter({ $0.type == "string" })
+            .compactMap({
+                guard let name = $0.name,
+                      let value = $0.value?.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) else {
+                    return nil
+                }
+
+                return name + "=" + value
+            })
+                .joined(separator: "&") {
+
+            request.httpBody = bodyString.data(using: .utf8)
+        }
 
         let navigation = webView.load(request)
 
@@ -110,7 +112,7 @@ extension SwedbankPaySCAWebViewController: WKNavigationDelegate {
            let httpBody = request.httpBody,
            let bodyString = String(data: httpBody, encoding: .utf8),
            let urlComponents = URLComponents(string: "https://www.apple.com?\(bodyString)"),
-           let cRes = urlComponents.queryItems?.first(where: { $0.name == "CRes" })?.value {
+           let cRes = urlComponents.queryItems?.first(where: { $0.name == "cres" })?.value {
             navigationLog(request.url, "Link CRes")
             self.handler?(.success(cRes))
             decisionHandler(.allow)
