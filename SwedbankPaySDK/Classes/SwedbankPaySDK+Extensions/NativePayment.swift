@@ -33,8 +33,8 @@ public extension SwedbankPaySDK {
 
         private var hasLaunchClientAppURLs: [URL] = []
         private var hasShownProblemDetails: [ProblemDetails] = []
-        private var scaMethodRequestDataPerformed: [ExpectationModel] = []
-        private var scaRedirectDataPerformed: [ExpectationModel] = []
+        private var scaMethodRequestDataPerformed: [(name: String, value: String)] = []
+        private var scaRedirectDataPerformed: [(name: String, value: String)] = []
 
         private var sessionStartTimestamp = Date()
 
@@ -297,9 +297,9 @@ public extension SwedbankPaySDK {
                     self.webViewService.load(task: task) { result in
                         switch result {
                         case .success:
-                            self.scaMethodRequestDataPerformed.append(ExpectationModel(name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "", type: "string", value: "Y"))
+                            self.scaMethodRequestDataPerformed.append((name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "", value: "Y"))
                         case .failure(let error):
-                            self.scaMethodRequestDataPerformed.append(ExpectationModel(name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "", type: "string", value: "N"))
+                            self.scaMethodRequestDataPerformed.append((name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "", value: "N"))
                         }
 
                         if let model = self.ongoingModel {
@@ -317,23 +317,32 @@ public extension SwedbankPaySDK {
                 DispatchQueue.main.async {
                     self.delegate?.showViewController(viewController: self.webViewController)
 
+                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "show3dSecure",
+                                                                       succeeded: self.delegate != nil,
+                                                                       values: nil))
+
                     self.webViewController.load(task: task) { result in
                         switch result {
                         case .success(let value):
                             if !self.scaRedirectDataPerformed.contains(where: { $0.value == value }) {
-                                print("success \(value)")
-                                self.scaRedirectDataPerformed.append(ExpectationModel(name: task.expects!.first(where: { $0.name == "creq" })!.value!, type: "string", value: value))
+                                self.scaRedirectDataPerformed.append((name: task.expects!.first(where: { $0.name == "creq" })!.value!, value: value))
 
                                 self.delegate?.finishedWithViewController()
-                            } else {
-                                print("success old")
+
+                                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "dismiss3dSecure",
+                                                                                   succeeded: self.delegate != nil,
+                                                                                   values: nil))
+                            }
+
+                            if let model = self.ongoingModel {
+                                self.sessionOperationHandling(model: model, culture: culture)
                             }
                         case .failure(let error):
-                            print("success \(error)")
-                        }
+                            self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
 
-                        if let model = self.ongoingModel {
-                            self.sessionOperationHandling(model: model, culture: culture)
+                            BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                               succeeded: self.delegate != nil,
+                                                                               values: ["problem": SwedbankPaySDK.NativePaymentProblem.internalInconsistencyError.rawValue]))
                         }
                     }
                 }

@@ -101,6 +101,14 @@ class SwedbankPaySCAWebViewController: UIViewController {
 
 extension SwedbankPaySCAWebViewController: WKNavigationDelegate {
 
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        handler?(.failure(error))
+    }
+
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        handler?(.failure(error))
+    }
+
     func webView(
         _ webView: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,
