@@ -46,6 +46,8 @@ class SwedbankPaySCAWebViewController: UIViewController {
 
     let webView: WKWebView
 
+    let activityView = UIActivityIndicatorView()
+
     init() {
         let preferences = WKPreferences()
         preferences.javaScriptEnabled = true
@@ -55,6 +57,7 @@ class SwedbankPaySCAWebViewController: UIViewController {
 
         super.init(nibName: nil, bundle: nil)
         webView.navigationDelegate = self
+        webView.addSubview(activityView)
     }
 
     required init?(coder: NSCoder) {
@@ -65,11 +68,20 @@ class SwedbankPaySCAWebViewController: UIViewController {
         self.view = webView
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        activityView.center = webView.center
+    }
+
     func load(task: IntegrationTask, handler: @escaping (Result<String, Error>) -> Void) {
         guard let taskHref = task.href,
               let url = URL(string: taskHref) else {
             return
         }
+
+        self.activityView.startAnimating()
+        self.activityView.isHidden = true
 
         self.handler = handler
 
@@ -96,17 +108,46 @@ class SwedbankPaySCAWebViewController: UIViewController {
         let navigation = webView.load(request)
 
         lastRootPage = (navigation, url)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            if self.activityView.isAnimating {
+                self.activityView.isHidden = false
+            }
+        }
     }
 }
 
 extension SwedbankPaySCAWebViewController: WKNavigationDelegate {
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        guard navigation == lastRootPage?.navigation else {
+            return
+        }
+
+        activityView.isHidden = true
+        activityView.stopAnimating()
+    }
+
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        guard navigation == lastRootPage?.navigation else {
+            return
+        }
+
+        activityView.isHidden = true
+        activityView.stopAnimating()
+
         handler?(.failure(error))
         handler = nil
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        guard navigation == lastRootPage?.navigation else {
+            return
+        }
+
+        activityView.isHidden = true
+        activityView.stopAnimating()
+
         handler?(.failure(error))
         handler = nil
     }

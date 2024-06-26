@@ -42,5 +42,5 @@ public protocol SwedbankPaySDKPaymentSessionDelegate: AnyObject {
 
     func finishedWithViewController()
 
-    func sdkProblemWithViewController(problem: SwedbankPaySDK.PaymentSessionProblem)
+    func sdkProblemWithViewController(error: Error, retry: @escaping ()->Void)
 }
