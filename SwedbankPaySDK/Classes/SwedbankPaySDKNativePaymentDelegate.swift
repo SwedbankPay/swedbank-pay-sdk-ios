@@ -34,4 +34,6 @@ public protocol SwedbankPaySDKNativePaymentDelegate: AnyObject {
     func showViewController(viewController: UIViewController)
 
     func finishedWithViewController()
+
+    func sdkProblemWithViewController(problem: SwedbankPaySDK.NativePaymentProblem)
 }

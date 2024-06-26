@@ -59,18 +59,24 @@ class SCAWebViewService: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         handler?(.success(()))
+        handler = nil
+
         self.webView?.stopLoading()
         self.webView = nil
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         handler?(.failure(error))
+        handler = nil
+
         self.webView?.stopLoading()
         self.webView = nil
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         handler?(.failure(error))
+        handler = nil
+
         self.webView?.stopLoading()
         self.webView = nil
     }

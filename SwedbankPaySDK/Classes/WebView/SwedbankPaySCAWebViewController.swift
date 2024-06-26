@@ -103,10 +103,12 @@ extension SwedbankPaySCAWebViewController: WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         handler?(.failure(error))
+        handler = nil
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         handler?(.failure(error))
+        handler = nil
     }
 
     func webView(
@@ -123,6 +125,7 @@ extension SwedbankPaySCAWebViewController: WKNavigationDelegate {
            let cRes = urlComponents.queryItems?.first(where: { $0.name == "cres" })?.value {
             navigationLog(request.url, "Link CRes")
             self.handler?(.success(cRes))
+            self.handler = nil
             decisionHandler(.allow)
         } else if isBaseUrlNavigation(navigationAction: navigationAction) {
             navigationLog(request.url, "Link isBaseUrlNavigation")

@@ -103,8 +103,14 @@ public extension SwedbankPaySDK {
             if let operation = ongoingModel.paymentSession.methods?
                 .first(where: { $0.name == instrument.name })?.operations?
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
+
                 sessionStartTimestamp = Date()
                 makeRequest(model: operation, culture: ongoingModel.paymentSession.culture)
+
+                if operation.rel == .startPaymentAttempt {
+                    self.instrument = nil
+                }
+
                 succeeded = true
             } else {
                 DispatchQueue.main.async {
@@ -314,38 +320,7 @@ public extension SwedbankPaySDK {
             } else if let operation = operations.first(where: { $0.firstTask(with: .scaRedirect) != nil }),
                       let task = operation.firstTask(with: .scaRedirect),
                       !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
-                DispatchQueue.main.async {
-                    self.delegate?.showViewController(viewController: self.webViewController)
-
-                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "show3dSecure",
-                                                                       succeeded: self.delegate != nil,
-                                                                       values: nil))
-
-                    self.webViewController.load(task: task) { result in
-                        switch result {
-                        case .success(let value):
-                            if !self.scaRedirectDataPerformed.contains(where: { $0.value == value }) {
-                                self.scaRedirectDataPerformed.append((name: task.expects!.first(where: { $0.name == "creq" })!.value!, value: value))
-
-                                self.delegate?.finishedWithViewController()
-
-                                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "dismiss3dSecure",
-                                                                                   succeeded: self.delegate != nil,
-                                                                                   values: nil))
-                            }
-
-                            if let model = self.ongoingModel {
-                                self.sessionOperationHandling(model: model, culture: culture)
-                            }
-                        case .failure(let error):
-                            self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
-
-                            BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
-                                                                               succeeded: self.delegate != nil,
-                                                                               values: ["problem": SwedbankPaySDK.NativePaymentProblem.internalInconsistencyError.rawValue]))
-                        }
-                    }
-                }
+                scaRedirectDataPerformed(task: task, culture: culture)
             } else if let completeAuthentication = operations.first(where: { $0.rel == .completeAuthentication }),
                       let task = completeAuthentication.tasks?.first(where: { $0.expects?.contains(where: { $0.name == "creq" } ) ?? false } ),
                       let scaRedirect = scaRedirectDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
@@ -432,6 +407,43 @@ public extension SwedbankPaySDK {
             BeaconService.shared.log(type: .clientAppCallback(values: ["callbackUrl": url.absoluteString]))
 
             return true
+        }
+
+        func scaRedirectDataPerformed(task: IntegrationTask, culture: String?) {
+            DispatchQueue.main.async {
+                self.delegate?.showViewController(viewController: self.webViewController)
+
+                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "show3dSecure",
+                                                                   succeeded: self.delegate != nil,
+                                                                   values: nil))
+
+                self.webViewController.load(task: task) { result in
+                    switch result {
+                    case .success(let value):
+                        if !self.scaRedirectDataPerformed.contains(where: { $0.value == value }) {
+                            self.scaRedirectDataPerformed.append((name: task.expects!.first(where: { $0.name == "creq" })!.value!, value: value))
+
+                            self.delegate?.finishedWithViewController()
+
+                            BeaconService.shared.log(type: .sdkCallbackInvoked(name: "dismiss3dSecure",
+                                                                               succeeded: self.delegate != nil,
+                                                                               values: nil))
+
+                            if let model = self.ongoingModel {
+                                self.sessionOperationHandling(model: model, culture: culture)
+                            }
+                        }
+                    case .failure(let error):
+                        self.delegate?.sdkProblemWithViewController(problem: .paymentSessionAPIRequestFailed(error: error, retry: {
+                            self.scaRedirectDataPerformed(task: task, culture: culture)
+                        }))
+
+//                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemWithViewController",
+//                                                                           succeeded: self.delegate != nil,
+//                                                                           values: ["problem": SwedbankPaySDK.PaymentSessionProblem.paymentSessionEndStateReached.rawValue]))
+                    }
+                }
+            }
         }
     }
 }
