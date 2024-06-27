@@ -14,12 +14,10 @@
 		4517C6A02BFF6B7E001687E7 /* BeaconEndpointRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */; };
 		4517C6A12BFF8980001687E7 /* BeaconEndpointRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */; };
 		4517C6A32BFF928B001687E7 /* BeaconService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C6A22BFF928B001687E7 /* BeaconService.swift */; };
-		455A7B982C205DA3003CF320 /* PaymentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455A7B972C205DA3003CF320 /* PaymentSession.swift */; };
-		455A7B992C205DA3003CF320 /* PaymentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455A7B972C205DA3003CF320 /* PaymentSession.swift */; };
+		455A7B982C205DA3003CF320 /* SwedbankPayPaymentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455A7B972C205DA3003CF320 /* SwedbankPayPaymentSession.swift */; };
+		455A7B992C205DA3003CF320 /* SwedbankPayPaymentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455A7B972C205DA3003CF320 /* SwedbankPayPaymentSession.swift */; };
 		456900812BFB9AA5009475A5 /* PaymentSessionProblem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456900802BFB9AA5009475A5 /* PaymentSessionProblem.swift */; };
 		456900822BFB9AA5009475A5 /* PaymentSessionProblem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456900802BFB9AA5009475A5 /* PaymentSessionProblem.swift */; };
-		457C9C5F2C08C27C00420B4F /* SwedbankPaySDKPaymentSessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457C9C5E2C08C27C00420B4F /* SwedbankPaySDKPaymentSessionDelegate.swift */; };
-		457C9C602C08C2F900420B4F /* SwedbankPaySDKPaymentSessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457C9C5E2C08C27C00420B4F /* SwedbankPaySDKPaymentSessionDelegate.swift */; };
 		45B429942C18687100620A0A /* SwedbankPaySCAWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B429932C18687100620A0A /* SwedbankPaySCAWebViewController.swift */; };
 		45B429952C18687100620A0A /* SwedbankPaySCAWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B429932C18687100620A0A /* SwedbankPaySCAWebViewController.swift */; };
 		45B4495B2C05F34F00A1F46D /* BeaconType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B4495A2C05F34F00A1F46D /* BeaconType.swift */; };
@@ -295,9 +293,8 @@
 		4517A24C2C1324AC000BB7A8 /* SCAWebViewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SCAWebViewService.swift; sourceTree = "<group>"; };
 		4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconEndpointRouter.swift; sourceTree = "<group>"; };
 		4517C6A22BFF928B001687E7 /* BeaconService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconService.swift; sourceTree = "<group>"; };
-		455A7B972C205DA3003CF320 /* PaymentSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentSession.swift; sourceTree = "<group>"; };
+		455A7B972C205DA3003CF320 /* SwedbankPayPaymentSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPayPaymentSession.swift; sourceTree = "<group>"; };
 		456900802BFB9AA5009475A5 /* PaymentSessionProblem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentSessionProblem.swift; sourceTree = "<group>"; };
-		457C9C5E2C08C27C00420B4F /* SwedbankPaySDKPaymentSessionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPaySDKPaymentSessionDelegate.swift; sourceTree = "<group>"; };
 		45B429932C18687100620A0A /* SwedbankPaySCAWebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPaySCAWebViewController.swift; sourceTree = "<group>"; };
 		45B4495A2C05F34F00A1F46D /* BeaconType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconType.swift; sourceTree = "<group>"; };
 		45B4495C2C05F46200A1F46D /* Beacon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Beacon.swift; sourceTree = "<group>"; };
@@ -722,7 +719,6 @@
 				63EECFCF270730C800C37B69 /* CodableUserData.swift */,
 				D581EFDE27A92A56001B85A7 /* VersionOptions.swift */,
 				D5AE5D9F27E0D4DA00BE5468 /* ExpandResource.swift */,
-				455A7B972C205DA3003CF320 /* PaymentSession.swift */,
 			);
 			path = "SwedbankPaySDK+Extensions";
 			sourceTree = "<group>";
@@ -818,8 +814,8 @@
 				C50CF6D2237AC76A003F79DF /* Utils */,
 				C585AF27237066EE006C2E16 /* SwedbankPaySDK.swift */,
 				C585AF2A237066EE006C2E16 /* SwedbankPaySDKController.swift */,
-				457C9C5E2C08C27C00420B4F /* SwedbankPaySDKPaymentSessionDelegate.swift */,
 				C585AF28237066EE006C2E16 /* SwedbankPaySDKViewModel.swift */,
+				455A7B972C205DA3003CF320 /* SwedbankPayPaymentSession.swift */,
 				45C1008A2BF247F300AA3523 /* Api */,
 				A5808B03261C93FD00FF7EC1 /* WebView */,
 				4517C69E2BFE34DC001687E7 /* Beacon */,
@@ -1166,7 +1162,6 @@
 				A59AEE9D25372C9A00255A3A /* Instrument.swift in Sources */,
 				C585AF2F237066EE006C2E16 /* SwedbankPaySDKController.swift in Sources */,
 				45B4495B2C05F34F00A1F46D /* BeaconType.swift in Sources */,
-				457C9C5F2C08C27C00420B4F /* SwedbankPaySDKPaymentSessionDelegate.swift in Sources */,
 				45C100942BF247F300AA3523 /* SwedbankPayAPIEnpointRouter.swift in Sources */,
 				D50C9B4D27E36EBB00FCE33D /* VersionReporter.swift in Sources */,
 				45C100902BF247F300AA3523 /* SwedbankPayAPIError.swift in Sources */,
@@ -1179,7 +1174,7 @@
 				C50CF6A7237AAF85003F79DF /* ClientProblem.swift in Sources */,
 				C50CF6A9237AAFBF003F79DF /* ServerProblem.swift in Sources */,
 				45B4495D2C05F46200A1F46D /* Beacon.swift in Sources */,
-				455A7B982C205DA3003CF320 /* PaymentSession.swift in Sources */,
+				455A7B982C205DA3003CF320 /* SwedbankPayPaymentSession.swift in Sources */,
 				45C100A22BF2584E00AA3523 /* IntegrationTask.swift in Sources */,
 				A52E0ACB24BCAA6D00770286 /* GoodWebViewRedirects.swift in Sources */,
 				45C100A82BF2598D00AA3523 /* ProblemDetails.swift in Sources */,
@@ -1297,10 +1292,9 @@
 				45C1009E2BF2583D00AA3523 /* PaymentSessionModel.swift in Sources */,
 				D511EC792975591B0059AB05 /* VersionReporter.swift in Sources */,
 				D511EC7A2975591B0059AB05 /* ConfigurationAsync.swift in Sources */,
-				455A7B992C205DA3003CF320 /* PaymentSession.swift in Sources */,
+				455A7B992C205DA3003CF320 /* SwedbankPayPaymentSession.swift in Sources */,
 				D511EC7B2975591B0059AB05 /* SwedbankPaySDKResources.swift in Sources */,
 				D511EC7C2975591B0059AB05 /* TypeAliases.swift in Sources */,
-				457C9C602C08C2F900420B4F /* SwedbankPaySDKPaymentSessionDelegate.swift in Sources */,
 				45B429952C18687100620A0A /* SwedbankPaySCAWebViewController.swift in Sources */,
 				45C100932BF247F300AA3523 /* OperationOutputModel.swift in Sources */,
 				D511EC7D2975591B0059AB05 /* SwedbankPayExtraWebViewController.swift in Sources */,

@@ -17,9 +17,39 @@ import Foundation
 import UIKit
 import WebKit
 
+/// Swedbank Pay SDK protocol, conform to this to get the result of the payment process
+public protocol SwedbankPaySDKPaymentSessionDelegate: AnyObject {
+    /// Called whenever the payment has been completed.
+    func paymentSessionComplete()
+
+    /// Called whenever the payment has been canceled for any reason.
+    func paymentSessionCanceled()
+
+    /// Called when an list of available instruments is known.
+    ///
+    /// - parameter availableInstruments: List of different instruments that is available to be used for the payment session.
+    func paymentSessionFetched(availableInstruments: [SwedbankPaySDK.AvailableInstrument])
+
+    /// Called if there is a session problem with performing the payment.
+    ///
+    /// - parameter problem: The problem that caused the failure
+    func sessionProblemOccurred(problem: SwedbankPaySDK.ProblemDetails)
+
+    /// Called if there is a SDK problem with performing the payment.
+    ///
+    /// - parameter problem: The problem that caused the failure
+    func sdkProblemOccurred(problem: SwedbankPaySDK.PaymentSessionProblem)
+
+    func show3DSecureViewController(viewController: UIViewController)
+
+    func dismiss3DSecureViewController()
+
+    func paymentSession3DSecureViewControllerLoadFailed(error: Error, retry: @escaping ()->Void)
+}
+
 public extension SwedbankPaySDK {
     /// Object that handles payment sessions
-    class PaymentSession: CallbackUrlDelegate {
+    class SwedbankPayPaymentSession: CallbackUrlDelegate {
         /// Order information that provides `PaymentSession` with callback URLs.
         public var orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo?
 
@@ -43,7 +73,7 @@ public extension SwedbankPaySDK {
 
         private var automaticConfiguration: Bool = true
 
-        public init(orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo? = nil) {
+        public init(manualOrderInfo orderInfo: SwedbankPaySDK.ViewPaymentOrderInfo? = nil) {
             if let orderInfo {
                 self.orderInfo = orderInfo
                 self.automaticConfiguration = false
@@ -61,7 +91,7 @@ public extension SwedbankPaySDK {
         /// Calling this when a payment is already started will throw out the old payment.
         ///
         /// - parameter with sessionURL: Session URL needed to start the native payment session
-        public func startPaymentSession(sessionURL: URL) {
+        public func fetchPaymentSession(sessionURL: URL) {
             sessionIsOngoing = true
             instrument = nil
             ongoingModel = nil
@@ -95,7 +125,7 @@ public extension SwedbankPaySDK {
         /// There needs to be an active payment session before an payment attempt can be made.
         ///
         /// - parameter instrument: Payment attempt instrument
-        public func makePaymentAttempt(instrument: SwedbankPaySDK.PaymentAttemptInstrument) {
+        public func makeNativePaymentAttempt(instrument: SwedbankPaySDK.PaymentAttemptInstrument) {
             guard let ongoingModel = ongoingModel else {
                 self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
 
@@ -110,7 +140,7 @@ public extension SwedbankPaySDK {
 
             var succeeded = false
             if let operation = ongoingModel.paymentSession.methods?
-                .first(where: { $0.name == instrument.name })?.operations?
+                .first(where: { $0.name == instrument.identifier })?.operations?
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
 
                 sessionStartTimestamp = Date()
@@ -137,17 +167,21 @@ public extension SwedbankPaySDK {
             case .swish(let msisdn):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
                                                                  succeeded: succeeded,
-                                                                 values: ["instrument": instrument.name,
+                                                                 values: ["instrument": instrument.identifier,
                                                                           "msisdn": msisdn]))
             case .creditCard(let prefill):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
                                                                  succeeded: succeeded,
-                                                                 values: ["instrument": instrument.name,
+                                                                 values: ["instrument": instrument.identifier,
                                                                           "paymentToken": prefill.paymentToken,
                                                                           "cardNumber": prefill.maskedPan,
                                                                           "cardExpiryMonth": prefill.expiryMonth,
                                                                           "cardExpiryYear": prefill.expiryYear]))
             }
+
+        }
+
+        public func createSwedbankPaySDKController() {
 
         }
 
@@ -318,7 +352,7 @@ public extension SwedbankPaySDK {
             } else if operations.contains(where: { $0.rel == .startPaymentAttempt }),
                       let instrument = instrument,
                       let startPaymentAttempt = ongoingModel?.paymentSession.methods?
-                .first(where: { $0.name == instrument.name })?.operations?
+                .first(where: { $0.name == instrument.identifier })?.operations?
                 .first(where: { $0.rel == .startPaymentAttempt }) {
 
                 makeRequest(operationOutputModel: startPaymentAttempt, culture: culture)
@@ -352,7 +386,7 @@ public extension SwedbankPaySDK {
                       let task = operation.firstTask(with: .scaRedirect),
                       !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
                 DispatchQueue.main.async {
-                    self.delegate?.showViewController(viewController: self.webViewController)
+                    self.delegate?.show3DSecureViewController(viewController: self.webViewController)
 
                     BeaconService.shared.log(type: .sdkCallbackInvoked(name: "show3dSecure",
                                                                        succeeded: self.delegate != nil,
@@ -367,15 +401,15 @@ public extension SwedbankPaySDK {
             } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
                 DispatchQueue.main.async {
                     if redirectPayer.href == self.orderInfo?.cancelUrl?.absoluteString {
-                        self.delegate?.paymentCanceled()
+                        self.delegate?.paymentSessionCanceled()
 
-                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentCanceled",
+                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionCanceled",
                                                                            succeeded: self.delegate != nil,
                                                                            values: nil))
                     } else if redirectPayer.href == self.orderInfo?.completeUrl.absoluteString {
-                        self.delegate?.paymentComplete()
+                        self.delegate?.paymentSessionComplete()
 
-                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentComplete",
+                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionComplete",
                                                                            succeeded: self.delegate != nil,
                                                                            values: nil))
                     } else {
@@ -401,7 +435,7 @@ public extension SwedbankPaySDK {
                             return AvailableInstrument.swish(prefills: prefills)
                         case .creditCard(let prefills, _, _):
                             return AvailableInstrument.creditCard(prefills: prefills)
-                        case .unknown(_):
+                        case .unknown(let identifier):
                             return nil
                         }
                     }) ?? []
@@ -412,7 +446,7 @@ public extension SwedbankPaySDK {
 
                     BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionFetched",
                                                                        succeeded: self.delegate != nil,
-                                                                       values: ["instruments": availableInstruments.compactMap({ $0.name }).joined(separator: ";")]))
+                                                                       values: ["instruments": availableInstruments.compactMap({ $0.identifier }).joined(separator: ";")]))
                 }
             } else if let getPayment = operations.first(where: { $0.rel == .getPayment }) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
@@ -455,7 +489,7 @@ public extension SwedbankPaySDK {
                     if !self.scaRedirectDataPerformed.contains(where: { $0.value == value }) {
                         self.scaRedirectDataPerformed.append((name: task.expects!.first(where: { $0.name == "creq" })!.value!, value: value))
 
-                        self.delegate?.finishedWithViewController()
+                        self.delegate?.dismiss3DSecureViewController()
 
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "dismiss3dSecure",
                                                                            succeeded: self.delegate != nil,
@@ -466,13 +500,17 @@ public extension SwedbankPaySDK {
                         }
                     }
                 case .failure(let error):
-                    self.delegate?.sdkProblemWithViewController(error: error, retry: {
+                    self.delegate?.paymentSession3DSecureViewControllerLoadFailed(error: error, retry: {
                         self.scaRedirectDataPerformed(task: task, culture: culture)
                     })
 
-//                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemWithViewController",
-//                                                                       succeeded: self.delegate != nil,
-//                                                                       values: ["problem": SwedbankPaySDK.PaymentSessionProblem.paymentSessionEndStateReached.rawValue]))
+                    let error = error as NSError
+
+                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSession3DSecureViewControllerLoadFailed",
+                                                                       succeeded: self.delegate != nil,
+                                                                       values: ["errorDescription": error.localizedDescription,
+                                                                                "errorCode": error.code,
+                                                                                "errorDomain": error.domain]))
                 }
             }
         }

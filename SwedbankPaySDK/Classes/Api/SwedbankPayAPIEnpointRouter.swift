@@ -34,7 +34,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     var body: [String: Any?]? {
         switch model.rel {
         case .expandMethod:
-            return ["instrumentName": instrument?.name]
+            return ["instrumentName": instrument?.identifier]
         case .startPaymentAttempt:
             switch instrument {
             case .swish(let msisdn):
