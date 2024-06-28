@@ -42,6 +42,7 @@ enum OperationRel: Codable, Equatable, Hashable {
     case acknowledgeFailedAttempt
     case abortPayment
     case eventLogging
+    case viewPayment
 
     case unknown(String)
 
@@ -60,6 +61,7 @@ enum OperationRel: Codable, Equatable, Hashable {
         case Self.acknowledgeFailedAttempt.rawValue:    self = .acknowledgeFailedAttempt
         case Self.abortPayment.rawValue:                self = .abortPayment
         case Self.eventLogging.rawValue:                self = .eventLogging
+        case Self.viewPayment.rawValue:                 self = .viewPayment
         default:                                        self = .unknown(type)
         }
     }
@@ -81,6 +83,7 @@ enum OperationRel: Codable, Equatable, Hashable {
         case .acknowledgeFailedAttempt: "acknowledge-failed-attempt"
         case .abortPayment:             "abort-payment"
         case .eventLogging:             "event-logging"
+        case .viewPayment:              "view-payment"
         case .unknown(let value):       value
         }
     }

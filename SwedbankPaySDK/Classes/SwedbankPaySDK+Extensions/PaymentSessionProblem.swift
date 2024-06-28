@@ -16,12 +16,13 @@
 import Foundation
 
 public extension SwedbankPaySDK {
-    /// Native payment problem returned with `sdkProblemOccurred`
-    enum NativePaymentProblem {
+    /// Payment session problem returned with `sdkProblemOccurred`
+    enum PaymentSessionProblem {
         case paymentSessionEndStateReached
         case paymentSessionAPIRequestFailed(error: Error, retry: ()->Void)
         case clientAppLaunchFailed
         case internalInconsistencyError
+        case automaticConfigurationFailed
 
         var rawValue: String {
             switch self {
@@ -29,6 +30,7 @@ public extension SwedbankPaySDK {
             case .paymentSessionAPIRequestFailed:   "paymentSessionAPIRequestFailed"
             case .clientAppLaunchFailed:            "clientAppLaunchFailed"
             case .internalInconsistencyError:       "internalInconsistencyError"
+            case .automaticConfigurationFailed:     "automaticConfigurationFailed"
             }
         }
     }

@@ -13,9 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
+
 struct PaymentSessionModel: Codable, Hashable {
     let culture: String?
     let methods: [MethodBaseModel]?
+    let urls: UrlsModel?
 }
 
 extension PaymentSessionModel {
@@ -34,4 +37,12 @@ extension PaymentSessionModel {
 
         return allOperations
     }
+}
+
+struct UrlsModel: Codable, Hashable {
+    let completeUrl: URL?
+    let cancelUrl: URL?
+    let paymentUrl: URL?
+    let hostUrls: [URL]?
+    let termsOfServiceUrl: URL?
 }

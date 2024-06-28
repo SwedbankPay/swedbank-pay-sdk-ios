@@ -21,6 +21,9 @@ struct SwedbankPayAPIConstants {
 
     static var requestTimeoutInterval = 10.0
     static var sessionTimeoutInterval = 20.0
+    static var creditCardTimoutInterval = 30.0
+
+    static var notificationUrl = "https://fake.payex.com/notification"
 }
 
 private enum HTTPHeaderField: String {
