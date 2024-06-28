@@ -181,8 +181,47 @@ public extension SwedbankPaySDK {
 
         }
 
-        public func createSwedbankPaySDKController() {
+        public func createSwedbankPaySDKController(manualOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo? = nil) -> SwedbankPaySDKController? {
+            guard let ongoingModel = ongoingModel,
+                  let operation = ongoingModel.operations?.first(where: { $0.rel == .viewPayment }),
+                  let orderInfo = orderInfo else {
+                self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
 
+                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                   succeeded: self.delegate != nil,
+                                                                   values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
+
+                return nil
+            }
+
+            let configuration: SwedbankPayConfiguration
+
+            if let manualOrderInfo {
+                configuration = SwedbankPayConfiguration(
+                    isV3: manualOrderInfo.isV3,
+                    webViewBaseURL: manualOrderInfo.webViewBaseURL,
+                    viewPaymentLink: URL(string: operation.href!)!,
+                    completeUrl: manualOrderInfo.completeUrl,
+                    cancelUrl: manualOrderInfo.cancelUrl,
+                    paymentUrl: manualOrderInfo.paymentUrl)
+            } else {
+                configuration = SwedbankPayConfiguration(
+                    isV3: orderInfo.isV3,
+                    webViewBaseURL: ongoingModel.paymentSession.urls?.hostUrls?.first,
+                    viewPaymentLink: URL(string: operation.href!)!,
+                    completeUrl: orderInfo.completeUrl,
+                    cancelUrl: orderInfo.cancelUrl,
+                    paymentUrl: orderInfo.paymentUrl)
+            }
+
+            let viewController = SwedbankPaySDKController(
+                configuration: configuration,
+                withCheckin: false,
+                consumer: nil,
+                paymentOrder: nil,
+                userData: nil)
+
+            return viewController
         }
 
         /// Abort an active payment session.
@@ -436,7 +475,7 @@ public extension SwedbankPaySDK {
                         case .creditCard(let prefills, _, _):
                             return AvailableInstrument.creditCard(prefills: prefills)
                         case .unknown(let identifier):
-                            return nil
+                            return AvailableInstrument.webBased(identifier: identifier)
                         }
                     }) ?? []
 

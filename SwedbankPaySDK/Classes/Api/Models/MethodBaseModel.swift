@@ -99,12 +99,16 @@ extension SwedbankPaySDK {
 
         case creditCard(prefills: [CreditCardMethodPrefillModel]?)
 
+        case webBased(identifier: String)
+
         var identifier: String {
             switch self {
             case .swish:
                 return "Swish"
             case .creditCard:
                 return "CreditCard"
+            case .webBased(identifier: let identifier):
+                return identifier
             }
         }
     }
