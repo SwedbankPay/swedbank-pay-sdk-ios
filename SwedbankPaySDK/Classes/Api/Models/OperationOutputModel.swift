@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-public struct OperationOutputModel: Codable, Hashable {
+struct OperationOutputModel: Codable, Hashable {
     let rel: OperationRel?
     let href: String?
     let method: String?

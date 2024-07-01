@@ -88,7 +88,7 @@ class SwedbankPaySCAWebViewController: UIViewController {
         var request = URLRequest(url: url)
         request.httpMethod = task.method
         request.allHTTPHeaderFields = ["Content-Type": task.contentType ?? ""]
-        request.timeoutInterval = 5
+        request.timeoutInterval = SwedbankPayAPIConstants.creditCardTimoutInterval
 
         if let bodyString = task.expects?
             .filter({ $0.type == "string" })

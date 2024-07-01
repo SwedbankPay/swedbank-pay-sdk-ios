@@ -15,7 +15,7 @@
 
 import Foundation
 
-public enum MethodBaseModel: Codable, Equatable, Hashable {
+enum MethodBaseModel: Codable, Equatable, Hashable {
     case swish(prefills: [SwedbankPaySDK.SwishMethodPrefillModel]?, operations: [OperationOutputModel]?)
     case creditCard(prefills: [SwedbankPaySDK.CreditCardMethodPrefillModel]?, operations: [OperationOutputModel]?, cardBrands: [String]?)
 
@@ -25,7 +25,7 @@ public enum MethodBaseModel: Codable, Equatable, Hashable {
         case instrument, prefills, operations, cardBrands
     }
 
-    public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
         let type = try container.decode(String.self, forKey: .instrument)
@@ -46,7 +46,7 @@ public enum MethodBaseModel: Codable, Equatable, Hashable {
         }
     }
 
-    public func encode(to encoder: Encoder) throws {
+    func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
         case .swish(let prefills, let operations):

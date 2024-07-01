@@ -40,10 +40,18 @@ public protocol SwedbankPaySDKPaymentSessionDelegate: AnyObject {
     /// - parameter problem: The problem that caused the failure
     func sdkProblemOccurred(problem: SwedbankPaySDK.PaymentSessionProblem)
 
+    /// Called when a 3D secure view needs to be presented.
+    ///
+    /// - parameter viewController: The UIViewController with 3D secure web view.
     func show3DSecureViewController(viewController: UIViewController)
 
+    /// Called whenever the 3D secure view can be dismissed.
     func dismiss3DSecureViewController()
 
+    /// Called if the 3D secure view loading failed.
+    ///
+    /// - parameter error: The error that caused the failure
+    /// - parameter retry: A block that can be called to retry.
     func paymentSession3DSecureViewControllerLoadFailed(error: Error, retry: @escaping ()->Void)
 }
 
@@ -181,10 +189,17 @@ public extension SwedbankPaySDK {
 
         }
 
-        public func createSwedbankPaySDKController(manualOrderInfo: SwedbankPaySDK.ViewPaymentOrderInfo? = nil) -> SwedbankPaySDKController? {
+        /// Creates a SwedbankPaySDKController.
+        ///
+        /// There needs to be an active payment session before an payment attempt can be made.
+        ///
+        /// - returns:- SwedbankPaySDKController to be shown.
+        public func createSwedbankPaySDKController() -> SwedbankPaySDKController? {
             guard let ongoingModel = ongoingModel,
                   let operation = ongoingModel.operations?.first(where: { $0.rel == .viewPayment }),
-                  let orderInfo = orderInfo else {
+                  let orderInfo = orderInfo,
+                  let href = operation.href,
+                  let viewPaymentLink = URL(string: href) else {
                 self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
 
                 BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
@@ -194,25 +209,13 @@ public extension SwedbankPaySDK {
                 return nil
             }
 
-            let configuration: SwedbankPayConfiguration
-
-            if let manualOrderInfo {
-                configuration = SwedbankPayConfiguration(
-                    isV3: manualOrderInfo.isV3,
-                    webViewBaseURL: manualOrderInfo.webViewBaseURL,
-                    viewPaymentLink: URL(string: operation.href!)!,
-                    completeUrl: manualOrderInfo.completeUrl,
-                    cancelUrl: manualOrderInfo.cancelUrl,
-                    paymentUrl: manualOrderInfo.paymentUrl)
-            } else {
-                configuration = SwedbankPayConfiguration(
-                    isV3: orderInfo.isV3,
-                    webViewBaseURL: ongoingModel.paymentSession.urls?.hostUrls?.first,
-                    viewPaymentLink: URL(string: operation.href!)!,
-                    completeUrl: orderInfo.completeUrl,
-                    cancelUrl: orderInfo.cancelUrl,
-                    paymentUrl: orderInfo.paymentUrl)
-            }
+            let configuration = SwedbankPayConfiguration(
+                isV3: orderInfo.isV3,
+                webViewBaseURL: automaticConfiguration ? ongoingModel.paymentSession.urls?.hostUrls?.first : orderInfo.webViewBaseURL,
+                viewPaymentLink: viewPaymentLink,
+                completeUrl: orderInfo.completeUrl,
+                cancelUrl: orderInfo.cancelUrl,
+                paymentUrl: orderInfo.paymentUrl)
 
             let viewController = SwedbankPaySDKController(
                 configuration: configuration,
@@ -220,6 +223,10 @@ public extension SwedbankPaySDK {
                 consumer: nil,
                 paymentOrder: nil,
                 userData: nil)
+            
+            BeaconService.shared.log(type: .sdkMethodInvoked(name: "createSwedbankPaySDKController",
+                                                             succeeded: true,
+                                                             values: nil))
 
             return viewController
         }
@@ -427,7 +434,7 @@ public extension SwedbankPaySDK {
                 DispatchQueue.main.async {
                     self.delegate?.show3DSecureViewController(viewController: self.webViewController)
 
-                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "show3dSecure",
+                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "show3DSecureViewController",
                                                                        succeeded: self.delegate != nil,
                                                                        values: nil))
 
@@ -530,7 +537,7 @@ public extension SwedbankPaySDK {
 
                         self.delegate?.dismiss3DSecureViewController()
 
-                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "dismiss3dSecure",
+                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "dismiss3DSecureViewController",
                                                                            succeeded: self.delegate != nil,
                                                                            values: nil))
 
