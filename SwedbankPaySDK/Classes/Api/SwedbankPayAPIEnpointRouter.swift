@@ -16,6 +16,23 @@
 import Foundation
 import UIKit
 
+struct Endpoint {
+    let router: EnpointRouter?
+    let href: String?
+    let method: String?
+}
+
+enum EnpointRouter {
+    case expandMethod(instrument: SwedbankPaySDK.PaymentAttemptInstrument)
+    case startPaymentAttempt(instrument: SwedbankPaySDK.PaymentAttemptInstrument, culture: String?)
+    case createAuthentication(methodCompletionIndicator: String)
+    case completeAuthentication(cRes: String)
+    case getPayment
+    case preparePayment
+    case acknowledgeFailedAttempt
+    case abortPayment
+}
+
 protocol EndpointRouterProtocol {
     var body: [String: Any?]? { get }
     var requestTimeoutInterval: TimeInterval { get }
@@ -23,19 +40,14 @@ protocol EndpointRouterProtocol {
 }
 
 struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
-    let model: OperationOutputModel
-    let culture: String?
-    let instrument: SwedbankPaySDK.PaymentAttemptInstrument?
-    let methodCompletionIndicator: String?
-    let cRes: String?
-
+    let endpoint: Endpoint
     let sessionStartTimestamp: Date
 
     var body: [String: Any?]? {
-        switch model.rel {
-        case .expandMethod:
-            return ["instrumentName": instrument?.identifier]
-        case .startPaymentAttempt:
+        switch endpoint.router {
+        case .expandMethod(instrument: let instrument):
+            return ["instrumentName": instrument.identifier]
+        case .startPaymentAttempt(let instrument, let culture):
             switch instrument {
             case .swish(let msisdn):
                 return ["culture": culture,
@@ -58,14 +70,6 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                    "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
                                    "screenColorDepth": String(24)]
                 ]
-            case .none:
-                return ["culture": culture,
-                        "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
-                                   "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
-                                   "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
-                                   "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
-                                   "screenColorDepth": String(24)]
-                ]
             }
         case .preparePayment:
             return ["integration": "HostedView",
@@ -82,8 +86,8 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                     "service": ["name": "SwedbankPaySDK-iOS",
                                 "version": SwedbankPaySDK.VersionReporter.currentVersion]
             ]
-        case .createAuthentication:
-            return ["methodCompletionIndicator": methodCompletionIndicator ?? "N",
+        case .createAuthentication(let methodCompletionIndicator):
+            return ["methodCompletionIndicator": methodCompletionIndicator,
                     "notificationUrl": SwedbankPayAPIConstants.notificationUrl,
                     "requestWindowSize": "FULLSCREEN",
                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
@@ -96,8 +100,8 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                 "timeZoneOffset": TimeZone.current.offsetFromGMT(),
                                 "javascriptEnabled": true]
             ]
-        case .completeAuthentication:
-            return ["cRes": cRes ?? "",
+        case .completeAuthentication(let cRes):
+            return ["cRes": cRes,
                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""],
             ]
@@ -107,8 +111,8 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     }
 
     var requestTimeoutInterval: TimeInterval {
-        switch model.rel {
-        case .startPaymentAttempt:
+        switch endpoint.router {
+        case .startPaymentAttempt(let instrument, _):
             switch instrument {
             case .creditCard:
                 return SwedbankPayAPIConstants.creditCardTimoutInterval
@@ -124,8 +128,8 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     }
 
     var sessionTimeoutInterval: TimeInterval {
-        switch model.rel {
-        case .startPaymentAttempt:
+        switch endpoint.router {
+        case .startPaymentAttempt(let instrument, _):
             switch instrument {
             case .creditCard:
                 return SwedbankPayAPIConstants.creditCardTimoutInterval
@@ -174,7 +178,7 @@ extension SwedbankPayAPIEnpointRouter {
     }
 
     private func requestWithDataResponse(requestStartTimestamp: Date, handler: @escaping (Result<Data, Error>) -> Void) {
-        guard let href = model.href,
+        guard let href = endpoint.href,
               var components = URLComponents(string: href) else {
             handler(.failure(SwedbankPayAPIError.invalidUrl))
             return
@@ -190,7 +194,7 @@ extension SwedbankPayAPIEnpointRouter {
         }
 
         var request = URLRequest(url: url)
-        request.httpMethod = model.method
+        request.httpMethod = endpoint.method
         request.allHTTPHeaderFields = SwedbankPayAPIConstants.commonHeaders
         request.timeoutInterval = requestTimeoutInterval
 
@@ -213,8 +217,8 @@ extension SwedbankPayAPIEnpointRouter {
             }
 
             BeaconService.shared.log(type: .httpRequest(duration: Int32((Date().timeIntervalSince(requestStartTimestamp) * 1000.0).rounded()),
-                                                        requestUrl: model.href ?? "",
-                                                        method: model.method ?? "",
+                                                        requestUrl: endpoint.href ?? "",
+                                                        method: endpoint.method ?? "",
                                                         responseStatusCode: responseStatusCode,
                                                         values: values))
 
