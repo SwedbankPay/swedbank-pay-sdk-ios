@@ -409,7 +409,7 @@ public extension SwedbankPaySDK {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
             } else if let scaMethodRequest = operations.first(where: { $0.firstTask(with: .scaMethodRequest) != nil }),
                       let task = scaMethodRequest.firstTask(with: .scaMethodRequest),
-                      !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value }) {
+                      !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "" }) {
                 DispatchQueue.main.async {
                     self.webViewService.load(task: task) { result in
                         switch result {
@@ -426,7 +426,7 @@ public extension SwedbankPaySDK {
                 }
             } else if let createAuthentication = operations.first(where: { $0.rel == .createAuthentication }),
                       let task = createAuthentication.firstTask(with: .scaMethodRequest),
-                      let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value }) {
+                      let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "" }) {
                 makeRequest(router: .createAuthentication(methodCompletionIndicator: scaMethod.value), operation: createAuthentication)
             } else if let operation = operations.first(where: { $0.firstTask(with: .scaRedirect) != nil }),
                       let task = operation.firstTask(with: .scaRedirect),

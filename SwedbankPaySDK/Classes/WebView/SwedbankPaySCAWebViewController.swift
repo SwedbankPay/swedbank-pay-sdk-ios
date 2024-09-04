@@ -90,19 +90,8 @@ class SwedbankPaySCAWebViewController: UIViewController {
         request.allHTTPHeaderFields = ["Content-Type": task.contentType ?? ""]
         request.timeoutInterval = SwedbankPayAPIConstants.creditCardTimoutInterval
 
-        if let bodyString = task.expects?
-            .filter({ $0.type == "string" })
-            .compactMap({
-                guard let name = $0.name,
-                      let value = $0.value?.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) else {
-                    return nil
-                }
-
-                return name + "=" + value
-            })
-                .joined(separator: "&") {
-
-            request.httpBody = bodyString.data(using: .utf8)
+        if let httpBody = task.expects?.httpBody {
+            request.httpBody = httpBody
         }
 
         let navigation = webView.load(request)
