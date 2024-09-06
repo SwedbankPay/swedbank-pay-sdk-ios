@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
+
 struct IntegrationTask: Codable, Hashable {
     let rel: IntegrationTaskRel?
     let href: String?
@@ -59,4 +61,21 @@ struct ExpectationModel: Codable, Hashable {
     let name: String?
     let type: String?
     let value: String?
+}
+
+extension Array where Element == ExpectationModel {
+    var httpBody: Data? {
+        return self.filter({ $0.type == "string" })
+            .compactMap({
+                guard let name = $0.name else {
+                    return nil
+                }
+
+                let value = $0.value?.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? ""
+
+                return name + "=" + value
+            })
+            .joined(separator: "&")
+            .data(using: .utf8)
+    }
 }

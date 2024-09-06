@@ -48,6 +48,8 @@ class SwedbankPaySCAWebViewController: UIViewController {
 
     let activityView = UIActivityIndicatorView()
 
+    var notificationUrl: String?
+
     init() {
         let preferences = WKPreferences()
         preferences.javaScriptEnabled = true
@@ -90,19 +92,8 @@ class SwedbankPaySCAWebViewController: UIViewController {
         request.allHTTPHeaderFields = ["Content-Type": task.contentType ?? ""]
         request.timeoutInterval = SwedbankPayAPIConstants.creditCardTimoutInterval
 
-        if let bodyString = task.expects?
-            .filter({ $0.type == "string" })
-            .compactMap({
-                guard let name = $0.name,
-                      let value = $0.value?.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) else {
-                    return nil
-                }
-
-                return name + "=" + value
-            })
-                .joined(separator: "&") {
-
-            request.httpBody = bodyString.data(using: .utf8)
+        if let httpBody = task.expects?.httpBody {
+            request.httpBody = httpBody
         }
 
         let navigation = webView.load(request)
@@ -159,7 +150,7 @@ extension SwedbankPaySCAWebViewController: WKNavigationDelegate {
     ) {
         let request = navigationAction.request
 
-        if request.url?.absoluteString == SwedbankPayAPIConstants.notificationUrl,
+        if request.url?.absoluteString == self.notificationUrl,
            let httpBody = request.httpBody,
            let bodyString = String(data: httpBody, encoding: .utf8),
            let urlComponents = URLComponents(string: "https://www.apple.com?\(bodyString)"),

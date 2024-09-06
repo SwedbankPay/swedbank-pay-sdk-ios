@@ -19,6 +19,7 @@ struct OperationOutputModel: Codable, Hashable {
     let method: String?
     let next: Bool?
     let tasks: [IntegrationTask]?
+    let expects: [ExpectationModel]?
 }
 
 extension OperationOutputModel {
