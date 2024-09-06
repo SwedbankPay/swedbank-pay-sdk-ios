@@ -447,7 +447,7 @@ public extension SwedbankPaySDK {
                       let task = operation.firstTask(with: .scaRedirect),
                       !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
                 DispatchQueue.main.async {
-                    self.webViewController.notificationUrl = notificationUrl
+                    self.webViewController.notificationUrl = self.notificationUrl
 
                     self.delegate?.show3DSecureViewController(viewController: self.webViewController)
 
