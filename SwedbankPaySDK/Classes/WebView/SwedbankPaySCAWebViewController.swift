@@ -48,6 +48,8 @@ class SwedbankPaySCAWebViewController: UIViewController {
 
     let activityView = UIActivityIndicatorView()
 
+    var notificationUrl: String?
+
     init() {
         let preferences = WKPreferences()
         preferences.javaScriptEnabled = true
@@ -148,7 +150,7 @@ extension SwedbankPaySCAWebViewController: WKNavigationDelegate {
     ) {
         let request = navigationAction.request
 
-        if request.url?.absoluteString == SwedbankPayAPIConstants.notificationUrl,
+        if request.url?.absoluteString == self.notificationUrl,
            let httpBody = request.httpBody,
            let bodyString = String(data: httpBody, encoding: .utf8),
            let urlComponents = URLComponents(string: "https://www.apple.com?\(bodyString)"),

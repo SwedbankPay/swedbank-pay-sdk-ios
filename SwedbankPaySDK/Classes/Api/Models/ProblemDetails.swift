@@ -20,6 +20,7 @@ public extension SwedbankPaySDK {
         public let title: String?
         public let status: Int32?
         public let detail: String?
+        public let originalDetail: String?
 
         let operation: OperationOutputModel?
     }

@@ -73,6 +73,7 @@ public extension SwedbankPaySDK {
         private var hasShownProblemDetails: [ProblemDetails] = []
         private var scaMethodRequestDataPerformed: [(name: String, value: String)] = []
         private var scaRedirectDataPerformed: [(name: String, value: String)] = []
+        private var notificationUrl: String? = nil
 
         private var sessionStartTimestamp = Date()
 
@@ -107,6 +108,7 @@ public extension SwedbankPaySDK {
             hasShownProblemDetails = []
             scaMethodRequestDataPerformed = []
             scaRedirectDataPerformed = []
+            notificationUrl = nil
             hasShownAvailableInstruments = false
 
             if automaticConfiguration {
@@ -117,7 +119,8 @@ public extension SwedbankPaySDK {
                                              href: sessionURL.absoluteString,
                                              method: "GET",
                                              next: nil,
-                                             tasks: nil)
+                                             tasks: nil,
+                                             expects: nil)
 
             sessionStartTimestamp = Date()
             makeRequest(router: nil, operation: model)
@@ -425,13 +428,27 @@ public extension SwedbankPaySDK {
                     }
                 }
             } else if let createAuthentication = operations.first(where: { $0.rel == .createAuthentication }),
-                      let task = createAuthentication.firstTask(with: .scaMethodRequest),
-                      let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "" }) {
-                makeRequest(router: .createAuthentication(methodCompletionIndicator: scaMethod.value), operation: createAuthentication)
+                      let notificationUrl = createAuthentication.expects?.first(where: { $0.name == "NotificationUrl" })?.value {
+                self.notificationUrl = notificationUrl
+
+                if let task = createAuthentication.firstTask(with: .scaMethodRequest),
+                   let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "" }) {
+                    makeRequest(router: .createAuthentication(methodCompletionIndicator: scaMethod.value, notificationUrl: notificationUrl), operation: createAuthentication)
+                } else if let methodCompletionIndicator = createAuthentication.expects?.first(where: { $0.name == "methodCompletionIndicator" })?.value {
+                    makeRequest(router: .createAuthentication(methodCompletionIndicator: methodCompletionIndicator, notificationUrl: notificationUrl), operation: createAuthentication)
+                } else {
+                    self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
+
+                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                       succeeded: self.delegate != nil,
+                                                                       values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
+                }
             } else if let operation = operations.first(where: { $0.firstTask(with: .scaRedirect) != nil }),
                       let task = operation.firstTask(with: .scaRedirect),
                       !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
                 DispatchQueue.main.async {
+                    self.webViewController.notificationUrl = notificationUrl
+
                     self.delegate?.show3DSecureViewController(viewController: self.webViewController)
 
                     BeaconService.shared.log(type: .sdkCallbackInvoked(name: "show3DSecureViewController",
@@ -471,6 +488,7 @@ public extension SwedbankPaySDK {
                 hasShownProblemDetails = []
                 scaMethodRequestDataPerformed = []
                 scaRedirectDataPerformed = []
+                notificationUrl = nil
                 hasShownAvailableInstruments = false
             } else if (operations.contains(where: { $0.rel == .expandMethod }) || operations.contains(where: { $0.rel == .startPaymentAttempt })) &&
                         hasShownAvailableInstruments == false {

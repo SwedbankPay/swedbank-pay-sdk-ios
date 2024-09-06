@@ -25,7 +25,7 @@ struct Endpoint {
 enum EnpointRouter {
     case expandMethod(instrument: SwedbankPaySDK.PaymentAttemptInstrument)
     case startPaymentAttempt(instrument: SwedbankPaySDK.PaymentAttemptInstrument, culture: String?)
-    case createAuthentication(methodCompletionIndicator: String)
+    case createAuthentication(methodCompletionIndicator: String, notificationUrl: String)
     case completeAuthentication(cRes: String)
     case getPayment
     case preparePayment
@@ -80,15 +80,15 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
                                "screenColorDepth": String(24)],
                     "browser": ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                                "languageHeader": Locale.current.identifier,
+                                "languageHeader": Locale.current.identifier.replacingOccurrences(of: "_", with: "-"),
                                 "timeZoneOffset": TimeZone.current.offsetFromGMT(),
                                 "javascriptEnabled": true],
                     "service": ["name": "SwedbankPaySDK-iOS",
                                 "version": SwedbankPaySDK.VersionReporter.currentVersion]
             ]
-        case .createAuthentication(let methodCompletionIndicator):
+        case .createAuthentication(let methodCompletionIndicator, let notificationUrl):
             return ["methodCompletionIndicator": methodCompletionIndicator,
-                    "notificationUrl": SwedbankPayAPIConstants.notificationUrl,
+                    "notificationUrl": notificationUrl,
                     "requestWindowSize": "FULLSCREEN",
                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
@@ -96,7 +96,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
                                "screenColorDepth": String(24)],
                     "browser": ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                                "languageHeader": Locale.current.identifier,
+                                "languageHeader": Locale.current.identifier.replacingOccurrences(of: "_", with: "-"),
                                 "timeZoneOffset": TimeZone.current.offsetFromGMT(),
                                 "javascriptEnabled": true]
             ]
