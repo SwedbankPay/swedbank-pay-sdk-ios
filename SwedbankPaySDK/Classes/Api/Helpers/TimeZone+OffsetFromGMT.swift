@@ -22,4 +22,9 @@ extension TimeZone {
         localTimeZoneFormatter.dateFormat = "Z"
         return localTimeZoneFormatter.string(from: Date())
     }
+
+    func minutesFromGMT() -> String {
+        let minutes = (secondsFromGMT() / 60)
+        return String(minutes)
+    }
 }

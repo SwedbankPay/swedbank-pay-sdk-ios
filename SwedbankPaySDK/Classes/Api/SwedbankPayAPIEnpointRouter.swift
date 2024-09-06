@@ -81,7 +81,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                "screenColorDepth": String(24)],
                     "browser": ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                                 "languageHeader": Locale.current.identifier.replacingOccurrences(of: "_", with: "-"),
-                                "timeZoneOffset": TimeZone.current.offsetFromGMT(),
+                                "timeZoneOffset": TimeZone.current.minutesFromGMT(),
                                 "javascriptEnabled": true],
                     "service": ["name": "SwedbankPaySDK-iOS",
                                 "version": SwedbankPaySDK.VersionReporter.currentVersion]
@@ -97,7 +97,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                "screenColorDepth": String(24)],
                     "browser": ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                                 "languageHeader": Locale.current.identifier.replacingOccurrences(of: "_", with: "-"),
-                                "timeZoneOffset": TimeZone.current.offsetFromGMT(),
+                                "timeZoneOffset": TimeZone.current.minutesFromGMT(),
                                 "javascriptEnabled": true]
             ]
         case .completeAuthentication(let cRes):
