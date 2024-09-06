@@ -412,14 +412,15 @@ public extension SwedbankPaySDK {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
             } else if let scaMethodRequest = operations.first(where: { $0.firstTask(with: .scaMethodRequest) != nil }),
                       let task = scaMethodRequest.firstTask(with: .scaMethodRequest),
-                      !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "" }) {
+                      task.href != nil,
+                      !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null" }) {
                 DispatchQueue.main.async {
                     self.webViewService.load(task: task) { result in
                         switch result {
                         case .success:
-                            self.scaMethodRequestDataPerformed.append((name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "", value: "Y"))
+                            self.scaMethodRequestDataPerformed.append((name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null", value: "Y"))
                         case .failure(let error):
-                            self.scaMethodRequestDataPerformed.append((name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "", value: "N"))
+                            self.scaMethodRequestDataPerformed.append((name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null", value: "N"))
                         }
 
                         if let model = self.ongoingModel {
@@ -432,16 +433,12 @@ public extension SwedbankPaySDK {
                 self.notificationUrl = notificationUrl
 
                 if let task = createAuthentication.firstTask(with: .scaMethodRequest),
-                   let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "" }) {
+                   let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null" }) {
                     makeRequest(router: .createAuthentication(methodCompletionIndicator: scaMethod.value, notificationUrl: notificationUrl), operation: createAuthentication)
                 } else if let methodCompletionIndicator = createAuthentication.expects?.first(where: { $0.name == "methodCompletionIndicator" })?.value {
                     makeRequest(router: .createAuthentication(methodCompletionIndicator: methodCompletionIndicator, notificationUrl: notificationUrl), operation: createAuthentication)
                 } else {
-                    self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
-
-                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
-                                                                       succeeded: self.delegate != nil,
-                                                                       values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
+                    makeRequest(router: .createAuthentication(methodCompletionIndicator: "U", notificationUrl: notificationUrl), operation: createAuthentication)
                 }
             } else if let operation = operations.first(where: { $0.firstTask(with: .scaRedirect) != nil }),
                       let task = operation.firstTask(with: .scaRedirect),
