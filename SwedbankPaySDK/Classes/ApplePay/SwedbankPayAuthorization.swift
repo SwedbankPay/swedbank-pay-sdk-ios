@@ -1,0 +1,167 @@
+//
+// Copyright 2024 Swedbank AB
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import Foundation
+import PassKit
+
+class SwedbankPayAuthorization: NSObject {
+    static let shared = SwedbankPayAuthorization()
+
+    private var handler: ((Result<Void, Error>) -> Void)?
+    private var errors: [Error]?
+    private var status: PKPaymentAuthorizationStatus?
+
+    func testApplePay(task: IntegrationTask, handler: @escaping (Result<Void, Error>) -> Void) {
+        self.errors = nil
+        self.status = nil
+
+        self.handler = handler
+
+        let paymentRequest = PKPaymentRequest()
+
+        if let totalAmountLabel = task.expects?.first(where: { $0.name == "TotalAmountLabel" })?.value,
+           let totalAmount = task.expects?.first(where: { $0.name == "TotalAmount" })?.value {
+            let total = PKPaymentSummaryItem(label: totalAmountLabel, amount: NSDecimalNumber(string: totalAmount), type: .final)
+            paymentRequest.paymentSummaryItems = [total]
+        }
+
+        paymentRequest.merchantIdentifier = "merchant.com.swedbankpay.exampleapp"
+
+        if let merchantCapabilities = task.expects?.first(where: { $0.name == "MerchantCapabilities" })?.stringArray?.contains(where: { $0 == "supports3DS" }) {
+            paymentRequest.merchantCapabilities = .threeDSecure
+        }
+
+        if let identifier = task.expects?.first(where: { $0.name == "Locale" })?.value,
+           let countryCode = Locale(identifier: identifier).regionCode {
+            paymentRequest.countryCode = countryCode
+        }
+
+        if let currencyCode = task.expects?.first(where: { $0.name == "CurrencyCode" })?.value {
+            paymentRequest.currencyCode = currencyCode
+        }
+
+        if let supportedNetworks: [PKPaymentNetwork] = task.expects?.first(where: { $0.name == "SupportedNetworks" })?.stringArray?.compactMap({ string in
+            return SwedbankPaymentNetwork(rawValue: string)?.pkPaymentNetwork
+        }) {
+            paymentRequest.supportedNetworks = supportedNetworks
+        }
+
+        if let supportedCountries = task.expects?.first(where: { $0.name == "SupportedCountries" })?.stringArray {
+            paymentRequest.supportedCountries = Set(supportedCountries.map { $0 })
+        }
+
+        if let requiredShippingContactFields: [String] = task.expects?.first(where: { $0.name == "RequiredShippingContactFields" })?.stringArray {
+            paymentRequest.requiredShippingContactFields = Set(requiredShippingContactFields.map { PKContactField(rawValue: $0) })
+        }
+
+        let paymentController = PKPaymentAuthorizationController(paymentRequest: paymentRequest)
+        paymentController.delegate = self
+        paymentController.present(completion: { (presented: Bool) in
+            if presented {
+                debugPrint("Presented payment controller")
+            } else {
+                debugPrint("Failed to present payment controller")
+            }
+        })
+    }
+}
+
+extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
+    func paymentAuthorizationControllerDidFinish(_ controller: PKPaymentAuthorizationController) {
+        if let handler = self.handler {
+            if let status = status {
+                handler(.success(()))
+            } else {
+                handler(.failure(self.errors?.first ?? SwedbankPayAPIError.unknown))
+            }
+        }
+
+        self.handler = nil
+
+        debugPrint("Payment Authorization Controller Did Finish")
+        controller.dismiss()
+    }
+
+    func paymentAuthorizationController(_ controller: PKPaymentAuthorizationController, didAuthorizePayment payment: PKPayment, handler completion: @escaping (PKPaymentAuthorizationResult) -> Void) {
+        if let pkPaymentNetwork = payment.token.paymentMethod.network,
+           let cardNetwork = SwedbankPaymentNetwork(pkPaymentNetwork: pkPaymentNetwork) {
+            let paymentPayload = payment.token.paymentData.base64EncodedString()
+            let transactionIdentifier = payment.token.transactionIdentifier
+
+            var shippingAddress: [String: String] = [:]
+
+            if let postalAddress = payment.shippingContact?.postalAddress {
+                shippingAddress["postalAddress"] = postalAddress.postalCode
+            }
+
+            if let name = payment.shippingContact?.name {
+                if #available(iOS 15.0, *) {
+                    shippingAddress["name"] = name.formatted()
+                } else {
+                    var nameArray: [String] = []
+
+                    if let givenName = name.givenName {
+                        nameArray.append(givenName)
+                    }
+
+                    if let middleName = name.middleName {
+                        nameArray.append(middleName)
+                    }
+
+                    if let familyName = name.familyName {
+                        nameArray.append(familyName)
+                    }
+
+                    shippingAddress["name"] = nameArray.joined(separator: " ")
+                }
+            }
+
+            if let phoneNumber = payment.shippingContact?.phoneNumber {
+                shippingAddress["phone"] = phoneNumber.stringValue
+            }
+
+            if let emailAddress = payment.shippingContact?.emailAddress {
+                shippingAddress["email"] = emailAddress
+            }
+
+            ApplePayEndpointRouter(cardNetwork: cardNetwork.rawValue,
+                                   paymentPayload: paymentPayload,
+                                   transactionIdentifier: transactionIdentifier,
+                                   shippingAddress: shippingAddress).makeRequest { result in
+
+                switch result {
+                case .success:
+                    self.status = PKPaymentAuthorizationStatus.success
+                    self.errors = [Error]()
+                case .failure(let error):
+                    self.status = PKPaymentAuthorizationStatus.failure
+                    self.errors = [error]
+                }
+
+                debugPrint("Payment Authorization Controller Did Authorize Payment", payment)
+                completion(PKPaymentAuthorizationResult(status: self.status!, errors: self.errors))
+            }
+        }
+    }
+
+//    func paymentAuthorizationController(_ controller: PKPaymentAuthorizationController, didSelectPaymentMethod paymentMethod: PKPaymentMethod, handler completion: @escaping (PKPaymentRequestPaymentMethodUpdate) -> Void) {
+//        debugPrint("paymentAuthorizationController didSelectPaymentMethod", paymentMethod)
+//        completion(PKPaymentRequestPaymentMethodUpdate())
+//    }
+//
+//    func paymentAuthorizationControllerWillAuthorizePayment(_ controller: PKPaymentAuthorizationController) {
+//        debugPrint("paymentAuthorizationControllerWillAuthorizePayment")
+//    }
+}

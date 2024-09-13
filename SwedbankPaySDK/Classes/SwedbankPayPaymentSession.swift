@@ -195,6 +195,10 @@ public extension SwedbankPaySDK {
                                                                           "cardNumber": prefill.maskedPan,
                                                                           "cardExpiryMonth": prefill.expiryMonth,
                                                                           "cardExpiryYear": prefill.expiryYear]))
+            case .applePay:
+                BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
+                                                                 succeeded: succeeded,
+                                                                 values: ["instrument": instrument.identifier]))
             }
 
         }
@@ -394,10 +398,35 @@ public extension SwedbankPaySDK {
 
             let operations = paymentOutputModel.prioritisedOperations
 
-            print("\(operations.compactMap({ $0.rel }))")
-
             if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
                 makeRequest(router: .preparePayment, operation: preparePayment)
+            } else if let walletSdk = operations.first(where: { $0.firstTask(with: .walletSdk) != nil }),
+                      let task = walletSdk.firstTask(with: .walletSdk) {
+                SwedbankPayAuthorization.shared.testApplePay(task: task) { result in
+                    switch result {
+                    case .success:
+                        DispatchQueue.main.async {
+                            if let model = self.ongoingModel {
+                                self.sessionOperationHandling(paymentOutputModel: model, culture: culture)
+                            }
+                        }
+                    case .failure(let failure):
+                        DispatchQueue.main.async {
+                            let problem = SwedbankPaySDK.PaymentSessionProblem.applePayFailed(error: failure)
+
+                            self.delegate?.sdkProblemOccurred(problem: problem)
+
+                            let error = failure as NSError
+
+                            BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                               succeeded: self.delegate != nil,
+                                                                               values: ["problem": problem.rawValue,
+                                                                                        "errorDescription": error.localizedDescription,
+                                                                                        "errorCode": error.code,
+                                                                                        "errorDomain": error.domain]))
+                        }
+                    }
+                }
             } else if operations.contains(where: { $0.rel == .startPaymentAttempt }),
                       let instrument = instrument,
                       let startPaymentAttempt = ongoingModel?.paymentSession.methods?
@@ -496,6 +525,8 @@ public extension SwedbankPaySDK {
                             return AvailableInstrument.swish(prefills: prefills)
                         case .creditCard(let prefills, _, _):
                             return AvailableInstrument.creditCard(prefills: prefills)
+                        case .applePay:
+                            return AvailableInstrument.applePay
                         case .unknown(let identifier):
                             return AvailableInstrument.webBased(identifier: identifier)
                         }

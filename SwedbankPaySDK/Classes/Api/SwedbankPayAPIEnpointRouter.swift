@@ -15,6 +15,7 @@
 
 import Foundation
 import UIKit
+import PassKit
 
 struct Endpoint {
     let router: EnpointRouter?
@@ -70,10 +71,18 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                    "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
                                    "screenColorDepth": String(24)]
                 ]
+            case .applePay:
+                return ["culture": culture,
+                        "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
+                                   "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
+                                   "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
+                                   "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
+                                   "screenColorDepth": String(24)]
+                ]
             }
         case .preparePayment:
             return ["integration": "HostedView",
-                    "deviceAcceptedWallets": "",
+                    "deviceAcceptedWallets": PKPaymentAuthorizationController.canMakePayments() ? "ApplePay" : "",
                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
                                "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),

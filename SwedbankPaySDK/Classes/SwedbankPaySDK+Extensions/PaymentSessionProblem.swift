@@ -23,6 +23,7 @@ public extension SwedbankPaySDK {
         case clientAppLaunchFailed
         case internalInconsistencyError
         case automaticConfigurationFailed
+        case applePayFailed(error: Error)
 
         var rawValue: String {
             switch self {
@@ -31,6 +32,7 @@ public extension SwedbankPaySDK {
             case .clientAppLaunchFailed:            "clientAppLaunchFailed"
             case .internalInconsistencyError:       "internalInconsistencyError"
             case .automaticConfigurationFailed:     "automaticConfigurationFailed"
+            case .applePayFailed:                   "applePayFailed"
             }
         }
     }
