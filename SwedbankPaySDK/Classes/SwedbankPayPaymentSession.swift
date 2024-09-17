@@ -48,6 +48,8 @@ public protocol SwedbankPaySDKPaymentSessionDelegate: AnyObject {
     /// Called whenever the 3D secure view can be dismissed.
     func dismiss3DSecureViewController()
 
+    func showSwedbankPaySDKController(viewController: SwedbankPaySDKController)
+
     /// Called if the 3D secure view loading failed.
     ///
     /// - parameter error: The error that caused the failure
@@ -162,7 +164,16 @@ public extension SwedbankPaySDK {
             }
 
             var succeeded = false
-            if let operation = ongoingModel.paymentSession.methods?
+
+            if case .newCreditCard = self.instrument,
+               (ongoingModel.paymentSession.instrumentModePaymentMethod == nil || ongoingModel.paymentSession.instrumentModePaymentMethod != "CreditCard"),
+               let operation = ongoingModel.operations?.first(where: { $0.rel == .customizePayment }) {
+                sessionStartTimestamp = Date()
+
+                makeRequest(router: .customizePayment(instrument: instrument), operation: operation)
+
+                succeeded = true
+            } else if let operation = ongoingModel.paymentSession.methods?
                 .first(where: { $0.name == instrument.identifier })?.operations?
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
 
@@ -211,6 +222,11 @@ public extension SwedbankPaySDK {
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
                                                                  succeeded: succeeded,
                                                                  values: ["instrument": instrument.identifier]))
+            case .newCreditCard(enabledPaymentDetailsConsentCheckbox: let enabledPaymentDetailsConsentCheckbox):
+                BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
+                                                                 succeeded: succeeded,
+                                                                 values: ["instrument": instrument.identifier,
+                                                                          "showConsentAffirmation": enabledPaymentDetailsConsentCheckbox]))
             }
 
         }
@@ -220,7 +236,7 @@ public extension SwedbankPaySDK {
         /// There needs to be an active payment session before an payment attempt can be made.
         ///
         /// - returns:- SwedbankPaySDKController to be shown.
-        public func createSwedbankPaySDKController() -> SwedbankPaySDKController? {
+        public func createSwedbankPaySDKController() {
             guard let ongoingModel = ongoingModel,
                   let operation = ongoingModel.operations?.first(where: { $0.rel == .viewPayment }),
                   let orderInfo = orderInfo,
@@ -232,7 +248,7 @@ public extension SwedbankPaySDK {
                                                                    succeeded: self.delegate != nil,
                                                                    values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
 
-                return nil
+                return
             }
 
             let configuration = SwedbankPayConfiguration(
@@ -249,14 +265,14 @@ public extension SwedbankPaySDK {
                 consumer: nil,
                 paymentOrder: nil,
                 userData: nil)
-            
+
             BeaconService.shared.log(type: .sdkMethodInvoked(name: "createSwedbankPaySDKController",
                                                              succeeded: true,
                                                              values: nil))
 
             paymentViewSessionIsOngoing = true
 
-            return viewController
+            delegate?.showSwedbankPaySDKController(viewController: viewController)
         }
 
         /// Abort an active payment session.
@@ -443,6 +459,11 @@ public extension SwedbankPaySDK {
             } else if let attemptPayload = operations.first(where: { $0.rel == .attemptPayload }),
                       let walletSdk = attemptPayload.firstTask(with: .walletSdk) {
                 makeApplePayAuthorization(operation: attemptPayload, task: walletSdk)
+            } else if case .newCreditCard = self.instrument,
+                      ongoingModel?.paymentSession.instrumentModePaymentMethod == "CreditCard" {
+                DispatchQueue.main.async {
+                    self.createSwedbankPaySDKController()
+                }
             } else if operations.contains(where: { $0.rel == .startPaymentAttempt }),
                       let instrument = instrument,
                       let startPaymentAttempt = ongoingModel?.paymentSession.methods?

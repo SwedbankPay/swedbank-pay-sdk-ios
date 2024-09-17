@@ -15,16 +15,18 @@
 
 extension SwedbankPaySDK {
     /// Instrument with needed values to make a payment attempt.
-    public enum PaymentAttemptInstrument {
+    public enum PaymentAttemptInstrument: Equatable {
         case swish(msisdn: String?)
         case creditCard(prefill: CreditCardMethodPrefillModel)
         case applePay(merchantIdentifier: String)
+        case newCreditCard(enabledPaymentDetailsConsentCheckbox: Bool)
 
         var identifier: String {
             switch self {
             case .swish:
                 return "Swish"
-            case .creditCard:
+            case .creditCard,
+                 .newCreditCard:
                 return "CreditCard"
             case .applePay:
                 return "ApplePay"

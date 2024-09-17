@@ -19,6 +19,7 @@ struct PaymentSessionModel: Codable, Hashable {
     let culture: String?
     let methods: [MethodBaseModel]?
     let urls: UrlsModel?
+    let instrumentModePaymentMethod: String?
 }
 
 extension PaymentSessionModel {

@@ -33,6 +33,7 @@ enum EnpointRouter {
     case acknowledgeFailedAttempt
     case abortPayment
     case applePay(paymentPayload: String)
+    case customizePayment(instrument: SwedbankPaySDK.PaymentAttemptInstrument)
 }
 
 protocol EndpointRouterProtocol {
@@ -80,6 +81,8 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                    "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
                                    "screenColorDepth": String(24)]
                 ]
+            case .newCreditCard:
+                return nil
             }
         case .preparePayment:
             return ["integration": "HostedView",
@@ -118,6 +121,16 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
         case .applePay(let paymentPayload):
             return ["instrument": "ApplePay",
                     "paymentPayload": paymentPayload]
+        case .customizePayment(let instrument):
+            switch instrument {
+            case .newCreditCard(let enabledPaymentDetailsConsentCheckbox):
+                return ["paymentMethod": "CreditCard",
+                        "hideStoredPaymentOptions": true,
+                        "showConsentAffirmation" : enabledPaymentDetailsConsentCheckbox,
+                ]
+            default:
+                return nil
+            }
         default:
             return nil
         }
