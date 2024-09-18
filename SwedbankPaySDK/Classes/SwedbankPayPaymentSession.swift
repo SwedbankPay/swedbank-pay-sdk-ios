@@ -66,6 +66,7 @@ public extension SwedbankPaySDK {
 
         private var ongoingModel: PaymentOutputModel? = nil
         private var sessionIsOngoing: Bool = false
+        private var paymentViewSessionIsOngoing: Bool = false
         private var instrument: SwedbankPaySDK.PaymentAttemptInstrument? = nil
         private var hasShownAvailableInstruments: Bool = false
         private var merchantIdentifier: String? = nil
@@ -103,6 +104,7 @@ public extension SwedbankPaySDK {
         /// - parameter with sessionURL: Session URL needed to start the native payment session
         public func fetchPaymentSession(sessionURL: URL) {
             sessionIsOngoing = true
+            paymentViewSessionIsOngoing = false
             instrument = nil
             merchantIdentifier = nil
             ongoingModel = nil
@@ -149,6 +151,7 @@ public extension SwedbankPaySDK {
                 return
             }
 
+            paymentViewSessionIsOngoing = false
             self.instrument = instrument
 
             switch instrument {
@@ -250,6 +253,8 @@ public extension SwedbankPaySDK {
             BeaconService.shared.log(type: .sdkMethodInvoked(name: "createSwedbankPaySDKController",
                                                              succeeded: true,
                                                              values: nil))
+
+            paymentViewSessionIsOngoing = true
 
             return viewController
         }
@@ -568,7 +573,8 @@ public extension SwedbankPaySDK {
         }
 
         internal func handleCallbackUrl(_ url: URL) -> Bool {
-            guard url == orderInfo?.paymentUrl else {
+            guard url.appendingPathComponent("") == orderInfo?.paymentUrl?.appendingPathComponent(""),
+                  paymentViewSessionIsOngoing == false else {
                 return false
             }
 

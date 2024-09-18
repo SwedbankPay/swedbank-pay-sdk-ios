@@ -751,7 +751,7 @@ extension SwedbankPaySDKController : CallbackUrlDelegate {
             return false
         }
         // See SwedbankPaySDKConfiguration for discussion on why we need to do this.
-        return url == paymentUrl
+        return url.appendingPathComponent("") == paymentUrl.appendingPathComponent("")
             || viewModel?.configuration.url(url, matchesPaymentUrl: paymentUrl) == true
     }
 }
