@@ -277,6 +277,8 @@ public extension SwedbankPaySDK {
 
             paymentViewSessionIsOngoing = true
 
+            viewController.internalDelegate = self
+
             delegate?.showSwedbankPaySDKController(viewController: viewController)
         }
 
@@ -649,5 +651,53 @@ public extension SwedbankPaySDK {
                 }
             }
         }
+    }
+}
+
+extension SwedbankPaySDK.SwedbankPayPaymentSession: SwedbankPaySDKInternalDelegate {
+    public func updatePaymentOrderFailed(updateInfo: Any, error: any Error) {
+        let problem = SwedbankPaySDK.PaymentSessionProblem.applePayFailed(error: error)
+
+        self.delegate?.sdkProblemOccurred(problem: problem)
+
+        let error = error as NSError
+
+        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                           succeeded: self.delegate != nil,
+                                                           values: ["problem": problem.rawValue,
+                                                                    "errorDescription": error.localizedDescription,
+                                                                    "errorCode": error.code,
+                                                                    "errorDomain": error.domain]))
+    }
+
+    public func paymentComplete() {
+        self.delegate?.paymentSessionComplete()
+
+        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionComplete",
+                                                           succeeded: self.delegate != nil,
+                                                           values: nil))
+    }
+
+    public func paymentCanceled() {
+        self.delegate?.paymentSessionCanceled()
+
+        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionCanceled",
+                                                           succeeded: self.delegate != nil,
+                                                           values: nil))
+    }
+
+    public func paymentFailed(error: any Error) {
+        let problem = SwedbankPaySDK.PaymentSessionProblem.applePayFailed(error: error)
+
+        self.delegate?.sdkProblemOccurred(problem: problem)
+
+        let error = error as NSError
+
+        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                           succeeded: self.delegate != nil,
+                                                           values: ["problem": problem.rawValue,
+                                                                    "errorDescription": error.localizedDescription,
+                                                                    "errorCode": error.code,
+                                                                    "errorDomain": error.domain]))
     }
 }

@@ -70,6 +70,14 @@ public protocol SwedbankPaySDKDelegate: AnyObject {
     ///
     func javaScriptEvent(name: String, arguments: [String: Any])
 }
+
+internal protocol SwedbankPaySDKInternalDelegate: AnyObject {
+    func updatePaymentOrderFailed(updateInfo: Any, error: Error)
+    func paymentComplete()
+    func paymentCanceled()
+    func paymentFailed(error: Error)
+}
+
 public extension SwedbankPaySDKDelegate {
     func shippingAddressIsKnown() {}
     func instrumentSelected() {}
@@ -168,7 +176,9 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
             notifyDelegateIfNeeded()
         }
     }
-    
+
+    internal var internalDelegate: SwedbankPaySDKInternalDelegate?
+
     /// Styling for the payment menu
     ///
     /// Styling the payment menu requires a separate agreement with Swedbank Pay.
@@ -524,12 +534,16 @@ open class SwedbankPaySDKController: UIViewController, UIViewControllerRestorati
             switch viewModel.state {
             case .complete:
                 delegate?.paymentComplete()
+                internalDelegate?.paymentComplete()
             case .canceled:
                 delegate?.paymentCanceled()
+                internalDelegate?.paymentCanceled()
             case .failed(_, let error):
                 delegate?.paymentFailed(error: error)
+                internalDelegate?.paymentFailed(error: error)
             case .paying(_, options: _, failedUpdate: let failedUpdate?):
                 delegate?.updatePaymentOrderFailed(updateInfo: failedUpdate.updateInfo, error: failedUpdate.error)
+                internalDelegate?.updatePaymentOrderFailed(updateInfo: failedUpdate.updateInfo, error: failedUpdate.error)
             default:
                 break
             }
