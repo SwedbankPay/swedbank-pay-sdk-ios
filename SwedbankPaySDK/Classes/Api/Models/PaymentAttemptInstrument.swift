@@ -18,7 +18,7 @@ extension SwedbankPaySDK {
     public enum PaymentAttemptInstrument {
         case swish(msisdn: String?)
         case creditCard(prefill: CreditCardMethodPrefillModel)
-        case applePay
+        case applePay(merchantIdentifier: String)
 
         var identifier: String {
             switch self {

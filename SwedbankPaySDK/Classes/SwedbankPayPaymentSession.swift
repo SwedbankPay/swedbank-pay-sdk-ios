@@ -68,6 +68,7 @@ public extension SwedbankPaySDK {
         private var sessionIsOngoing: Bool = false
         private var instrument: SwedbankPaySDK.PaymentAttemptInstrument? = nil
         private var hasShownAvailableInstruments: Bool = false
+        private var merchantIdentifier: String? = nil
 
         private var hasLaunchClientAppURLs: [URL] = []
         private var hasShownProblemDetails: [ProblemDetails] = []
@@ -103,6 +104,7 @@ public extension SwedbankPaySDK {
         public func fetchPaymentSession(sessionURL: URL) {
             sessionIsOngoing = true
             instrument = nil
+            merchantIdentifier = nil
             ongoingModel = nil
             hasLaunchClientAppURLs = []
             hasShownProblemDetails = []
@@ -148,6 +150,13 @@ public extension SwedbankPaySDK {
             }
 
             self.instrument = instrument
+
+            switch instrument {
+            case .applePay(let merchantIdentifier):
+                self.merchantIdentifier = merchantIdentifier
+            default:
+                break
+            }
 
             var succeeded = false
             if let operation = ongoingModel.paymentSession.methods?
@@ -402,7 +411,7 @@ public extension SwedbankPaySDK {
                 makeRequest(router: .preparePayment, operation: preparePayment)
             } else if let walletSdk = operations.first(where: { $0.firstTask(with: .walletSdk) != nil }),
                       let task = walletSdk.firstTask(with: .walletSdk) {
-                SwedbankPayAuthorization.shared.testApplePay(task: task) { result in
+                SwedbankPayAuthorization.shared.makeApplePayTransaction(task: task, merchantIdentifier: merchantIdentifier) { result in
                     switch result {
                     case .success:
                         DispatchQueue.main.async {

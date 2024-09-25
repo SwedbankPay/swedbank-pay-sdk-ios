@@ -19,14 +19,17 @@ import PassKit
 class SwedbankPayAuthorization: NSObject {
     static let shared = SwedbankPayAuthorization()
 
+    private var task: IntegrationTask?
     private var handler: ((Result<Void, Error>) -> Void)?
+
     private var errors: [Error]?
     private var status: PKPaymentAuthorizationStatus?
 
-    func testApplePay(task: IntegrationTask, handler: @escaping (Result<Void, Error>) -> Void) {
+    func makeApplePayTransaction(task: IntegrationTask, merchantIdentifier: String?, handler: @escaping (Result<Void, Error>) -> Void) {
         self.errors = nil
         self.status = nil
 
+        self.task = task
         self.handler = handler
 
         let paymentRequest = PKPaymentRequest()
@@ -37,7 +40,9 @@ class SwedbankPayAuthorization: NSObject {
             paymentRequest.paymentSummaryItems = [total]
         }
 
-        paymentRequest.merchantIdentifier = "merchant.com.swedbankpay.exampleapp"
+        if let merchantIdentifier = merchantIdentifier {
+            paymentRequest.merchantIdentifier = merchantIdentifier
+        }
 
         if let merchantCapabilities = task.expects?.first(where: { $0.name == "MerchantCapabilities" })?.stringArray?.contains(where: { $0 == "supports3DS" }) {
             paymentRequest.merchantCapabilities = .threeDSecure
@@ -90,7 +95,6 @@ extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
 
         self.handler = nil
 
-        debugPrint("Payment Authorization Controller Did Finish")
         controller.dismiss()
     }
 
@@ -136,11 +140,12 @@ extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
                 shippingAddress["email"] = emailAddress
             }
 
-            ApplePayEndpointRouter(cardNetwork: cardNetwork.rawValue,
-                                   paymentPayload: paymentPayload,
-                                   transactionIdentifier: transactionIdentifier,
-                                   shippingAddress: shippingAddress).makeRequest { result in
+            let router = EnpointRouter.applePay(cardNetwork: cardNetwork.rawValue,
+                                                paymentPayload: paymentPayload,
+                                                transactionIdentifier: transactionIdentifier,
+                                                shippingAddress: shippingAddress)
 
+            SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: task?.href, method: task?.method), sessionStartTimestamp: Date()).makeRequest { result in
                 switch result {
                 case .success:
                     self.status = PKPaymentAuthorizationStatus.success
@@ -150,18 +155,8 @@ extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
                     self.errors = [error]
                 }
 
-                debugPrint("Payment Authorization Controller Did Authorize Payment", payment)
                 completion(PKPaymentAuthorizationResult(status: self.status!, errors: self.errors))
             }
         }
     }
-
-//    func paymentAuthorizationController(_ controller: PKPaymentAuthorizationController, didSelectPaymentMethod paymentMethod: PKPaymentMethod, handler completion: @escaping (PKPaymentRequestPaymentMethodUpdate) -> Void) {
-//        debugPrint("paymentAuthorizationController didSelectPaymentMethod", paymentMethod)
-//        completion(PKPaymentRequestPaymentMethodUpdate())
-//    }
-//
-//    func paymentAuthorizationControllerWillAuthorizePayment(_ controller: PKPaymentAuthorizationController) {
-//        debugPrint("paymentAuthorizationControllerWillAuthorizePayment")
-//    }
 }

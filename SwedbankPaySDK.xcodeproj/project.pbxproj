@@ -14,7 +14,6 @@
 		4517C6A02BFF6B7E001687E7 /* BeaconEndpointRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */; };
 		4517C6A12BFF8980001687E7 /* BeaconEndpointRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */; };
 		4517C6A32BFF928B001687E7 /* BeaconService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517C6A22BFF928B001687E7 /* BeaconService.swift */; };
-		455849302C93305C0062A315 /* ApplePayEndpointRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4558492F2C93305C0062A315 /* ApplePayEndpointRouter.swift */; };
 		455849322C945BAD0062A315 /* SwedbankPaymentNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455849312C945BAD0062A315 /* SwedbankPaymentNetwork.swift */; };
 		455A7B982C205DA3003CF320 /* SwedbankPayPaymentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455A7B972C205DA3003CF320 /* SwedbankPayPaymentSession.swift */; };
 		455A7B992C205DA3003CF320 /* SwedbankPayPaymentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455A7B972C205DA3003CF320 /* SwedbankPayPaymentSession.swift */; };
@@ -298,7 +297,6 @@
 		4517A24C2C1324AC000BB7A8 /* SCAWebViewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SCAWebViewService.swift; sourceTree = "<group>"; };
 		4517C69F2BFF6B7E001687E7 /* BeaconEndpointRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconEndpointRouter.swift; sourceTree = "<group>"; };
 		4517C6A22BFF928B001687E7 /* BeaconService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeaconService.swift; sourceTree = "<group>"; };
-		4558492F2C93305C0062A315 /* ApplePayEndpointRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePayEndpointRouter.swift; sourceTree = "<group>"; };
 		455849312C945BAD0062A315 /* SwedbankPaymentNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwedbankPaymentNetwork.swift; sourceTree = "<group>"; };
 		455A7B972C205DA3003CF320 /* SwedbankPayPaymentSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwedbankPayPaymentSession.swift; sourceTree = "<group>"; };
 		456900802BFB9AA5009475A5 /* PaymentSessionProblem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentSessionProblem.swift; sourceTree = "<group>"; };
@@ -511,7 +509,6 @@
 			children = (
 				456913E52C78C2C60014BD41 /* SwedbankPayAuthorization.swift */,
 				455849312C945BAD0062A315 /* SwedbankPaymentNetwork.swift */,
-				4558492F2C93305C0062A315 /* ApplePayEndpointRouter.swift */,
 			);
 			path = ApplePay;
 			sourceTree = "<group>";
@@ -1173,7 +1170,6 @@
 				A5808B11261CA8B500FF7EC1 /* WKWebViewCanOpen.swift in Sources */,
 				C50CF6A5237AAF47003F79DF /* SwedbankPaySubProblem.swift in Sources */,
 				A52E0AC124BC9E0100770286 /* WebViewRedirects.swift in Sources */,
-				455849302C93305C0062A315 /* ApplePayEndpointRouter.swift in Sources */,
 				A504895123C8A2FD00201DEC /* SwedbankPayWebContent.swift in Sources */,
 				C50CF69D237AACC3003F79DF /* Consumer.swift in Sources */,
 				45C1009F2BF2583D00AA3523 /* MethodBaseModel.swift in Sources */,

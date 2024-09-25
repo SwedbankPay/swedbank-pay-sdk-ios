@@ -32,6 +32,7 @@ enum EnpointRouter {
     case preparePayment
     case acknowledgeFailedAttempt
     case abortPayment
+    case applePay(cardNetwork: String, paymentPayload: String, transactionIdentifier: String, shippingAddress: [String: String])
 }
 
 protocol EndpointRouterProtocol {
@@ -114,6 +115,12 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""],
             ]
+        case .applePay(let cardNetwork, let paymentPayload, let transactionIdentifier, let shippingAddress):
+            return ["instrument": "ApplePay",
+                    "cardNetwork": cardNetwork,
+                    "paymentPayload": paymentPayload,
+                    "transactionIdentifier": transactionIdentifier,
+                    "shippingAddress": shippingAddress]
         default:
             return nil
         }
