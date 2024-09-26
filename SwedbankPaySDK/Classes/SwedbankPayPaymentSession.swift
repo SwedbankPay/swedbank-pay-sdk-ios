@@ -409,15 +409,13 @@ public extension SwedbankPaySDK {
 
             if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
                 makeRequest(router: .preparePayment, operation: preparePayment)
-            } else if let walletSdk = operations.first(where: { $0.firstTask(with: .walletSdk) != nil }),
-                      let task = walletSdk.firstTask(with: .walletSdk) {
-                SwedbankPayAuthorization.shared.makeApplePayTransaction(task: task, merchantIdentifier: merchantIdentifier) { result in
+            } else if let attemptPayload = operations.first(where: { $0.rel == .attemptPayload }),
+                      let task = attemptPayload.firstTask(with: .walletSdk) {
+                SwedbankPayAuthorization.shared.makeApplePayTransaction(operation: attemptPayload, task: task, merchantIdentifier: merchantIdentifier) { result in
                     switch result {
-                    case .success:
-                        DispatchQueue.main.async {
-                            if let model = self.ongoingModel {
-                                self.sessionOperationHandling(paymentOutputModel: model, culture: culture)
-                            }
+                    case .success(let success):
+                        if let paymentOutputModel = success {
+                            self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
                         }
                     case .failure(let failure):
                         DispatchQueue.main.async {

@@ -19,16 +19,19 @@ import PassKit
 class SwedbankPayAuthorization: NSObject {
     static let shared = SwedbankPayAuthorization()
 
+    private var operation: OperationOutputModel?
     private var task: IntegrationTask?
-    private var handler: ((Result<Void, Error>) -> Void)?
+    private var handler: ((Result<PaymentOutputModel?, Error>) -> Void)?
 
+    private var success: PaymentOutputModel?
     private var errors: [Error]?
     private var status: PKPaymentAuthorizationStatus?
 
-    func makeApplePayTransaction(task: IntegrationTask, merchantIdentifier: String?, handler: @escaping (Result<Void, Error>) -> Void) {
+    func makeApplePayTransaction(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String?, handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
         self.errors = nil
         self.status = nil
 
+        self.operation = operation
         self.task = task
         self.handler = handler
 
@@ -87,7 +90,7 @@ extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
     func paymentAuthorizationControllerDidFinish(_ controller: PKPaymentAuthorizationController) {
         if let handler = self.handler {
             if let status = status {
-                handler(.success(()))
+                handler(.success((success)))
             } else {
                 handler(.failure(self.errors?.first ?? SwedbankPayAPIError.unknown))
             }
@@ -145,12 +148,15 @@ extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
                                                 transactionIdentifier: transactionIdentifier,
                                                 shippingAddress: shippingAddress)
 
-            SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: task?.href, method: task?.method), sessionStartTimestamp: Date()).makeRequest { result in
+            SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation?.href, method: operation?.method),
+                                        sessionStartTimestamp: Date()).makeRequest { result in
                 switch result {
-                case .success:
+                case .success(let success):
+                    self.success = success
                     self.status = PKPaymentAuthorizationStatus.success
                     self.errors = [Error]()
                 case .failure(let error):
+                    self.success = nil
                     self.status = PKPaymentAuthorizationStatus.failure
                     self.errors = [error]
                 }
