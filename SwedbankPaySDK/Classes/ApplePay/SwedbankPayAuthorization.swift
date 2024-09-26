@@ -27,7 +27,7 @@ class SwedbankPayAuthorization: NSObject {
     private var errors: [Error]?
     private var status: PKPaymentAuthorizationStatus?
 
-    func makeApplePayTransaction(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String?, handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
+    func showApplePay(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String?, handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
         self.errors = nil
         self.status = nil
 
@@ -77,10 +77,8 @@ class SwedbankPayAuthorization: NSObject {
         let paymentController = PKPaymentAuthorizationController(paymentRequest: paymentRequest)
         paymentController.delegate = self
         paymentController.present(completion: { (presented: Bool) in
-            if presented {
-                debugPrint("Presented payment controller")
-            } else {
-                debugPrint("Failed to present payment controller")
+            if !presented {
+                handler(.failure(SwedbankPayAPIError.unknown))
             }
         })
     }
@@ -102,67 +100,24 @@ extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
     }
 
     func paymentAuthorizationController(_ controller: PKPaymentAuthorizationController, didAuthorizePayment payment: PKPayment, handler completion: @escaping (PKPaymentAuthorizationResult) -> Void) {
-        if let pkPaymentNetwork = payment.token.paymentMethod.network,
-           let cardNetwork = SwedbankPaymentNetwork(pkPaymentNetwork: pkPaymentNetwork) {
-            let paymentPayload = payment.token.paymentData.base64EncodedString()
-            let transactionIdentifier = payment.token.transactionIdentifier
+        let paymentPayload = payment.token.paymentData.base64EncodedString()
 
-            var shippingAddress: [String: String] = [:]
+        let router = EnpointRouter.applePay(paymentPayload: paymentPayload)
 
-            if let postalAddress = payment.shippingContact?.postalAddress {
-                shippingAddress["postalAddress"] = postalAddress.postalCode
+        SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation?.href, method: operation?.method),
+                                    sessionStartTimestamp: Date()).makeRequest { result in
+            switch result {
+            case .success(let success):
+                self.success = success
+                self.status = PKPaymentAuthorizationStatus.success
+                self.errors = [Error]()
+            case .failure(let error):
+                self.success = nil
+                self.status = PKPaymentAuthorizationStatus.failure
+                self.errors = [error]
             }
 
-            if let name = payment.shippingContact?.name {
-                if #available(iOS 15.0, *) {
-                    shippingAddress["name"] = name.formatted()
-                } else {
-                    var nameArray: [String] = []
-
-                    if let givenName = name.givenName {
-                        nameArray.append(givenName)
-                    }
-
-                    if let middleName = name.middleName {
-                        nameArray.append(middleName)
-                    }
-
-                    if let familyName = name.familyName {
-                        nameArray.append(familyName)
-                    }
-
-                    shippingAddress["name"] = nameArray.joined(separator: " ")
-                }
-            }
-
-            if let phoneNumber = payment.shippingContact?.phoneNumber {
-                shippingAddress["phone"] = phoneNumber.stringValue
-            }
-
-            if let emailAddress = payment.shippingContact?.emailAddress {
-                shippingAddress["email"] = emailAddress
-            }
-
-            let router = EnpointRouter.applePay(cardNetwork: cardNetwork.rawValue,
-                                                paymentPayload: paymentPayload,
-                                                transactionIdentifier: transactionIdentifier,
-                                                shippingAddress: shippingAddress)
-
-            SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation?.href, method: operation?.method),
-                                        sessionStartTimestamp: Date()).makeRequest { result in
-                switch result {
-                case .success(let success):
-                    self.success = success
-                    self.status = PKPaymentAuthorizationStatus.success
-                    self.errors = [Error]()
-                case .failure(let error):
-                    self.success = nil
-                    self.status = PKPaymentAuthorizationStatus.failure
-                    self.errors = [error]
-                }
-
-                completion(PKPaymentAuthorizationResult(status: self.status!, errors: self.errors))
-            }
+            completion(PKPaymentAuthorizationResult(status: self.status!, errors: self.errors))
         }
     }
 }

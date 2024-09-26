@@ -378,6 +378,32 @@ public extension SwedbankPaySDK {
             }
         }
 
+        private func makeApplePayAuthorization(operation: OperationOutputModel, task: IntegrationTask) {
+            SwedbankPayAuthorization.shared.showApplePay(operation: operation, task: task, merchantIdentifier: merchantIdentifier) { result in
+                switch result {
+                case .success(let success):
+                    if let paymentOutputModel = success {
+                        self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
+                    }
+                case .failure(let failure):
+                    DispatchQueue.main.async {
+                        let problem = SwedbankPaySDK.PaymentSessionProblem.applePayFailed(error: failure)
+
+                        self.delegate?.sdkProblemOccurred(problem: problem)
+
+                        let error = failure as NSError
+
+                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                           succeeded: self.delegate != nil,
+                                                                           values: ["problem": problem.rawValue,
+                                                                                    "errorDescription": error.localizedDescription,
+                                                                                    "errorCode": error.code,
+                                                                                    "errorDomain": error.domain]))
+                    }
+                }
+            }
+        }
+
         private func sessionOperationHandling(paymentOutputModel: PaymentOutputModel, culture: String? = nil) {
             ongoingModel = paymentOutputModel
 
@@ -410,30 +436,8 @@ public extension SwedbankPaySDK {
             if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
                 makeRequest(router: .preparePayment, operation: preparePayment)
             } else if let attemptPayload = operations.first(where: { $0.rel == .attemptPayload }),
-                      let task = attemptPayload.firstTask(with: .walletSdk) {
-                SwedbankPayAuthorization.shared.makeApplePayTransaction(operation: attemptPayload, task: task, merchantIdentifier: merchantIdentifier) { result in
-                    switch result {
-                    case .success(let success):
-                        if let paymentOutputModel = success {
-                            self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
-                        }
-                    case .failure(let failure):
-                        DispatchQueue.main.async {
-                            let problem = SwedbankPaySDK.PaymentSessionProblem.applePayFailed(error: failure)
-
-                            self.delegate?.sdkProblemOccurred(problem: problem)
-
-                            let error = failure as NSError
-
-                            BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
-                                                                               succeeded: self.delegate != nil,
-                                                                               values: ["problem": problem.rawValue,
-                                                                                        "errorDescription": error.localizedDescription,
-                                                                                        "errorCode": error.code,
-                                                                                        "errorDomain": error.domain]))
-                        }
-                    }
-                }
+                      let walletSdk = attemptPayload.firstTask(with: .walletSdk) {
+                makeApplePayAuthorization(operation: attemptPayload, task: walletSdk)
             } else if operations.contains(where: { $0.rel == .startPaymentAttempt }),
                       let instrument = instrument,
                       let startPaymentAttempt = ongoingModel?.paymentSession.methods?
