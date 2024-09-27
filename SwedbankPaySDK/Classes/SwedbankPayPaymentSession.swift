@@ -165,14 +165,19 @@ public extension SwedbankPaySDK {
 
             var succeeded = false
 
-            if case .newCreditCard = self.instrument,
-               (ongoingModel.paymentSession.instrumentModePaymentMethod == nil || ongoingModel.paymentSession.instrumentModePaymentMethod != "CreditCard"),
-               let operation = ongoingModel.operations?.first(where: { $0.rel == .customizePayment }) {
-                sessionStartTimestamp = Date()
+            if case .newCreditCard = instrument {
+                if ongoingModel.paymentSession.instrumentModePaymentMethod == nil || ongoingModel.paymentSession.instrumentModePaymentMethod != "CreditCard",
+                   let operation = ongoingModel.operations?.first(where: { $0.rel == .customizePayment }) {
+                    sessionStartTimestamp = Date()
 
-                makeRequest(router: .customizePayment(instrument: instrument), operation: operation)
+                    makeRequest(router: .customizePayment(instrument: instrument), operation: operation)
 
-                succeeded = true
+                    succeeded = true
+                } else {
+                    DispatchQueue.main.async {
+                        self.createSwedbankPaySDKController()
+                    }
+                }
             } else if let operation = ongoingModel.paymentSession.methods?
                 .first(where: { $0.name == instrument.identifier })?.operations?
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
