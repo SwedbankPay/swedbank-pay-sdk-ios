@@ -235,10 +235,10 @@ extension SwedbankPayAPIEnpointRouter {
                 responseStatusCode = response.statusCode
             }
 
-            var values: [String: Any]?
+            var values: [String: String]?
             if let error = error as? NSError {
                 values = ["errorDescription": error.localizedDescription,
-                          "errorCode": error.code,
+                          "errorCode": String(error.code),
                           "errorDomain": error.domain]
             }
 
