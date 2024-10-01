@@ -21,18 +21,20 @@ public extension SwedbankPaySDK {
         case paymentSessionEndStateReached
         case paymentSessionAPIRequestFailed(error: Error, retry: (()->Void)?)
         case paymentControllerPaymentFailed(error: Error, retry: (()->Void)?)
+        case paymentSession3DSecureViewControllerLoadFailed(error: Error, retry: (()->Void)?)
         case clientAppLaunchFailed
         case internalInconsistencyError
         case automaticConfigurationFailed
 
         var rawValue: String {
             switch self {
-            case .paymentSessionEndStateReached:    "paymentSessionEndStateReached"
-            case .paymentSessionAPIRequestFailed:   "paymentSessionAPIRequestFailed"
-            case .paymentControllerPaymentFailed:   "paymentControllerPaymentFailed"
-            case .clientAppLaunchFailed:            "clientAppLaunchFailed"
-            case .internalInconsistencyError:       "internalInconsistencyError"
-            case .automaticConfigurationFailed:     "automaticConfigurationFailed"
+            case .paymentSessionEndStateReached:                    "paymentSessionEndStateReached"
+            case .paymentSessionAPIRequestFailed:                   "paymentSessionAPIRequestFailed"
+            case .paymentControllerPaymentFailed:                   "paymentControllerPaymentFailed"
+            case .paymentSession3DSecureViewControllerLoadFailed:   "paymentSession3DSecureViewControllerLoadFailed"
+            case .clientAppLaunchFailed:                            "clientAppLaunchFailed"
+            case .internalInconsistencyError:                       "internalInconsistencyError"
+            case .automaticConfigurationFailed:                     "automaticConfigurationFailed"
             }
         }
     }

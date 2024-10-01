@@ -49,12 +49,6 @@ public protocol SwedbankPaySDKPaymentSessionDelegate: AnyObject {
     func dismiss3DSecureViewController()
 
     func showSwedbankPaySDKController(viewController: SwedbankPaySDKController)
-
-    /// Called if the 3D secure view loading failed.
-    ///
-    /// - parameter error: The error that caused the failure
-    /// - parameter retry: A block that can be called to retry.
-    func paymentSession3DSecureViewControllerLoadFailed(error: Error, retry: @escaping ()->Void)
 }
 
 public extension SwedbankPaySDK {
@@ -650,15 +644,18 @@ public extension SwedbankPaySDK {
                         }
                     }
                 case .failure(let error):
-                    self.delegate?.paymentSession3DSecureViewControllerLoadFailed(error: error, retry: {
+                    let problem = SwedbankPaySDK.PaymentSessionProblem.paymentSession3DSecureViewControllerLoadFailed(error: error, retry: {
                         self.scaRedirectDataPerformed(task: task, culture: culture)
                     })
 
+                    self.delegate?.sdkProblemOccurred(problem: problem)
+
                     let error = error as NSError
 
-                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSession3DSecureViewControllerLoadFailed",
+                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
                                                                        succeeded: self.delegate != nil,
-                                                                       values: ["errorDescription": error.localizedDescription,
+                                                                       values: ["problem": problem.rawValue,
+                                                                                "errorDescription": error.localizedDescription,
                                                                                 "errorCode": String(error.code),
                                                                                 "errorDomain": error.domain]))
                 }
