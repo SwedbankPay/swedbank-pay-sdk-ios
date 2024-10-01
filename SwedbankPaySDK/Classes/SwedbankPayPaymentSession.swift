@@ -48,6 +48,8 @@ public protocol SwedbankPaySDKPaymentSessionDelegate: AnyObject {
     /// Called whenever the 3D secure view can be dismissed.
     func dismiss3DSecureViewController()
 
+    func showSwedbankPaySDKController(viewController: SwedbankPaySDKController)
+
     /// Called if the 3D secure view loading failed.
     ///
     /// - parameter error: The error that caused the failure
@@ -66,8 +68,10 @@ public extension SwedbankPaySDK {
 
         private var ongoingModel: PaymentOutputModel? = nil
         private var sessionIsOngoing: Bool = false
+        private var paymentViewSessionIsOngoing: Bool = false
         private var instrument: SwedbankPaySDK.PaymentAttemptInstrument? = nil
         private var hasShownAvailableInstruments: Bool = false
+        private var merchantIdentifier: String? = nil
 
         private var hasLaunchClientAppURLs: [URL] = []
         private var hasShownProblemDetails: [ProblemDetails] = []
@@ -102,7 +106,9 @@ public extension SwedbankPaySDK {
         /// - parameter with sessionURL: Session URL needed to start the native payment session
         public func fetchPaymentSession(sessionURL: URL) {
             sessionIsOngoing = true
+            paymentViewSessionIsOngoing = false
             instrument = nil
+            merchantIdentifier = nil
             ongoingModel = nil
             hasLaunchClientAppURLs = []
             hasShownProblemDetails = []
@@ -147,10 +153,32 @@ public extension SwedbankPaySDK {
                 return
             }
 
+            paymentViewSessionIsOngoing = false
             self.instrument = instrument
 
+            switch instrument {
+            case .applePay(let merchantIdentifier):
+                self.merchantIdentifier = merchantIdentifier
+            default:
+                break
+            }
+
             var succeeded = false
-            if let operation = ongoingModel.paymentSession.methods?
+
+            if case .newCreditCard = instrument {
+                if ongoingModel.paymentSession.instrumentModePaymentMethod == nil || ongoingModel.paymentSession.instrumentModePaymentMethod != "CreditCard",
+                   let operation = ongoingModel.operations?.first(where: { $0.rel == .customizePayment }) {
+                    sessionStartTimestamp = Date()
+
+                    makeRequest(router: .customizePayment(instrument: instrument), operation: operation)
+
+                    succeeded = true
+                } else {
+                    DispatchQueue.main.async {
+                        self.createSwedbankPaySDKController()
+                    }
+                }
+            } else if let operation = ongoingModel.paymentSession.methods?
                 .first(where: { $0.name == instrument.identifier })?.operations?
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
 
@@ -195,6 +223,15 @@ public extension SwedbankPaySDK {
                                                                           "cardNumber": prefill.maskedPan,
                                                                           "cardExpiryMonth": prefill.expiryMonth,
                                                                           "cardExpiryYear": prefill.expiryYear]))
+            case .applePay:
+                BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
+                                                                 succeeded: succeeded,
+                                                                 values: ["instrument": instrument.identifier]))
+            case .newCreditCard(enabledPaymentDetailsConsentCheckbox: let enabledPaymentDetailsConsentCheckbox):
+                BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
+                                                                 succeeded: succeeded,
+                                                                 values: ["instrument": instrument.identifier,
+                                                                          "showConsentAffirmation": enabledPaymentDetailsConsentCheckbox.description]))
             }
 
         }
@@ -204,7 +241,7 @@ public extension SwedbankPaySDK {
         /// There needs to be an active payment session before an payment attempt can be made.
         ///
         /// - returns:- SwedbankPaySDKController to be shown.
-        public func createSwedbankPaySDKController() -> SwedbankPaySDKController? {
+        public func createSwedbankPaySDKController() {
             guard let ongoingModel = ongoingModel,
                   let operation = ongoingModel.operations?.first(where: { $0.rel == .viewPayment }),
                   let orderInfo = orderInfo,
@@ -216,7 +253,7 @@ public extension SwedbankPaySDK {
                                                                    succeeded: self.delegate != nil,
                                                                    values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
 
-                return nil
+                return
             }
 
             let configuration = SwedbankPayConfiguration(
@@ -233,12 +270,16 @@ public extension SwedbankPaySDK {
                 consumer: nil,
                 paymentOrder: nil,
                 userData: nil)
-            
+
             BeaconService.shared.log(type: .sdkMethodInvoked(name: "createSwedbankPaySDKController",
                                                              succeeded: true,
                                                              values: nil))
 
-            return viewController
+            paymentViewSessionIsOngoing = true
+
+            viewController.internalDelegate = self
+
+            delegate?.showSwedbankPaySDKController(viewController: viewController)
         }
 
         /// Abort an active payment session.
@@ -316,7 +357,7 @@ public extension SwedbankPaySDK {
                                                                            succeeded: self.delegate != nil,
                                                                            values: ["problem": problem.rawValue,
                                                                                     "errorDescription": error.localizedDescription,
-                                                                                    "errorCode": error.code,
+                                                                                    "errorCode": String(error.code),
                                                                                     "errorDomain": error.domain]))
                     }
                 }
@@ -359,7 +400,46 @@ public extension SwedbankPaySDK {
 
                         BeaconService.shared.log(type: .launchClientApp(values: ["callbackUrl": self.orderInfo?.paymentUrl?.absoluteString ?? "",
                                                                                  "clientAppLaunchUrl": url.absoluteString,
-                                                                                 "launchSucceeded": complete]))
+                                                                                 "launchSucceeded": complete.description]))
+                    }
+                }
+            }
+        }
+
+        private func makeApplePayAuthorization(operation: OperationOutputModel, task: IntegrationTask) {
+            guard let merchantIdentifier = merchantIdentifier else {
+                self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
+
+                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                   succeeded: self.delegate != nil,
+                                                                   values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
+
+                return
+            }
+
+            SwedbankPayAuthorization.shared.showApplePay(operation: operation, task: task, merchantIdentifier: merchantIdentifier) { result in
+                switch result {
+                case .success(let success):
+                    if let paymentOutputModel = success {
+                        self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
+                    }
+                case .failure(let failure):
+                    DispatchQueue.main.async {
+                        // TODO: This is a temporary solution. In the future we need to send the error to the backend so they can provide the correct problem for us.
+
+                        let problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: failure,
+                                                                                                          retry: nil)
+
+                        self.delegate?.sdkProblemOccurred(problem: problem)
+
+                        let error = failure as NSError
+
+                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                           succeeded: self.delegate != nil,
+                                                                           values: ["problem": problem.rawValue,
+                                                                                    "errorDescription": error.localizedDescription,
+                                                                                    "errorCode": String(error.code),
+                                                                                    "errorDomain": error.domain]))
                     }
                 }
             }
@@ -382,9 +462,9 @@ public extension SwedbankPaySDK {
 
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sessionProblemOccurred",
                                                                            succeeded: self.delegate != nil,
-                                                                           values: ["problemTitle": modelProblem.title,
-                                                                                    "problemStatus": modelProblem.status,
-                                                                                    "problemDetail": modelProblem.detail]))
+                                                                           values: ["problemTitle": modelProblem.title ?? "",
+                                                                                    "problemStatus": String(modelProblem.status ?? 0),
+                                                                                    "problemDetail": modelProblem.detail ?? ""]))
                     }
                 }
 
@@ -394,10 +474,16 @@ public extension SwedbankPaySDK {
 
             let operations = paymentOutputModel.prioritisedOperations
 
-            print("\(operations.compactMap({ $0.rel }))")
-
             if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
                 makeRequest(router: .preparePayment, operation: preparePayment)
+            } else if let attemptPayload = operations.first(where: { $0.rel == .attemptPayload }),
+                      let walletSdk = attemptPayload.firstTask(with: .walletSdk) {
+                makeApplePayAuthorization(operation: attemptPayload, task: walletSdk)
+            } else if case .newCreditCard = self.instrument,
+                      ongoingModel?.paymentSession.instrumentModePaymentMethod == "CreditCard" {
+                DispatchQueue.main.async {
+                    self.createSwedbankPaySDKController()
+                }
             } else if operations.contains(where: { $0.rel == .startPaymentAttempt }),
                       let instrument = instrument,
                       let startPaymentAttempt = ongoingModel?.paymentSession.methods?
@@ -496,6 +582,8 @@ public extension SwedbankPaySDK {
                             return AvailableInstrument.swish(prefills: prefills)
                         case .creditCard(let prefills, _, _):
                             return AvailableInstrument.creditCard(prefills: prefills)
+                        case .applePay:
+                            return AvailableInstrument.applePay
                         case .unknown(let identifier):
                             return AvailableInstrument.webBased(identifier: identifier)
                         }
@@ -526,7 +614,8 @@ public extension SwedbankPaySDK {
         }
 
         internal func handleCallbackUrl(_ url: URL) -> Bool {
-            guard url == orderInfo?.paymentUrl else {
+            guard url.appendingPathComponent("") == orderInfo?.paymentUrl?.appendingPathComponent(""),
+                  paymentViewSessionIsOngoing == false else {
                 return false
             }
 
@@ -570,10 +659,58 @@ public extension SwedbankPaySDK {
                     BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSession3DSecureViewControllerLoadFailed",
                                                                        succeeded: self.delegate != nil,
                                                                        values: ["errorDescription": error.localizedDescription,
-                                                                                "errorCode": error.code,
+                                                                                "errorCode": String(error.code),
                                                                                 "errorDomain": error.domain]))
                 }
             }
         }
+    }
+}
+
+extension SwedbankPaySDK.SwedbankPayPaymentSession: SwedbankPaySDKInternalDelegate {
+    public func updatePaymentOrderFailed(updateInfo: Any, error: any Error) {
+        let problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: error, retry: nil)
+
+        self.delegate?.sdkProblemOccurred(problem: problem)
+
+        let error = error as NSError
+
+        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                           succeeded: self.delegate != nil,
+                                                           values: ["problem": problem.rawValue,
+                                                                    "errorDescription": error.localizedDescription,
+                                                                    "errorCode": String(error.code),
+                                                                    "errorDomain": error.domain]))
+    }
+
+    public func paymentComplete() {
+        self.delegate?.paymentSessionComplete()
+
+        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionComplete",
+                                                           succeeded: self.delegate != nil,
+                                                           values: nil))
+    }
+
+    public func paymentCanceled() {
+        self.delegate?.paymentSessionCanceled()
+
+        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionCanceled",
+                                                           succeeded: self.delegate != nil,
+                                                           values: nil))
+    }
+
+    public func paymentFailed(error: any Error) {
+        let problem = SwedbankPaySDK.PaymentSessionProblem.paymentControllerPaymentFailed(error: error, retry: nil)
+
+        self.delegate?.sdkProblemOccurred(problem: problem)
+
+        let error = error as NSError
+
+        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                           succeeded: self.delegate != nil,
+                                                           values: ["problem": problem.rawValue,
+                                                                    "errorDescription": error.localizedDescription,
+                                                                    "errorCode": String(error.code),
+                                                                    "errorDomain": error.domain]))
     }
 }

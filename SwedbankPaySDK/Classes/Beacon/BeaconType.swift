@@ -14,11 +14,11 @@
 // limitations under the License.
 
 enum BeaconType {
-    case sdkMethodInvoked(name: String, succeeded: Bool, values: [String: Any?]?)
-    case sdkCallbackInvoked(name: String, succeeded: Bool, values: [String: Any?]?)
-    case httpRequest(duration: Int32, requestUrl: String, method: String, responseStatusCode: Int?, values: [String: Any?]?)
-    case launchClientApp(values: [String: Any?]?)
-    case clientAppCallback(values: [String: Any?]?)
+    case sdkMethodInvoked(name: String, succeeded: Bool, values: [String: String?]?)
+    case sdkCallbackInvoked(name: String, succeeded: Bool, values: [String: String?]?)
+    case httpRequest(duration: Int32, requestUrl: String, method: String, responseStatusCode: Int?, values: [String: String?]?)
+    case launchClientApp(values: [String: String?]?)
+    case clientAppCallback(values: [String: String?]?)
 
     var action: String {
         switch self {

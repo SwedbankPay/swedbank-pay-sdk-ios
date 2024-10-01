@@ -15,6 +15,7 @@
 
 import Foundation
 import UIKit
+import PassKit
 
 struct Endpoint {
     let router: EnpointRouter?
@@ -31,6 +32,8 @@ enum EnpointRouter {
     case preparePayment
     case acknowledgeFailedAttempt
     case abortPayment
+    case applePay(paymentPayload: String)
+    case customizePayment(instrument: SwedbankPaySDK.PaymentAttemptInstrument)
 }
 
 protocol EndpointRouterProtocol {
@@ -70,10 +73,20 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                                    "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
                                    "screenColorDepth": String(24)]
                 ]
+            case .applePay:
+                return ["culture": culture,
+                        "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
+                                   "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
+                                   "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
+                                   "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
+                                   "screenColorDepth": String(24)]
+                ]
+            case .newCreditCard:
+                return nil
             }
         case .preparePayment:
             return ["integration": "HostedView",
-                    "deviceAcceptedWallets": "",
+                    "deviceAcceptedWallets": PKPaymentAuthorizationController.canMakePayments() ? "ApplePay" : "",
                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
                                "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
@@ -105,6 +118,18 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""],
             ]
+        case .applePay(let paymentPayload):
+            return ["instrument": "ApplePay",
+                    "paymentPayload": paymentPayload]
+        case .customizePayment(let instrument):
+            if case .newCreditCard(let enabledPaymentDetailsConsentCheckbox) = instrument {
+                return ["paymentMethod": "CreditCard",
+                        "hideStoredPaymentOptions": true,
+                        "showConsentAffirmation" : enabledPaymentDetailsConsentCheckbox,
+                ]
+            } else {
+                return nil
+            }
         default:
             return nil
         }
@@ -209,10 +234,10 @@ extension SwedbankPayAPIEnpointRouter {
                 responseStatusCode = response.statusCode
             }
 
-            var values: [String: Any]?
+            var values: [String: String]?
             if let error = error as? NSError {
                 values = ["errorDescription": error.localizedDescription,
-                          "errorCode": error.code,
+                          "errorCode": String(error.code),
                           "errorDomain": error.domain]
             }
 

@@ -18,6 +18,7 @@ import Foundation
 enum MethodBaseModel: Codable, Equatable, Hashable {
     case swish(prefills: [SwedbankPaySDK.SwishMethodPrefillModel]?, operations: [OperationOutputModel]?)
     case creditCard(prefills: [SwedbankPaySDK.CreditCardMethodPrefillModel]?, operations: [OperationOutputModel]?, cardBrands: [String]?)
+    case applePay(operations: [OperationOutputModel]?, cardBrands: [String]?)
 
     case unknown(String)
 
@@ -41,6 +42,11 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
                 operations: try? container.decode([OperationOutputModel]?.self, forKey: CodingKeys.operations),
                 cardBrands: try? container.decode([String]?.self, forKey: CodingKeys.cardBrands)
             )
+        case "ApplePay":
+            self = .applePay(
+                operations: try? container.decode([OperationOutputModel]?.self, forKey: CodingKeys.operations),
+                cardBrands: try? container.decode([String]?.self, forKey: CodingKeys.cardBrands)
+            )
         default:
             self = .unknown(type)
         }
@@ -56,6 +62,9 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
             try container.encode(prefills)
             try container.encode(operations)
             try container.encode(cardBrands)
+        case .applePay(let operations, let cardBrands):
+            try container.encode(operations)
+            try container.encode(cardBrands)
         case .unknown(let type):
             try container.encode(type)
         }
@@ -67,6 +76,8 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
             return "Swish"
         case .creditCard:
             return "CreditCard"
+        case .applePay:
+            return "ApplePay"
         case .unknown:
             return "Unknown"
         }
@@ -78,6 +89,8 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
             return opertations
         case .creditCard(_, let opertations, _):
             return opertations
+        case .applePay(let operations, _):
+            return operations
         case .unknown:
             return nil
         }
@@ -99,6 +112,8 @@ extension SwedbankPaySDK {
 
         case creditCard(prefills: [CreditCardMethodPrefillModel]?)
 
+        case applePay
+
         case webBased(identifier: String)
 
         var identifier: String {
@@ -107,6 +122,8 @@ extension SwedbankPaySDK {
                 return "Swish"
             case .creditCard:
                 return "CreditCard"
+            case .applePay:
+                return "ApplePay"
             case .webBased(identifier: let identifier):
                 return identifier
             }

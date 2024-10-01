@@ -27,6 +27,7 @@ enum IntegrationTaskRel: Codable, Equatable, Hashable {
     case scaMethodRequest
     case scaRedirect
     case launchClientApp
+    case walletSdk
 
     case unknown(String)
 
@@ -38,6 +39,7 @@ enum IntegrationTaskRel: Codable, Equatable, Hashable {
         case Self.scaMethodRequest.rawValue:    self = .scaMethodRequest
         case Self.scaRedirect.rawValue:         self = .scaRedirect
         case Self.launchClientApp.rawValue:     self = .launchClientApp
+        case Self.walletSdk.rawValue:           self = .walletSdk
         default:                                self = .unknown(type)
         }
     }
@@ -52,30 +54,108 @@ enum IntegrationTaskRel: Codable, Equatable, Hashable {
         case .scaMethodRequest:     "sca-method-request"
         case .scaRedirect:          "sca-redirect"
         case .launchClientApp:      "launch-client-app"
+        case .walletSdk:            "wallet-sdk"
         case .unknown(let value):   value
         }
     }
 }
 
-struct ExpectationModel: Codable, Hashable {
-    let name: String?
-    let type: String?
-    let value: String?
+enum ExpectationModel: Codable, Equatable, Hashable {
+    case string(name: String?, value: String?)
+    case stringArray(name: String?, value: [String]?)
+
+    case unknown(String)
+
+    var name: String? {
+        switch self {
+        case .string(let name, _):
+            return name
+        case .stringArray(let name, _):
+            return name
+        case .unknown:
+            return "unknown"
+        }
+    }
+
+    var value: String? {
+        switch self {
+        case .string(_, let value):
+            return value
+        case .stringArray:
+            return nil
+        case .unknown:
+            return nil
+        }
+    }
+
+    var stringArray: [String]? {
+        switch self {
+        case .string:
+            return nil
+        case .stringArray(_, let value):
+            return value
+        case .unknown:
+            return nil
+        }
+    }
+
+
+    private enum CodingKeys: String, CodingKey {
+        case name, type, value
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        let type = try container.decode(String.self, forKey: .type)
+        switch type {
+        case "string":
+            self = .string(
+                name: try? container.decode(String?.self, forKey: CodingKeys.name),
+                value: try? container.decode(String?.self, forKey: CodingKeys.value)
+            )
+        case "string[]":
+            self = .stringArray(
+                name: try? container.decode(String?.self, forKey: CodingKeys.name),
+                value: try? container.decode([String]?.self, forKey: CodingKeys.value)
+            )
+        default:
+            self = .unknown(type)
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let name, let value):
+            try container.encode(name)
+            try container.encode(value)
+        case .stringArray(let name, let value):
+            try container.encode(name)
+            try container.encode(value)
+        case .unknown(let type):
+            try container.encode(type)
+        }
+    }
 }
 
 extension Array where Element == ExpectationModel {
     var httpBody: Data? {
-        return self.filter({ $0.type == "string" })
-            .compactMap({
-                guard let name = $0.name else {
+        return self.compactMap({
+            switch $0 {
+            case .string(let name, let value):
+                guard let name = name else {
                     return nil
                 }
 
-                let value = $0.value?.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? ""
+                let value = value?.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? ""
 
                 return name + "=" + value
-            })
-            .joined(separator: "&")
-            .data(using: .utf8)
+            default:
+                return nil
+            }
+        })
+        .joined(separator: "&")
+        .data(using: .utf8)
     }
 }

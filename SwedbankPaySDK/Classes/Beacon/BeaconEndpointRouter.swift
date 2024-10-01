@@ -27,13 +27,13 @@ struct BeaconEndpointRouter: BeaconEndpointRouterProtocol {
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .iso8601)
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'Z"
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
         return formatter
     }()
 
     // MARK: - Body
     var body: [String: Any?]? {
-        var body: [String: Any?] = ["type": 0,
+        var body: [String: Any?] = ["type": "ClientEvent",
                                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                                "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
                                                "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
@@ -47,14 +47,14 @@ struct BeaconEndpointRouter: BeaconEndpointRouterProtocol {
         switch beacon.actionType {
         case .sdkMethodInvoked(name: let name, succeeded: let succeeded, values: let values):
             body["method"] = ["name": name,
-                              "sdk": true,
+                              "sdk": "true",
                               "succeeded": succeeded]
             if let values = values {
                 body["extensions"] = ["values": values]
             }
         case .sdkCallbackInvoked(name: let name, succeeded: let succeeded, values: let values):
             body["method"] = ["name": name,
-                              "sdk": true,
+                              "sdk": "true",
                               "succeeded": succeeded]
             if let values = values {
                 body["extensions"] = ["values": values]
