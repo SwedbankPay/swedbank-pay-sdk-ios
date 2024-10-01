@@ -407,6 +407,16 @@ public extension SwedbankPaySDK {
         }
 
         private func makeApplePayAuthorization(operation: OperationOutputModel, task: IntegrationTask) {
+            guard let merchantIdentifier = merchantIdentifier else {
+                self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
+
+                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                   succeeded: self.delegate != nil,
+                                                                   values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
+
+                return
+            }
+
             SwedbankPayAuthorization.shared.showApplePay(operation: operation, task: task, merchantIdentifier: merchantIdentifier) { result in
                 switch result {
                 case .success(let success):
@@ -415,6 +425,8 @@ public extension SwedbankPaySDK {
                     }
                 case .failure(let failure):
                     DispatchQueue.main.async {
+                        // TODO: This is a temporary solution. In the future we need to send the error to the backend so they can provide the correct problem for us.
+
                         let problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: failure,
                                                                                                           retry: nil)
 
@@ -688,7 +700,7 @@ extension SwedbankPaySDK.SwedbankPayPaymentSession: SwedbankPaySDKInternalDelega
     }
 
     public func paymentFailed(error: any Error) {
-        let problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: error, retry: nil)
+        let problem = SwedbankPaySDK.PaymentSessionProblem.paymentControllerPaymentFailed(error: error, retry: nil)
 
         self.delegate?.sdkProblemOccurred(problem: problem)
 

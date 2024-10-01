@@ -122,13 +122,12 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
             return ["instrument": "ApplePay",
                     "paymentPayload": paymentPayload]
         case .customizePayment(let instrument):
-            switch instrument {
-            case .newCreditCard(let enabledPaymentDetailsConsentCheckbox):
+            if case .newCreditCard(let enabledPaymentDetailsConsentCheckbox) = instrument {
                 return ["paymentMethod": "CreditCard",
                         "hideStoredPaymentOptions": true,
                         "showConsentAffirmation" : enabledPaymentDetailsConsentCheckbox,
                 ]
-            default:
+            } else {
                 return nil
             }
         default:

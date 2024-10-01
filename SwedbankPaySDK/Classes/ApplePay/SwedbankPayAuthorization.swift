@@ -27,7 +27,7 @@ class SwedbankPayAuthorization: NSObject {
     private var errors: [Error]?
     private var status: PKPaymentAuthorizationStatus?
 
-    func showApplePay(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String?, handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
+    func showApplePay(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String, handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
         self.errors = nil
         self.status = nil
 
@@ -43,9 +43,7 @@ class SwedbankPayAuthorization: NSObject {
             paymentRequest.paymentSummaryItems = [total]
         }
 
-        if let merchantIdentifier = merchantIdentifier {
-            paymentRequest.merchantIdentifier = merchantIdentifier
-        }
+        paymentRequest.merchantIdentifier = merchantIdentifier
 
         if let merchantCapabilities = task.expects?.first(where: { $0.name == "MerchantCapabilities" })?.stringArray?.contains(where: { $0 == "supports3DS" }) {
             paymentRequest.merchantCapabilities = .threeDSecure

@@ -20,6 +20,7 @@ public extension SwedbankPaySDK {
     enum PaymentSessionProblem {
         case paymentSessionEndStateReached
         case paymentSessionAPIRequestFailed(error: Error, retry: (()->Void)?)
+        case paymentControllerPaymentFailed(error: Error, retry: (()->Void)?)
         case clientAppLaunchFailed
         case internalInconsistencyError
         case automaticConfigurationFailed
@@ -28,6 +29,7 @@ public extension SwedbankPaySDK {
             switch self {
             case .paymentSessionEndStateReached:    "paymentSessionEndStateReached"
             case .paymentSessionAPIRequestFailed:   "paymentSessionAPIRequestFailed"
+            case .paymentControllerPaymentFailed:   "paymentControllerPaymentFailed"
             case .clientAppLaunchFailed:            "clientAppLaunchFailed"
             case .internalInconsistencyError:       "internalInconsistencyError"
             case .automaticConfigurationFailed:     "automaticConfigurationFailed"
