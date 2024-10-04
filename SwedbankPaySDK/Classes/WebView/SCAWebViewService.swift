@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import Foundation
-import WebKit
+@preconcurrency import WebKit
 
 class SCAWebViewService: NSObject, WKNavigationDelegate {
     private var handler: ((Result<Void, Error>) -> Void)?

@@ -15,7 +15,7 @@
 
 import Foundation
 
-class CustomDateDecoder: JSONDecoder {
+class CustomDateDecoder: JSONDecoder, @unchecked Sendable {
     let dateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.timeZone = TimeZone(identifier: "UTC")
