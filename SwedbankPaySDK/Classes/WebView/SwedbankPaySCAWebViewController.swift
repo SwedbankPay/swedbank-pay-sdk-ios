@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import UIKit
-import WebKit
+@preconcurrency import WebKit
 
 class SwedbankPaySCAWebViewController: UIViewController {
     internal var lastRootPage: (navigation: WKNavigation?, baseURL: URL?)?

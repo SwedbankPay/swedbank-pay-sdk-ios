@@ -499,7 +499,7 @@ public extension SwedbankPaySDK {
                         switch result {
                         case .success:
                             self.scaMethodRequestDataPerformed.append((name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null", value: "Y"))
-                        case .failure(let error):
+                        case .failure:
                             self.scaMethodRequestDataPerformed.append((name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null", value: "N"))
                         }
 

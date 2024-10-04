@@ -90,11 +90,9 @@ struct BeaconEndpointRouter: BeaconEndpointRouterProtocol {
 
 extension BeaconEndpointRouter {
     func makeRequest(handler: @escaping (Result<Void, Error>) -> Void) {
-        let requestStartTimestamp: Date = Date()
-
         requestWithDataResponse { result in
             switch result {
-            case .success(let data):
+            case .success:
                 handler(.success(()))
             case .failure(let error):
                 handler(.failure(error))

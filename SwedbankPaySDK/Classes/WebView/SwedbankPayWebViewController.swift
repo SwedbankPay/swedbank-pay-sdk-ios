@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import UIKit
-import WebKit
+@preconcurrency import WebKit
 
 class SwedbankPayWebViewController: SwedbankPayWebViewControllerBase {
     internal static let maybeStuckNoteMinimumIntervalFromDidBecomeActive = 3.0

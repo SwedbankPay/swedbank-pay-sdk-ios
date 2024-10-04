@@ -45,7 +45,7 @@ class SwedbankPayAuthorization: NSObject {
 
         paymentRequest.merchantIdentifier = merchantIdentifier
 
-        if let merchantCapabilities = task.expects?.first(where: { $0.name == "MerchantCapabilities" })?.stringArray?.contains(where: { $0 == "supports3DS" }) {
+        if (task.expects?.first(where: { $0.name == "MerchantCapabilities" })?.stringArray?.contains(where: { $0 == "supports3DS" })) != nil {
             paymentRequest.merchantCapabilities = .threeDSecure
         }
 
@@ -85,7 +85,7 @@ class SwedbankPayAuthorization: NSObject {
 extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
     func paymentAuthorizationControllerDidFinish(_ controller: PKPaymentAuthorizationController) {
         if let handler = self.handler {
-            if let status = status {
+            if status != nil {
                 handler(.success((success)))
             } else {
                 handler(.failure(self.errors?.first ?? SwedbankPayAPIError.unknown))

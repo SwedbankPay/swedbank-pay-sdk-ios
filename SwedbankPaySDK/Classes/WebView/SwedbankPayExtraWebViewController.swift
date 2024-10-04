@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import Foundation
-import WebKit
+@preconcurrency import WebKit
 
 final class SwedbankPayExtraWebViewController: SwedbankPayWebViewControllerBase {
     override init(

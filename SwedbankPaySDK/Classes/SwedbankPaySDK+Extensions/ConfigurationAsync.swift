@@ -196,7 +196,11 @@ public extension SwedbankPaySDKConfigurationAsync {
     @available(*, deprecated, message: "no longer maintained")
     func urlMatchesListOfGoodRedirects(_ url: URL) async -> Bool {
         return await withUnsafeContinuation { continuation in
-            urlMatchesListOfGoodRedirects(url, completion: continuation.resume(returning:))
+            urlMatchesListOfGoodRedirects(url, completion: { _ in
+                Task { @MainActor in
+                    continuation.resume(returning:)
+                }
+            })
         }
     }
     
@@ -204,7 +208,11 @@ public extension SwedbankPaySDKConfigurationAsync {
         navigationAction: WKNavigationAction
     ) async -> SwedbankPaySDK.PaymentMenuRedirectPolicy {
         return await withUnsafeContinuation { continuation in
-            decidePolicyForPaymentMenuRedirect(navigationAction: navigationAction, completion: continuation.resume(returning:))
+            decidePolicyForPaymentMenuRedirect(navigationAction: navigationAction, completion: { paymentMenuRedirectPolicy in
+                Task { @MainActor in
+                    continuation.resume(returning: paymentMenuRedirectPolicy)
+                }
+            })
         }
     }
 }
