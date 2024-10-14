@@ -128,7 +128,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                         "showConsentAffirmation" : enabledPaymentDetailsConsentCheckbox,
                 ]
             } else {
-                return nil
+                return ["paymentMethod": nil]
             }
         default:
             return nil

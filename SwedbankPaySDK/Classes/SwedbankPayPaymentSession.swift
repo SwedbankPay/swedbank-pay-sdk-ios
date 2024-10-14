@@ -159,7 +159,14 @@ public extension SwedbankPaySDK {
 
             var succeeded = false
 
-            if case .newCreditCard = instrument {
+            if ongoingModel.paymentSession.instrumentModePaymentMethod != nil && ongoingModel.paymentSession.instrumentModePaymentMethod != instrument.identifier,
+               let operation = ongoingModel.operations?.first(where: { $0.rel == .customizePayment }) {
+                sessionStartTimestamp = Date()
+
+                makeRequest(router: .customizePayment(instrument: instrument), operation: operation)
+
+                succeeded = true
+            } else if case .newCreditCard = instrument {
                 if ongoingModel.paymentSession.instrumentModePaymentMethod == nil || ongoingModel.paymentSession.instrumentModePaymentMethod != "CreditCard",
                    let operation = ongoingModel.operations?.first(where: { $0.rel == .customizePayment }) {
                     sessionStartTimestamp = Date()
@@ -473,6 +480,9 @@ public extension SwedbankPaySDK {
             } else if let attemptPayload = operations.first(where: { $0.rel == .attemptPayload }),
                       let walletSdk = attemptPayload.firstTask(with: .walletSdk) {
                 makeApplePayAuthorization(operation: attemptPayload, task: walletSdk)
+            } else if let instrument = self.instrument,
+                      ongoingModel?.paymentSession.instrumentModePaymentMethod == nil {
+                makeNativePaymentAttempt(instrument: instrument)
             } else if case .newCreditCard = self.instrument,
                       ongoingModel?.paymentSession.instrumentModePaymentMethod == "CreditCard" {
                 DispatchQueue.main.async {
