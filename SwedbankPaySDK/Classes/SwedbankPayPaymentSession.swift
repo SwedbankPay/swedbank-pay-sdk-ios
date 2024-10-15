@@ -435,7 +435,7 @@ public extension SwedbankPaySDK {
                 makeRequest(router: .customizePayment(instrument: nil), operation: customizePayment)
             } else if let instrument = self.instrument,
                       case .newCreditCard = instrument,
-                      ongoingModel?.paymentSession.instrumentModePaymentMethod == nil || ongoingModel?.paymentSession.instrumentModePaymentMethod != "CreditCard",
+                      ongoingModel?.paymentSession.instrumentModePaymentMethod == nil || ongoingModel?.paymentSession.instrumentModePaymentMethod != instrument.identifier,
                       let customizePayment = ongoingModel?.operations?.first(where: { $0.rel == .customizePayment }) {
                 makeRequest(router: .customizePayment(instrument: instrument), operation: customizePayment)
             } else if case .newCreditCard = self.instrument,
