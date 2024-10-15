@@ -157,61 +157,17 @@ public extension SwedbankPaySDK {
                 break
             }
 
-            var succeeded = false
-
-            if case .newCreditCard = instrument {
-                if ongoingModel.paymentSession.instrumentModePaymentMethod == nil || ongoingModel.paymentSession.instrumentModePaymentMethod != "CreditCard",
-                   let operation = ongoingModel.operations?.first(where: { $0.rel == .customizePayment }) {
-                    sessionStartTimestamp = Date()
-
-                    makeRequest(router: .customizePayment(instrument: instrument), operation: operation)
-
-                    succeeded = true
-                } else {
-                    DispatchQueue.main.async {
-                        self.createSwedbankPaySDKController()
-                    }
-                }
-            } else if let operation = ongoingModel.paymentSession.methods?
-                .first(where: { $0.name == instrument.identifier })?.operations?
-                .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
-
-                sessionStartTimestamp = Date()
-                
-                switch operation.rel {
-                case .expandMethod:
-                    makeRequest(router: .expandMethod(instrument: instrument), operation: operation)
-                case .startPaymentAttempt:
-                    makeRequest(router: .startPaymentAttempt(instrument: instrument, culture: ongoingModel.paymentSession.culture), operation: operation)
-                    self.instrument = nil
-                case .getPayment:
-                    makeRequest(router: .getPayment, operation: operation)
-                default:
-                    fatalError("Operantion rel is not supported for makeNativePaymentAttempt: \(String(describing: operation.rel))")
-                }
-
-                succeeded = true
-            } else {
-                DispatchQueue.main.async {
-                    self.delegate?.sdkProblemOccurred(problem: .paymentSessionEndStateReached)
-
-                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
-                                                                       succeeded: self.delegate != nil,
-                                                                       values: ["problem": SwedbankPaySDK.PaymentSessionProblem.paymentSessionEndStateReached.rawValue]))
-                }
-
-                return
-            }
+            sessionOperationHandling(paymentOutputModel: ongoingModel, culture: ongoingModel.paymentSession.culture)
 
             switch instrument {
             case .swish(let msisdn):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
-                                                                 succeeded: succeeded,
+                                                                 succeeded: true,
                                                                  values: ["instrument": instrument.identifier,
                                                                           "msisdn": msisdn]))
             case .creditCard(let prefill):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
-                                                                 succeeded: succeeded,
+                                                                 succeeded: true,
                                                                  values: ["instrument": instrument.identifier,
                                                                           "paymentToken": prefill.paymentToken,
                                                                           "cardNumber": prefill.maskedPan,
@@ -219,11 +175,11 @@ public extension SwedbankPaySDK {
                                                                           "cardExpiryYear": prefill.expiryYear]))
             case .applePay:
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
-                                                                 succeeded: succeeded,
+                                                                 succeeded: true,
                                                                  values: ["instrument": instrument.identifier]))
             case .newCreditCard(enabledPaymentDetailsConsentCheckbox: let enabledPaymentDetailsConsentCheckbox):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
-                                                                 succeeded: succeeded,
+                                                                 succeeded: true,
                                                                  values: ["instrument": instrument.identifier,
                                                                           "showConsentAffirmation": enabledPaymentDetailsConsentCheckbox.description]))
             }
@@ -473,6 +429,15 @@ public extension SwedbankPaySDK {
             } else if let attemptPayload = operations.first(where: { $0.rel == .attemptPayload }),
                       let walletSdk = attemptPayload.firstTask(with: .walletSdk) {
                 makeApplePayAuthorization(operation: attemptPayload, task: walletSdk)
+            } else if let instrument = self.instrument,
+                      ongoingModel?.paymentSession.instrumentModePaymentMethod != nil && ongoingModel?.paymentSession.instrumentModePaymentMethod != instrument.identifier,
+                      let customizePayment = ongoingModel?.operations?.first(where: { $0.rel == .customizePayment }) {
+                makeRequest(router: .customizePayment(instrument: nil), operation: customizePayment)
+            } else if let instrument = self.instrument,
+                      case .newCreditCard = instrument,
+                      ongoingModel?.paymentSession.instrumentModePaymentMethod == nil || ongoingModel?.paymentSession.instrumentModePaymentMethod != instrument.identifier,
+                      let customizePayment = ongoingModel?.operations?.first(where: { $0.rel == .customizePayment }) {
+                makeRequest(router: .customizePayment(instrument: instrument), operation: customizePayment)
             } else if case .newCreditCard = self.instrument,
                       ongoingModel?.paymentSession.instrumentModePaymentMethod == "CreditCard" {
                 DispatchQueue.main.async {
@@ -590,6 +555,24 @@ public extension SwedbankPaySDK {
                     BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionFetched",
                                                                        succeeded: self.delegate != nil,
                                                                        values: ["instruments": availableInstruments.compactMap({ $0.identifier }).joined(separator: ";")]))
+                }
+            } else if let instrument = self.instrument,
+                      let operation = ongoingModel?.paymentSession.methods?
+                .first(where: { $0.name == instrument.identifier })?.operations?
+                .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
+
+                sessionStartTimestamp = Date()
+
+                switch operation.rel {
+                case .expandMethod:
+                    makeRequest(router: .expandMethod(instrument: instrument), operation: operation)
+                case .startPaymentAttempt:
+                    makeRequest(router: .startPaymentAttempt(instrument: instrument, culture: culture), operation: operation)
+                    self.instrument = nil
+                case .getPayment:
+                    makeRequest(router: .getPayment, operation: operation)
+                default:
+                    fatalError("Operantion rel is not supported for makeNativePaymentAttempt: \(String(describing: operation.rel))")
                 }
             } else if let getPayment = operations.first(where: { $0.rel == .getPayment }) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
