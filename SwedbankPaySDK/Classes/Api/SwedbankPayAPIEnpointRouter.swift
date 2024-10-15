@@ -33,7 +33,7 @@ enum EnpointRouter {
     case acknowledgeFailedAttempt
     case abortPayment
     case applePay(paymentPayload: String)
-    case customizePayment(instrument: SwedbankPaySDK.PaymentAttemptInstrument)
+    case customizePayment(instrument: SwedbankPaySDK.PaymentAttemptInstrument?)
 }
 
 protocol EndpointRouterProtocol {
