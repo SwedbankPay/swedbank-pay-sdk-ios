@@ -16,7 +16,7 @@
 import SwedbankPaySDK
 import Alamofire
 
-extension Request: @retroactive SwedbankPaySDKRequest {
+extension Request: SwedbankPaySDKRequest {
     public func cancel() {
         _ = self.cancel() as Request
     }
