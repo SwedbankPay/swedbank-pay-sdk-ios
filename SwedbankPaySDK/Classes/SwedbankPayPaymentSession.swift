@@ -457,7 +457,8 @@ public extension SwedbankPaySDK {
                 self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
             } else if let scaMethodRequest = operations.first(where: { $0.firstTask(with: .scaMethodRequest) != nil }),
                       let task = scaMethodRequest.firstTask(with: .scaMethodRequest),
-                      task.href != nil,
+                      let href = task.href,
+                      !href.isEmpty,
                       !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null" }) {
                 DispatchQueue.main.async {
                     self.webViewService.load(task: task) { result in
