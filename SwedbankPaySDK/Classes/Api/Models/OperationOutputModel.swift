@@ -23,12 +23,23 @@ struct OperationOutputModel: Codable, Hashable {
 }
 
 extension OperationOutputModel {
-    func firstTask(with rel: IntegrationTaskRel) -> IntegrationTask? {
+    func firstTask(withRel rel: IntegrationTaskRel) -> IntegrationTask? {
         if let task = tasks?.first(where: { $0.rel == rel }) {
             return task
         }
 
         return nil
+    }
+}
+
+extension Sequence where Iterator.Element == OperationOutputModel
+{
+    func firstOperation(withRel rel: OperationRel) -> OperationOutputModel? {
+        return first(where: { $0.rel == rel })
+    }
+    
+    func containsOperation(withRel rel: OperationRel) -> Bool {
+        return firstOperation(withRel: rel) != nil
     }
 }
 

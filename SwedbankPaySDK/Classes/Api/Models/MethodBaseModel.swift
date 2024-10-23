@@ -103,6 +103,13 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
     }
 }
 
+extension Sequence where Iterator.Element == MethodBaseModel
+{
+    func firstMethod(withName name: String) -> MethodBaseModel? {
+        return first(where: { $0.name == name })
+    }
+}
+
 extension SwedbankPaySDK {
     /// Avilable instrument for Native Payment.
     public enum AvailableInstrument: Codable, Equatable, Hashable {
