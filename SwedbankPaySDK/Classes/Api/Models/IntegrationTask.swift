@@ -23,6 +23,21 @@ struct IntegrationTask: Codable, Hashable {
     let expects: [ExpectationModel]?
 }
 
+extension Sequence where Iterator.Element == ExpectationModel
+{
+    func firstExpectation(withName name: String) -> ExpectationModel? {
+        return first(where: { $0.name == name })
+    }
+    
+    func value(for name: String) -> String? {
+        return firstExpectation(withName: name)?.value
+    }
+    
+    func contains(name: String) -> Bool {
+        return firstExpectation(withName: name) != nil
+    }
+}
+
 enum IntegrationTaskRel: Codable, Equatable, Hashable {
     case scaMethodRequest
     case scaRedirect

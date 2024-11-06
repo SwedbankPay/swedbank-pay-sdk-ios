@@ -193,7 +193,7 @@ public extension SwedbankPaySDK {
         /// - returns:- SwedbankPaySDKController to be shown.
         public func createSwedbankPaySDKController() {
             guard let ongoingModel = ongoingModel,
-                  let operation = ongoingModel.operations?.first(where: { $0.rel == .viewPayment }),
+                  let operation = ongoingModel.operations?.firstOperation(withRel: .viewPayment),
                   let orderInfo = orderInfo,
                   let href = operation.href,
                   let viewPaymentLink = URL(string: href) else {
@@ -247,8 +247,7 @@ public extension SwedbankPaySDK {
             }
 
             var succeeded = false
-            if let operation = ongoingModel.operations?
-                .first(where: { $0.rel == .abortPayment }) {
+            if let operation = ongoingModel.operations?.firstOperation(withRel: .abortPayment) {
                 sessionStartTimestamp = Date()
                 makeRequest(router: .abortPayment, operation: operation)
                 succeeded = true
@@ -285,7 +284,7 @@ public extension SwedbankPaySDK {
                                                                                  termsOfServiceUrl: urls.termsOfServiceUrl)
                         }
 
-                        if let eventLogging = paymentOutputModel.operations?.first(where: { $0.rel == .eventLogging  }) {
+                        if let eventLogging = paymentOutputModel.operations?.firstOperation(withRel: .eventLogging) {
                             BeaconService.shared.href = eventLogging.href
                         }
 
@@ -424,49 +423,49 @@ public extension SwedbankPaySDK {
 
             let operations = paymentOutputModel.prioritisedOperations
 
-            if let preparePayment = operations.first(where: { $0.rel == .preparePayment }) {
+            if let preparePayment = operations.firstOperation(withRel: .preparePayment) {
                 makeRequest(router: .preparePayment, operation: preparePayment)
-            } else if let attemptPayload = operations.first(where: { $0.rel == .attemptPayload }),
-                      let walletSdk = attemptPayload.firstTask(with: .walletSdk) {
+            } else if let attemptPayload = operations.firstOperation(withRel: .attemptPayload),
+                      let walletSdk = attemptPayload.firstTask(withRel: .walletSdk) {
                 makeApplePayAuthorization(operation: attemptPayload, task: walletSdk)
             } else if let instrument = self.instrument,
                       ongoingModel?.paymentSession.instrumentModePaymentMethod != nil && ongoingModel?.paymentSession.instrumentModePaymentMethod != instrument.identifier,
-                      let customizePayment = ongoingModel?.operations?.first(where: { $0.rel == .customizePayment }) {
+                      let customizePayment = ongoingModel?.operations?.firstOperation(withRel: .customizePayment) {
                 makeRequest(router: .customizePayment(instrument: nil), operation: customizePayment)
             } else if let instrument = self.instrument,
                       case .newCreditCard = instrument,
                       ongoingModel?.paymentSession.instrumentModePaymentMethod == nil || ongoingModel?.paymentSession.instrumentModePaymentMethod != instrument.identifier,
-                      let customizePayment = ongoingModel?.operations?.first(where: { $0.rel == .customizePayment }) {
+                      let customizePayment = ongoingModel?.operations?.firstOperation(withRel: .customizePayment) {
                 makeRequest(router: .customizePayment(instrument: instrument), operation: customizePayment)
             } else if case .newCreditCard = self.instrument,
                       ongoingModel?.paymentSession.instrumentModePaymentMethod == "CreditCard" {
                 DispatchQueue.main.async {
                     self.createSwedbankPaySDKController()
                 }
-            } else if operations.contains(where: { $0.rel == .startPaymentAttempt }),
+            } else if operations.containsOperation(withRel: .startPaymentAttempt),
                       let instrument = instrument,
                       let startPaymentAttempt = ongoingModel?.paymentSession.methods?
-                .first(where: { $0.name == instrument.identifier })?.operations?
-                .first(where: { $0.rel == .startPaymentAttempt }) {
+                .firstMethod(withName: instrument.identifier)?.operations?
+                .firstOperation(withRel: .startPaymentAttempt) {
 
                 makeRequest(router: .startPaymentAttempt(instrument: instrument, culture: culture), operation: startPaymentAttempt)
                 self.instrument = nil
-            } else if let launchClientApp = operations.first(where: { $0.firstTask(with: .launchClientApp) != nil }),
-                      let tasks = launchClientApp.firstTask(with: .launchClientApp),
+            } else if let launchClientApp = operations.first(where: { $0.firstTask(withRel: .launchClientApp) != nil }),
+                      let tasks = launchClientApp.firstTask(withRel: .launchClientApp),
                       !hasLaunchClientAppURLs.contains(where: { $0.absoluteString.contains(tasks.href ?? "") }) {
-                self.launchClientApp(task: launchClientApp.firstTask(with: .launchClientApp)!)
-            } else if let scaMethodRequest = operations.first(where: { $0.firstTask(with: .scaMethodRequest) != nil }),
-                      let task = scaMethodRequest.firstTask(with: .scaMethodRequest),
+                self.launchClientApp(task: launchClientApp.firstTask(withRel: .launchClientApp)!)
+            } else if let scaMethodRequest = operations.first(where: { $0.firstTask(withRel: .scaMethodRequest) != nil }),
+                      let task = scaMethodRequest.firstTask(withRel: .scaMethodRequest),
                       let href = task.href,
                       !href.isEmpty,
-                      !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null" }) {
+                      !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.value(for: "threeDSMethodData") ?? "null" }) {
                 DispatchQueue.main.async {
                     self.webViewService.load(task: task) { result in
                         switch result {
                         case .success:
-                            self.scaMethodRequestDataPerformed.append((name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null", value: "Y"))
+                            self.scaMethodRequestDataPerformed.append((name: task.expects?.value(for: "threeDSMethodData") ?? "null", value: "Y"))
                         case .failure:
-                            self.scaMethodRequestDataPerformed.append((name: task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null", value: "N"))
+                            self.scaMethodRequestDataPerformed.append((name: task.expects?.value(for: "threeDSMethodData") ?? "null", value: "N"))
                         }
 
                         if let model = self.ongoingModel {
@@ -474,21 +473,21 @@ public extension SwedbankPaySDK {
                         }
                     }
                 }
-            } else if let createAuthentication = operations.first(where: { $0.rel == .createAuthentication }),
-                      let notificationUrl = createAuthentication.expects?.first(where: { $0.name == "NotificationUrl" })?.value {
+            } else if let createAuthentication = operations.firstOperation(withRel: .createAuthentication),
+                      let notificationUrl = createAuthentication.expects?.value(for: "NotificationUrl") {
                 self.notificationUrl = notificationUrl
 
-                if let task = createAuthentication.firstTask(with: .scaMethodRequest),
-                   let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "threeDSMethodData" })?.value ?? "null" }) {
+                if let task = createAuthentication.firstTask(withRel: .scaMethodRequest),
+                   let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.value(for: "threeDSMethodData") ?? "null" }) {
                     makeRequest(router: .createAuthentication(methodCompletionIndicator: scaMethod.value, notificationUrl: notificationUrl), operation: createAuthentication)
-                } else if let methodCompletionIndicator = createAuthentication.expects?.first(where: { $0.name == "methodCompletionIndicator" })?.value {
+                } else if let methodCompletionIndicator = createAuthentication.expects?.value(for: "methodCompletionIndicator") {
                     makeRequest(router: .createAuthentication(methodCompletionIndicator: methodCompletionIndicator, notificationUrl: notificationUrl), operation: createAuthentication)
                 } else {
                     makeRequest(router: .createAuthentication(methodCompletionIndicator: "U", notificationUrl: notificationUrl), operation: createAuthentication)
                 }
-            } else if let operation = operations.first(where: { $0.firstTask(with: .scaRedirect) != nil }),
-                      let task = operation.firstTask(with: .scaRedirect),
-                      !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
+            } else if let operation = operations.first(where: { $0.firstTask(withRel: .scaRedirect) != nil }),
+                      let task = operation.firstTask(withRel: .scaRedirect),
+                      !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.value(for: "creq") }) {
                 DispatchQueue.main.async {
                     self.webViewController.notificationUrl = self.notificationUrl
 
@@ -500,11 +499,11 @@ public extension SwedbankPaySDK {
 
                     self.scaRedirectDataPerformed(task: task, culture: culture)
                 }
-            } else if let completeAuthentication = operations.first(where: { $0.rel == .completeAuthentication }),
+            } else if let completeAuthentication = operations.firstOperation(withRel: .completeAuthentication),
                       let task = completeAuthentication.tasks?.first(where: { $0.expects?.contains(where: { $0.name == "creq" } ) ?? false } ),
-                      let scaRedirect = scaRedirectDataPerformed.first(where: { $0.name == task.expects?.first(where: { $0.name == "creq" })?.value }) {
+                      let scaRedirect = scaRedirectDataPerformed.first(where: { $0.name == task.expects?.value(for: "creq") }) {
                 makeRequest(router: .completeAuthentication(cRes: scaRedirect.value), operation: completeAuthentication)
-            } else if let redirectPayer = operations.first(where: { $0.rel == .redirectPayer }) {
+            } else if let redirectPayer = operations.firstOperation(withRel: .redirectPayer) {
                 DispatchQueue.main.async {
                     if redirectPayer.href == self.orderInfo?.cancelUrl?.absoluteString {
                         self.delegate?.paymentSessionCanceled()
@@ -533,8 +532,8 @@ public extension SwedbankPaySDK {
                 scaRedirectDataPerformed = []
                 notificationUrl = nil
                 hasShownAvailableInstruments = false
-            } else if (operations.contains(where: { $0.rel == .expandMethod }) || operations.contains(where: { $0.rel == .startPaymentAttempt })) &&
-                        hasShownAvailableInstruments == false {
+            } else if (operations.containsOperation(withRel: .expandMethod) || operations.containsOperation(withRel: .startPaymentAttempt) &&
+                        hasShownAvailableInstruments == false) {
                 DispatchQueue.main.async {
                     let availableInstruments: [AvailableInstrument] = paymentOutputModel.paymentSession.methods?.compactMap({ model in
                         switch model {
@@ -559,7 +558,7 @@ public extension SwedbankPaySDK {
                 }
             } else if let instrument = self.instrument,
                       let operation = ongoingModel?.paymentSession.methods?
-                .first(where: { $0.name == instrument.identifier })?.operations?
+                .firstMethod(withName: instrument.identifier)?.operations?
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
 
                 sessionStartTimestamp = Date()
@@ -575,7 +574,7 @@ public extension SwedbankPaySDK {
                 default:
                     fatalError("Operantion rel is not supported for makeNativePaymentAttempt: \(String(describing: operation.rel))")
                 }
-            } else if let getPayment = operations.first(where: { $0.rel == .getPayment }) {
+            } else if let getPayment = operations.firstOperation(withRel: .getPayment) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     self.sessionStartTimestamp = Date()
                     self.makeRequest(router: .getPayment, operation: getPayment)
@@ -598,8 +597,7 @@ public extension SwedbankPaySDK {
             }
 
             if let ongoingModel = ongoingModel {
-                if let operation = ongoingModel.paymentSession.allMethodOperations
-                    .first(where: { $0.rel == .getPayment }) {
+                if let operation = ongoingModel.paymentSession.allMethodOperations.firstOperation(withRel: .getPayment) {
                     sessionStartTimestamp = Date()
                     makeRequest(router: .getPayment, operation: operation)
                 }
@@ -615,7 +613,7 @@ public extension SwedbankPaySDK {
                 switch result {
                 case .success(let value):
                     if !self.scaRedirectDataPerformed.contains(where: { $0.value == value }) {
-                        self.scaRedirectDataPerformed.append((name: task.expects!.first(where: { $0.name == "creq" })!.value!, value: value))
+                        self.scaRedirectDataPerformed.append((name: task.expects!.value(for: "creq")!, value: value))
 
                         self.delegate?.dismiss3DSecureViewController()
 
