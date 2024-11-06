@@ -532,7 +532,7 @@ public extension SwedbankPaySDK {
                 scaRedirectDataPerformed = []
                 notificationUrl = nil
                 hasShownAvailableInstruments = false
-            } else if (operations.containsOperation(withRel: .expandMethod) || operations.containsOperation(withRel: .startPaymentAttempt) &&
+            } else if ((operations.containsOperation(withRel: .expandMethod) || operations.containsOperation(withRel: .startPaymentAttempt)) &&
                         hasShownAvailableInstruments == false) {
                 DispatchQueue.main.async {
                     let availableInstruments: [AvailableInstrument] = paymentOutputModel.paymentSession.methods?.compactMap({ model in
