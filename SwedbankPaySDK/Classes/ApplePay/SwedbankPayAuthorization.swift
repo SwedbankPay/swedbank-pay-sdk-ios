@@ -105,7 +105,7 @@ extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
     func paymentAuthorizationController(_ controller: PKPaymentAuthorizationController, didAuthorizePayment payment: PKPayment, handler completion: @escaping (PKPaymentAuthorizationResult) -> Void) {
         let paymentPayload = payment.token.paymentData.base64EncodedString()
 
-        let router = EnpointRouter.applePay(paymentPayload: paymentPayload)
+        let router = EnpointRouter.attemptPayload(paymentPayload: paymentPayload)
 
         SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation?.href, method: operation?.method),
                                     sessionStartTimestamp: Date()).makeRequest { result in

@@ -21,7 +21,7 @@ extension SwedbankPaySDK {
         case applePay(merchantIdentifier: String)
         case newCreditCard(enabledPaymentDetailsConsentCheckbox: Bool)
 
-        var identifier: String {
+        var paymentMethod: String {
             switch self {
             case .swish:
                 return "Swish"
@@ -30,6 +30,15 @@ extension SwedbankPaySDK {
                 return "CreditCard"
             case .applePay:
                 return "ApplePay"
+            }
+        }
+        
+        var instrumentModeRequired: Bool {
+            switch self {
+            case .newCreditCard:
+                return true
+            case .swish, .applePay, .creditCard:
+                return false
             }
         }
     }
