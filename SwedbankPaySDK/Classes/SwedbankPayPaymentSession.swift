@@ -355,7 +355,7 @@ public extension SwedbankPaySDK {
             }
         }
 
-        private func makeApplePayAuthorization(operation: OperationOutputModel, task: IntegrationTask) {
+        private func makeApplePayAuthorization(attemptPayloadOperation: OperationOutputModel, failPaymentAttemptOperation: OperationOutputModel, task: IntegrationTask) {
             guard let merchantIdentifier = merchantIdentifier else {
                 self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
 
@@ -366,30 +366,14 @@ public extension SwedbankPaySDK {
                 return
             }
 
-            SwedbankPayAuthorization.shared.showApplePay(operation: operation, task: task, merchantIdentifier: merchantIdentifier) { result in
+            SwedbankPayAuthorization.shared.showApplePay(operation: attemptPayloadOperation, task: task, merchantIdentifier: merchantIdentifier) { result in
                 switch result {
-                case .success(let success):
-                    if let paymentOutputModel = success {
-                        self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
-                    }
-                case .failure(let failure):
-                    DispatchQueue.main.async {
-                        // TODO: This is a temporary solution. In the future we need to send the error to the backend so they can provide the correct problem for us.
-
-                        let problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: failure,
-                                                                                                          retry: nil)
-
-                        self.delegate?.sdkProblemOccurred(problem: problem)
-
-                        let error = failure as NSError
-
-                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
-                                                                           succeeded: self.delegate != nil,
-                                                                           values: ["problem": problem.rawValue,
-                                                                                    "errorDescription": error.localizedDescription,
-                                                                                    "errorCode": String(error.code),
-                                                                                    "errorDomain": error.domain]))
-                    }
+                case .success(let paymentOutputModel):
+                    self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
+                case .failure(ApplePayError.userCancelled):
+                    self.makeRequest(router: .failPaymentAttempt(problemType: "UserCancelled", errorCode: ""), operation: failPaymentAttemptOperation)
+                case .failure(let error):
+                    self.makeRequest(router: .failPaymentAttempt(problemType: "TechnicalError", errorCode: error.localizedDescription), operation: failPaymentAttemptOperation)
                 }
             }
         }
@@ -426,8 +410,9 @@ public extension SwedbankPaySDK {
             if let preparePayment = operations.firstOperation(withRel: .preparePayment) {
                 makeRequest(router: .preparePayment, operation: preparePayment)
             } else if let attemptPayload = operations.firstOperation(withRel: .attemptPayload),
+                      let failPayment = paymentOutputModel.paymentSession.methods?.firstMethod(withName: AvailableInstrument.applePay.identifier)?.operations?.firstOperation(withRel: .failPaymentAttempt),
                       let walletSdk = attemptPayload.firstTask(withRel: .walletSdk) {
-                makeApplePayAuthorization(operation: attemptPayload, task: walletSdk)
+                makeApplePayAuthorization(attemptPayloadOperation: attemptPayload, failPaymentAttemptOperation: failPayment, task: walletSdk)
             } else if let instrument = self.instrument,
                       ongoingModel?.paymentSession.instrumentModePaymentMethod != nil && ongoingModel?.paymentSession.instrumentModePaymentMethod != instrument.identifier,
                       let customizePayment = ongoingModel?.operations?.firstOperation(withRel: .customizePayment) {

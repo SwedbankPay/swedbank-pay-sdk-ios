@@ -34,6 +34,7 @@ enum EnpointRouter {
     case abortPayment
     case applePay(paymentPayload: String)
     case customizePayment(instrument: SwedbankPaySDK.PaymentAttemptInstrument?)
+    case failPaymentAttempt(problemType: String, errorCode: String?)
 }
 
 protocol EndpointRouterProtocol {
@@ -137,6 +138,9 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                  .applePay:
                 return ["paymentMethod": instrument.identifier]
             }
+        case .failPaymentAttempt(let problemType, let errorCode):
+            return ["problemType": problemType,
+                    "errorCode": errorCode]
         default:
             return nil
         }
