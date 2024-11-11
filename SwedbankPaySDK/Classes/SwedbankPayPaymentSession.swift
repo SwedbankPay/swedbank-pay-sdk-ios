@@ -408,10 +408,14 @@ public extension SwedbankPaySDK {
             let operations = paymentOutputModel.prioritisedOperations
 
             if let preparePayment = operations.firstOperation(withRel: .preparePayment) {
+                // Initial state of payment session, run preparePayment operation
+                
                 makeRequest(router: .preparePayment, operation: preparePayment)
             } else if let attemptPayload = operations.firstOperation(withRel: .attemptPayload),
                       let failPayment = paymentOutputModel.paymentSession.methods?.firstMethod(withName: AvailableInstrument.applePay.identifier)?.operations?.firstOperation(withRel: .failPaymentAttempt),
                       let walletSdk = attemptPayload.firstTask(withRel: .walletSdk) {
+                // We have an active walletSdk task, this means we should initiate an Apple Pay Payment Request locally on the device
+                
                 makeApplePayAuthorization(attemptPayloadOperation: attemptPayload, failPaymentAttemptOperation: failPayment, task: walletSdk)
             } else if let instrument = self.instrument,
                       ongoingModel?.paymentSession.instrumentModePaymentMethod != nil && ongoingModel?.paymentSession.instrumentModePaymentMethod != instrument.identifier,
@@ -432,18 +436,23 @@ public extension SwedbankPaySDK {
                       let startPaymentAttempt = ongoingModel?.paymentSession.methods?
                 .firstMethod(withName: instrument.identifier)?.operations?
                 .firstOperation(withRel: .startPaymentAttempt) {
+                // We have a startPaymentAttempt and it's matching the set instrument, time to make a payment attempt
 
                 makeRequest(router: .startPaymentAttempt(instrument: instrument, culture: culture), operation: startPaymentAttempt)
                 self.instrument = nil
             } else if let launchClientApp = operations.first(where: { $0.firstTask(withRel: .launchClientApp) != nil }),
                       let tasks = launchClientApp.firstTask(withRel: .launchClientApp),
                       !hasLaunchClientAppURLs.contains(where: { $0.absoluteString.contains(tasks.href ?? "") }) {
+                // We have an active launchClientApp task, and the contained URL isn't in the list of already launched Client App URLs, launch the external app on the device
+                
                 self.launchClientApp(task: launchClientApp.firstTask(withRel: .launchClientApp)!)
             } else if let scaMethodRequest = operations.first(where: { $0.firstTask(withRel: .scaMethodRequest) != nil }),
                       let task = scaMethodRequest.firstTask(withRel: .scaMethodRequest),
                       let href = task.href,
                       !href.isEmpty,
                       !scaMethodRequestDataPerformed.contains(where: { $0.name == task.expects?.value(for: "threeDSMethodData") ?? "null" }) {
+                // We have an active scaMethodRequest task, with a non-empty and non-nil href, and we haven't loaded the Method Request URL before (as identified by threeDSMethodData value as key), load the SCA Method Request in the "invisble web view"
+                
                 DispatchQueue.main.async {
                     self.webViewService.load(task: task) { result in
                         switch result {
@@ -460,19 +469,29 @@ public extension SwedbankPaySDK {
                 }
             } else if let createAuthentication = operations.firstOperation(withRel: .createAuthentication),
                       let notificationUrl = createAuthentication.expects?.value(for: "NotificationUrl") {
+                // We have a createAuthentication operation and should move forward with sending one of the Method Completion Indicators
+                
                 self.notificationUrl = notificationUrl
 
                 if let task = createAuthentication.firstTask(withRel: .scaMethodRequest),
                    let scaMethod = scaMethodRequestDataPerformed.first(where: { $0.name == task.expects?.value(for: "threeDSMethodData") ?? "null" }) {
+                    // We have loaded the Method Request URL in the "invisible web view" before (as identified by threeDSMethodData value as key), so we can use the result and run the createAuthentication operation
+                    
                     makeRequest(router: .createAuthentication(methodCompletionIndicator: scaMethod.value, notificationUrl: notificationUrl), operation: createAuthentication)
                 } else if let methodCompletionIndicator = createAuthentication.expects?.value(for: "methodCompletionIndicator") {
+                    // The Session API has already provided us with a pre-defined Method Completion Indicator, so we take that and run the createAuthentication operation
+                    
                     makeRequest(router: .createAuthentication(methodCompletionIndicator: methodCompletionIndicator, notificationUrl: notificationUrl), operation: createAuthentication)
                 } else {
+                    // We didn't have a result from a loaded Method Request URL, and we didn't get a pre-defined Method Completion Indicator, so we will have to send in the Unkonwn (U) indicator
+                    
                     makeRequest(router: .createAuthentication(methodCompletionIndicator: "U", notificationUrl: notificationUrl), operation: createAuthentication)
                 }
             } else if let operation = operations.first(where: { $0.firstTask(withRel: .scaRedirect) != nil }),
                       let task = operation.firstTask(withRel: .scaRedirect),
                       !scaRedirectDataPerformed.contains(where: { $0.name == task.expects?.value(for: "creq") }) {
+                // We have an active scaRedirect task, and the 3D secure page hasn't been shown to the user yet (as identified by creq as key), tell the merchant app to show a 3D Secure View Controller
+                
                 DispatchQueue.main.async {
                     self.webViewController.notificationUrl = self.notificationUrl
 
@@ -487,22 +506,32 @@ public extension SwedbankPaySDK {
             } else if let completeAuthentication = operations.firstOperation(withRel: .completeAuthentication),
                       let task = completeAuthentication.tasks?.first(where: { $0.expects?.contains(where: { $0.name == "creq" } ) ?? false } ),
                       let scaRedirect = scaRedirectDataPerformed.first(where: { $0.name == task.expects?.value(for: "creq") }) {
+                // We have an active scaRedirect task, and the 3D secure page has been shown to the user (as identified by creq as key), run the completeAuthentication operation with the result
+                
                 makeRequest(router: .completeAuthentication(cRes: scaRedirect.value), operation: completeAuthentication)
             } else if let redirectPayer = operations.firstOperation(withRel: .redirectPayer) {
+                // We have a redirectPayer operation, this means the payment session has ended and we can look at the URL to determine the result
+                
                 DispatchQueue.main.async {
                     if redirectPayer.href == self.orderInfo?.cancelUrl?.absoluteString {
+                        // URL matches the cancelUrl, the session has been cancelled
+                        
                         self.delegate?.paymentSessionCanceled()
 
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionCanceled",
                                                                            succeeded: self.delegate != nil,
                                                                            values: nil))
                     } else if redirectPayer.href == self.orderInfo?.completeUrl.absoluteString {
+                        // URL matches the completeUrl, the session has been completed
+                        
                         self.delegate?.paymentSessionComplete()
 
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionComplete",
                                                                            succeeded: self.delegate != nil,
                                                                            values: nil))
                     } else {
+                        // Redirect to an unknown URL, no way to recover from here
+                        
                         self.delegate?.sdkProblemOccurred(problem: .paymentSessionEndStateReached)
                         
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
@@ -545,26 +574,39 @@ public extension SwedbankPaySDK {
                       let operation = ongoingModel?.paymentSession.methods?
                 .firstMethod(withName: instrument.identifier)?.operations?
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
+                // We have a method matching the set instrument, and it has one of the three supported method operations (expandMethod, startPaymentAttempt or getPayment)
 
                 sessionStartTimestamp = Date()
 
                 switch operation.rel {
                 case .expandMethod:
+                    // The current instrument has an expandMethod operation, run that to move to the next step of the process (startPaymentAttempt)
+                    
                     makeRequest(router: .expandMethod(instrument: instrument), operation: operation)
                 case .startPaymentAttempt:
+                    // The current instrument has a startPaymentAttempt operation, run that to move to the next step of the process (getPayment, redirectPayer or problem)
+                    
                     makeRequest(router: .startPaymentAttempt(instrument: instrument, culture: culture), operation: operation)
                     self.instrument = nil
                 case .getPayment:
+                    // The current instrument has a getPayment operation, run that so we're polling the session until we can move to the next step of the process (redirectPayer or problem)
+                    
                     makeRequest(router: .getPayment, operation: operation)
                 default:
+                    // We already checked the operation in the if statement above, so this code should not be reachable
+                    
                     fatalError("Operantion rel is not supported for makeNativePaymentAttempt: \(String(describing: operation.rel))")
                 }
             } else if let getPayment = operations.firstOperation(withRel: .getPayment) {
+                // We're told to simply fetch the session again, wait until polling and fetch the session, running the session operation handling once again
+                
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     self.sessionStartTimestamp = Date()
                     self.makeRequest(router: .getPayment, operation: getPayment)
                 }
             } else if !hasShowedError {
+                // No process has been initiated at all. The session is in a state that this session operation handling logic can't resolve.
+                
                 DispatchQueue.main.async {
                     self.delegate?.sdkProblemOccurred(problem: .paymentSessionEndStateReached)
 
