@@ -209,6 +209,25 @@ public extension SwedbankPaySDK {
                 return
             }
 
+            let logValues: [String: String?]
+
+            switch mode {
+            case .instrumentMode(let instrument):
+                logValues = [
+                    "mode": "instrumentMode",
+                    "instrument": instrument.paymentMethod
+                ]
+            case .menu(let restrictedToInstruments):
+                logValues = [
+                    "mode": "menu",
+                    "restrictedToInstruments": restrictedToInstruments?.compactMap({ $0.paymentMethod }).joined(separator: ";")
+                ]
+            }
+
+            BeaconService.shared.log(type: .sdkMethodInvoked(name: "createSwedbankPaySDKController",
+                                                             succeeded: true,
+                                                             values: logValues))
+
             paymentViewSessionIsOngoing = false
             sdkControllerMode = mode
 
@@ -244,10 +263,6 @@ public extension SwedbankPaySDK {
                 consumer: nil,
                 paymentOrder: nil,
                 userData: nil)
-
-            BeaconService.shared.log(type: .sdkMethodInvoked(name: "createSwedbankPaySDKController",
-                                                             succeeded: true,
-                                                             values: nil))
 
             paymentViewSessionIsOngoing = true
 
