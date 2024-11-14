@@ -116,7 +116,7 @@ extension SwedbankPaySDK {
 
         case webBased(paymentMethod: String)
 
-        var paymentMethod: String {
+        public var paymentMethod: String {
             switch self {
             case .swish:
                 return "Swish"
