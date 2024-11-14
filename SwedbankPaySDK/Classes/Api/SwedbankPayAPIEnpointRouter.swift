@@ -32,8 +32,8 @@ enum EnpointRouter {
     case preparePayment
     case acknowledgeFailedAttempt
     case abortPayment
-    case applePay(paymentPayload: String)
-    case customizePayment(instrument: SwedbankPaySDK.PaymentAttemptInstrument?)
+    case attemptPayload(paymentPayload: String)
+    case customizePayment(instrument: SwedbankPaySDK.PaymentAttemptInstrument?, paymentMethod: String?, restrictToPaymentMethods: [String]?)
     case failPaymentAttempt(problemType: String, errorCode: String?)
 }
 
@@ -50,7 +50,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     var body: [String: Any?]? {
         switch endpoint.router {
         case .expandMethod(instrument: let instrument):
-            return ["instrumentName": instrument.identifier]
+            return ["paymentMethod": instrument.paymentMethod]
         case .startPaymentAttempt(let instrument, let culture):
             switch instrument {
             case .swish(let msisdn):
@@ -119,24 +119,30 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""],
             ]
-        case .applePay(let paymentPayload):
-            return ["instrument": "ApplePay",
+        case .attemptPayload(let paymentPayload):
+            return ["paymentMethod": "ApplePay",
                     "paymentPayload": paymentPayload]
-        case .customizePayment(let instrument):
-            guard let instrument = instrument else {
-                return ["paymentMethod": nil]
-            }
+        case .customizePayment(let instrument, let paymentMethod, let restrictToPaymentMethods):
 
-            switch instrument {
-            case .newCreditCard(let enabledPaymentDetailsConsentCheckbox):
+            switch (instrument, paymentMethod, restrictToPaymentMethods) {
+            case (nil, nil, let restrictToPaymentMethods?):
+                return ["paymentMethod": nil,
+                        "restrictToPaymentMethods": restrictToPaymentMethods.isEmpty ? nil : restrictToPaymentMethods]
+            case (.newCreditCard(let enabledPaymentDetailsConsentCheckbox), _, _):
                 return ["paymentMethod": "CreditCard",
+                        "restrictToPaymentMethods": nil,
                         "hideStoredPaymentOptions": true,
                         "showConsentAffirmation" : enabledPaymentDetailsConsentCheckbox,
                 ]
-            case .swish,
-                 .creditCard,
-                 .applePay:
-                return ["paymentMethod": instrument.identifier]
+            case (nil, let paymentMethod?, nil):
+                return ["paymentMethod": paymentMethod,
+                        "restrictToPaymentMethods": nil]
+            case (let instrument?, nil, nil):
+                return ["paymentMethod": instrument.paymentMethod,
+                        "restrictToPaymentMethods": nil]
+            default:
+                return ["paymentMethod": nil,
+                        "restrictToPaymentMethods": nil]
             }
         case .failPaymentAttempt(let problemType, let errorCode):
             return ["problemType": problemType,

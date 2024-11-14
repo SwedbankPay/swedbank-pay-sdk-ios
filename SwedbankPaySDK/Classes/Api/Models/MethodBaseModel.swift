@@ -19,18 +19,17 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
     case swish(prefills: [SwedbankPaySDK.SwishMethodPrefillModel]?, operations: [OperationOutputModel]?)
     case creditCard(prefills: [SwedbankPaySDK.CreditCardMethodPrefillModel]?, operations: [OperationOutputModel]?, cardBrands: [String]?)
     case applePay(operations: [OperationOutputModel]?, cardBrands: [String]?)
-
-    case unknown(String)
+    case webBased(paymentMethod: String)
 
     private enum CodingKeys: String, CodingKey {
-        case instrument, prefills, operations, cardBrands
+        case paymentMethod, prefills, operations, cardBrands
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        let type = try container.decode(String.self, forKey: .instrument)
-        switch type {
+        let paymentMethod = try container.decode(String.self, forKey: .paymentMethod)
+        switch paymentMethod {
         case "Swish":
             self = .swish(
                 prefills: try? container.decode([SwedbankPaySDK.SwishMethodPrefillModel]?.self, forKey: CodingKeys.prefills),
@@ -48,7 +47,7 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
                 cardBrands: try? container.decode([String]?.self, forKey: CodingKeys.cardBrands)
             )
         default:
-            self = .unknown(type)
+            self = .webBased(paymentMethod: paymentMethod)
         }
     }
 
@@ -65,8 +64,8 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
         case .applePay(let operations, let cardBrands):
             try container.encode(operations)
             try container.encode(cardBrands)
-        case .unknown(let type):
-            try container.encode(type)
+        case .webBased(let paymentMethod):
+            try container.encode(paymentMethod)
         }
     }
 
@@ -78,8 +77,8 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
             return "CreditCard"
         case .applePay:
             return "ApplePay"
-        case .unknown:
-            return "Unknown"
+        case .webBased(let paymentMethod):
+            return paymentMethod
         }
     }
 
@@ -91,15 +90,9 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
             return opertations
         case .applePay(let operations, _):
             return operations
-        case .unknown:
+        case .webBased:
             return nil
         }
-    }
-
-    var isUnknown: Bool {
-        if case .unknown = self { return true }
-
-        return false
     }
 }
 
@@ -121,9 +114,9 @@ extension SwedbankPaySDK {
 
         case applePay
 
-        case webBased(identifier: String)
+        case webBased(paymentMethod: String)
 
-        var identifier: String {
+        public var paymentMethod: String {
             switch self {
             case .swish:
                 return "Swish"
@@ -131,8 +124,8 @@ extension SwedbankPaySDK {
                 return "CreditCard"
             case .applePay:
                 return "ApplePay"
-            case .webBased(identifier: let identifier):
-                return identifier
+            case .webBased(let paymentMethod):
+                return paymentMethod
             }
         }
     }

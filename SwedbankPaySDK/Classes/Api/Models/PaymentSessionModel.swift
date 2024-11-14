@@ -18,6 +18,7 @@ import Foundation
 struct PaymentSessionModel: Codable, Hashable {
     let culture: String?
     let methods: [MethodBaseModel]?
+    let settings: SettingsModel?
     let urls: UrlsModel?
     let instrumentModePaymentMethod: String?
 }
@@ -38,6 +39,22 @@ extension PaymentSessionModel {
 
         return allOperations
     }
+
+    var allPaymentMethods: [String] {
+        return methods?.compactMap({$0.name}) ?? []
+    }
+
+    var restrictedToInstruments: [String]? {
+        guard let methods = methods, let settings = settings else {
+            return nil
+        }
+        
+        if allPaymentMethods.sorted() == settings.enabledPaymentMethods.sorted() {
+            return nil
+        } else {
+            return allPaymentMethods
+        }
+    }
 }
 
 struct UrlsModel: Codable, Hashable {
@@ -46,4 +63,8 @@ struct UrlsModel: Codable, Hashable {
     let paymentUrl: URL?
     let hostUrls: [URL]?
     let termsOfServiceUrl: URL?
+}
+
+struct SettingsModel: Codable, Hashable {
+	let enabledPaymentMethods: [String]
 }

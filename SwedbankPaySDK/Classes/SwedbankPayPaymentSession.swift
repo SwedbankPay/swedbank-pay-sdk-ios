@@ -52,6 +52,11 @@ public protocol SwedbankPaySDKPaymentSessionDelegate: AnyObject {
 }
 
 public extension SwedbankPaySDK {
+    enum SwedbankPayPaymentSessionSDKControllerMode {
+        case menu(restrictedToInstruments: [SwedbankPaySDK.AvailableInstrument]?)
+        case instrumentMode(instrument: SwedbankPaySDK.AvailableInstrument)
+    }
+    
     /// Object that handles payment sessions
     class SwedbankPayPaymentSession: CallbackUrlDelegate {
         /// Order information that provides `PaymentSession` with callback URLs.
@@ -64,6 +69,7 @@ public extension SwedbankPaySDK {
         private var sessionIsOngoing: Bool = false
         private var paymentViewSessionIsOngoing: Bool = false
         private var instrument: SwedbankPaySDK.PaymentAttemptInstrument? = nil
+        private var sdkControllerMode: SwedbankPaySDK.SwedbankPayPaymentSessionSDKControllerMode? = nil
         private var hasShownAvailableInstruments: Bool = false
         private var merchantIdentifier: String? = nil
 
@@ -102,6 +108,7 @@ public extension SwedbankPaySDK {
             sessionIsOngoing = true
             paymentViewSessionIsOngoing = false
             instrument = nil
+            sdkControllerMode = nil
             merchantIdentifier = nil
             ongoingModel = nil
             hasLaunchClientAppURLs = []
@@ -163,12 +170,12 @@ public extension SwedbankPaySDK {
             case .swish(let msisdn):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
                                                                  succeeded: true,
-                                                                 values: ["instrument": instrument.identifier,
+                                                                 values: ["instrument": instrument.paymentMethod,
                                                                           "msisdn": msisdn]))
             case .creditCard(let prefill):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
                                                                  succeeded: true,
-                                                                 values: ["instrument": instrument.identifier,
+                                                                 values: ["instrument": instrument.paymentMethod,
                                                                           "paymentToken": prefill.paymentToken,
                                                                           "cardNumber": prefill.maskedPan,
                                                                           "cardExpiryMonth": prefill.expiryMonth,
@@ -176,11 +183,11 @@ public extension SwedbankPaySDK {
             case .applePay:
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
                                                                  succeeded: true,
-                                                                 values: ["instrument": instrument.identifier]))
+                                                                 values: ["instrument": instrument.paymentMethod]))
             case .newCreditCard(enabledPaymentDetailsConsentCheckbox: let enabledPaymentDetailsConsentCheckbox):
                 BeaconService.shared.log(type: .sdkMethodInvoked(name: "makePaymentAttempt",
                                                                  succeeded: true,
-                                                                 values: ["instrument": instrument.identifier,
+                                                                 values: ["instrument": instrument.paymentMethod,
                                                                           "showConsentAffirmation": enabledPaymentDetailsConsentCheckbox.description]))
             }
 
@@ -191,7 +198,43 @@ public extension SwedbankPaySDK {
         /// There needs to be an active payment session before an payment attempt can be made.
         ///
         /// - returns:- SwedbankPaySDKController to be shown.
-        public func createSwedbankPaySDKController() {
+        public func createSwedbankPaySDKController(mode: SwedbankPayPaymentSessionSDKControllerMode) {
+            guard let ongoingModel = ongoingModel else {
+                self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
+
+                BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                   succeeded: self.delegate != nil,
+                                                                   values: ["problem": SwedbankPaySDK.PaymentSessionProblem.internalInconsistencyError.rawValue]))
+
+                return
+            }
+
+            let logValues: [String: String?]
+
+            switch mode {
+            case .instrumentMode(let instrument):
+                logValues = [
+                    "mode": "instrumentMode",
+                    "instrument": instrument.paymentMethod
+                ]
+            case .menu(let restrictedToInstruments):
+                logValues = [
+                    "mode": "menu",
+                    "restrictedToInstruments": restrictedToInstruments?.compactMap({ $0.paymentMethod }).joined(separator: ";")
+                ]
+            }
+
+            BeaconService.shared.log(type: .sdkMethodInvoked(name: "createSwedbankPaySDKController",
+                                                             succeeded: true,
+                                                             values: logValues))
+
+            paymentViewSessionIsOngoing = false
+            sdkControllerMode = mode
+
+            sessionOperationHandling(paymentOutputModel: ongoingModel, culture: ongoingModel.paymentSession.culture)
+        }
+        
+        private func createSwedbankPaySDKController() {
             guard let ongoingModel = ongoingModel,
                   let operation = ongoingModel.operations?.firstOperation(withRel: .viewPayment),
                   let orderInfo = orderInfo,
@@ -220,10 +263,6 @@ public extension SwedbankPaySDK {
                 consumer: nil,
                 paymentOrder: nil,
                 userData: nil)
-
-            BeaconService.shared.log(type: .sdkMethodInvoked(name: "createSwedbankPaySDKController",
-                                                             succeeded: true,
-                                                             values: nil))
 
             paymentViewSessionIsOngoing = true
 
@@ -412,29 +451,77 @@ public extension SwedbankPaySDK {
                 
                 makeRequest(router: .preparePayment, operation: preparePayment)
             } else if let attemptPayload = operations.firstOperation(withRel: .attemptPayload),
-                      let failPayment = paymentOutputModel.paymentSession.methods?.firstMethod(withName: AvailableInstrument.applePay.identifier)?.operations?.firstOperation(withRel: .failPaymentAttempt),
+                      let failPayment = paymentOutputModel.paymentSession.methods?.firstMethod(withName: AvailableInstrument.applePay.paymentMethod)?.operations?.firstOperation(withRel: .failPaymentAttempt),
                       let walletSdk = attemptPayload.firstTask(withRel: .walletSdk) {
                 // We have an active walletSdk task, this means we should initiate an Apple Pay Payment Request locally on the device
                 
                 makeApplePayAuthorization(attemptPayloadOperation: attemptPayload, failPaymentAttemptOperation: failPayment, task: walletSdk)
             } else if let instrument = self.instrument,
-                      ongoingModel?.paymentSession.instrumentModePaymentMethod != nil && ongoingModel?.paymentSession.instrumentModePaymentMethod != instrument.identifier,
-                      let customizePayment = ongoingModel?.operations?.firstOperation(withRel: .customizePayment) {
-                makeRequest(router: .customizePayment(instrument: nil), operation: customizePayment)
+                      (paymentOutputModel.paymentSession.instrumentModePaymentMethod != nil && paymentOutputModel.paymentSession.instrumentModePaymentMethod != instrument.paymentMethod)
+                        || !paymentOutputModel.paymentSession.allPaymentMethods.contains(where: {$0 == instrument.paymentMethod}),
+                      let customizePayment = paymentOutputModel.operations?.firstOperation(withRel: .customizePayment) {
+                // Resetting Instrument Mode session to Menu Mode (instrumentModePaymentMethod set to nil), if new payment attempt is made with an instrument other than the current Instrument Mode instrument or with an instrument not in the list of methods (restricted menu)
+                
+                makeRequest(router: .customizePayment(instrument: nil, paymentMethod: nil, restrictToPaymentMethods: nil), operation: customizePayment)
             } else if let instrument = self.instrument,
-                      case .newCreditCard = instrument,
-                      ongoingModel?.paymentSession.instrumentModePaymentMethod == nil || ongoingModel?.paymentSession.instrumentModePaymentMethod != instrument.identifier,
-                      let customizePayment = ongoingModel?.operations?.firstOperation(withRel: .customizePayment) {
-                makeRequest(router: .customizePayment(instrument: instrument), operation: customizePayment)
-            } else if case .newCreditCard = self.instrument,
-                      ongoingModel?.paymentSession.instrumentModePaymentMethod == "CreditCard" {
+                      instrument.instrumentModeRequired,
+                      paymentOutputModel.paymentSession.instrumentModePaymentMethod == nil
+                        || paymentOutputModel.paymentSession.instrumentModePaymentMethod != instrument.paymentMethod,
+                      let customizePayment = paymentOutputModel.operations?.firstOperation(withRel: .customizePayment) {
+                // Switching to Instrument Mode from Menu Mode session (instrumentModePaymentMethod set to nil) or from Instrument Mode with other instrument, if new payment attempt is made with an Instrument Mode required instrument (newCreditCard)
+                
+                makeRequest(router: .customizePayment(instrument: instrument, paymentMethod: nil, restrictToPaymentMethods: nil), operation: customizePayment)
+            } else if let instrument = self.instrument,
+                      instrument.instrumentModeRequired,
+                      paymentOutputModel.paymentSession.instrumentModePaymentMethod == instrument.paymentMethod {
+                // Session is in Instrument Mode, and the set instrument is matching payment attempt, time to create a web based view and send to the merchant app
+                
+                self.instrument = nil
+                
+                DispatchQueue.main.async {
+                    self.createSwedbankPaySDKController()
+                }
+            } else if let sdkControllerMode = self.sdkControllerMode,
+                      case .instrumentMode(let instrument) = sdkControllerMode,
+                      paymentOutputModel.paymentSession.instrumentModePaymentMethod == nil
+                        || paymentOutputModel.paymentSession.instrumentModePaymentMethod != instrument.paymentMethod,
+                      let customizePayment = paymentOutputModel.operations?.firstOperation(withRel: .customizePayment) {
+                // Switching to Instrument Mode from Menu Mode session (instrumentModePaymentMethod set to nil) or from Instrument Mode with other instrument, if a SDK view controller is requiested in instrument mode
+                
+                makeRequest(router: .customizePayment(instrument: nil, paymentMethod: instrument.paymentMethod, restrictToPaymentMethods: nil), operation: customizePayment)
+            } else if let sdkControllerMode = self.sdkControllerMode,
+                      case .instrumentMode(let instrument) = sdkControllerMode,
+                      paymentOutputModel.paymentSession.instrumentModePaymentMethod == instrument.paymentMethod {
+                // Session is in Instrument Mode, and the set SDK view controller mode is matching the instrument, time to create a web based view and send to the merchant app
+                
+                self.sdkControllerMode = nil
+                
+                DispatchQueue.main.async {
+                    self.createSwedbankPaySDKController()
+                }
+            } else if let sdkControllerMode = self.sdkControllerMode,
+                      case .menu(let restrictedToInstruments) = sdkControllerMode,
+                      paymentOutputModel.paymentSession.instrumentModePaymentMethod != nil
+                        || paymentOutputModel.paymentSession.restrictedToInstruments?.sorted() != restrictedToInstruments?.compactMap({$0.paymentMethod}).sorted(),
+                      let customizePayment = paymentOutputModel.operations?.firstOperation(withRel: .customizePayment) {
+                // Switching to Menu Mode with potential list of restricted instruments from Instrument Mode or when  list of restricted instruments doesn't match (different list of instruments)
+                
+                makeRequest(router: .customizePayment(instrument: nil, paymentMethod: nil, restrictToPaymentMethods: restrictedToInstruments?.compactMap({$0.paymentMethod})), operation: customizePayment)
+            } else if let sdkControllerMode = self.sdkControllerMode,
+                      case .menu(let restrictedToInstruments) = sdkControllerMode,
+                      paymentOutputModel.paymentSession.instrumentModePaymentMethod == nil
+                        && paymentOutputModel.paymentSession.restrictedToInstruments?.sorted() == restrictedToInstruments?.compactMap({$0.paymentMethod}).sorted() {
+                // Session is in Menu Mode, and the list of restricted instruments match the set SDK view controller mode, time to create a web based view and send to the merchant app
+                
+                self.sdkControllerMode = nil
+                
                 DispatchQueue.main.async {
                     self.createSwedbankPaySDKController()
                 }
             } else if operations.containsOperation(withRel: .startPaymentAttempt),
                       let instrument = instrument,
-                      let startPaymentAttempt = ongoingModel?.paymentSession.methods?
-                .firstMethod(withName: instrument.identifier)?.operations?
+                      let startPaymentAttempt = paymentOutputModel.paymentSession.methods?
+                .firstMethod(withName: instrument.paymentMethod)?.operations?
                 .firstOperation(withRel: .startPaymentAttempt) {
                 // We have a startPaymentAttempt and it's matching the set instrument, time to make a payment attempt
 
@@ -462,9 +549,7 @@ public extension SwedbankPaySDK {
                             self.scaMethodRequestDataPerformed.append((name: task.expects?.value(for: "threeDSMethodData") ?? "null", value: "N"))
                         }
 
-                        if let model = self.ongoingModel {
-                            self.sessionOperationHandling(paymentOutputModel: model, culture: culture)
-                        }
+                        self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: culture)
                     }
                 }
             } else if let createAuthentication = operations.firstOperation(withRel: .createAuthentication),
@@ -546,33 +631,9 @@ public extension SwedbankPaySDK {
                 scaRedirectDataPerformed = []
                 notificationUrl = nil
                 hasShownAvailableInstruments = false
-            } else if ((operations.containsOperation(withRel: .expandMethod) || operations.containsOperation(withRel: .startPaymentAttempt)) &&
-                        hasShownAvailableInstruments == false) {
-                DispatchQueue.main.async {
-                    let availableInstruments: [AvailableInstrument] = paymentOutputModel.paymentSession.methods?.compactMap({ model in
-                        switch model {
-                        case .swish(let prefills, _):
-                            return AvailableInstrument.swish(prefills: prefills)
-                        case .creditCard(let prefills, _, _):
-                            return AvailableInstrument.creditCard(prefills: prefills)
-                        case .applePay:
-                            return AvailableInstrument.applePay
-                        case .unknown(let identifier):
-                            return AvailableInstrument.webBased(identifier: identifier)
-                        }
-                    }) ?? []
-
-                    self.hasShownAvailableInstruments = true
-
-                    self.delegate?.paymentSessionFetched(availableInstruments: availableInstruments)
-
-                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionFetched",
-                                                                       succeeded: self.delegate != nil,
-                                                                       values: ["instruments": availableInstruments.compactMap({ $0.identifier }).joined(separator: ";")]))
-                }
             } else if let instrument = self.instrument,
-                      let operation = ongoingModel?.paymentSession.methods?
-                .firstMethod(withName: instrument.identifier)?.operations?
+                      let operation = paymentOutputModel.paymentSession.methods?
+                .firstMethod(withName: instrument.paymentMethod)?.operations?
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
                 // We have a method matching the set instrument, and it has one of the three supported method operations (expandMethod, startPaymentAttempt or getPayment)
 
@@ -603,6 +664,31 @@ public extension SwedbankPaySDK {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     self.sessionStartTimestamp = Date()
                     self.makeRequest(router: .getPayment, operation: getPayment)
+                }
+            } else if hasShownAvailableInstruments == false {
+                // No process has been initiated above, and we haven't sent the available instrumnts to the merchant app for this session yet, so send the list and wait for action
+                
+                DispatchQueue.main.async {
+                    let availableInstruments: [AvailableInstrument] = paymentOutputModel.paymentSession.methods?.compactMap({ model in
+                        switch model {
+                        case .swish(let prefills, _):
+                            return AvailableInstrument.swish(prefills: prefills)
+                        case .creditCard(let prefills, _, _):
+                            return AvailableInstrument.creditCard(prefills: prefills)
+                        case .applePay:
+                            return AvailableInstrument.applePay
+                        case .webBased(let paymentMethod):
+                            return AvailableInstrument.webBased(paymentMethod: paymentMethod)
+                        }
+                    }) ?? []
+                    
+                    self.hasShownAvailableInstruments = true
+                    
+                    self.delegate?.paymentSessionFetched(availableInstruments: availableInstruments)
+                    
+                    BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionFetched",
+                                                                       succeeded: self.delegate != nil,
+                                                                       values: ["instruments": availableInstruments.compactMap({ $0.paymentMethod }).joined(separator: ";")]))
                 }
             } else if !hasShowedError {
                 // No process has been initiated at all. The session is in a state that this session operation handling logic can't resolve.
