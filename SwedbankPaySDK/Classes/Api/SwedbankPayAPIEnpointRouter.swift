@@ -125,16 +125,16 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
         case .customizePayment(let instrument, let paymentMethod, let restrictToPaymentMethods):
 
             switch (instrument, paymentMethod, restrictToPaymentMethods) {
-            case (nil, nil, let restrictToPaymentMethods):
+            case (nil, nil, let restrictToPaymentMethods?):
                 return ["paymentMethod": nil,
-                        "restrictToPaymentMethods": restrictToPaymentMethods]
+                        "restrictToPaymentMethods": restrictToPaymentMethods.isEmpty ? nil : restrictToPaymentMethods]
             case (.newCreditCard(let enabledPaymentDetailsConsentCheckbox), _, _):
                 return ["paymentMethod": "CreditCard",
                         "restrictToPaymentMethods": nil,
                         "hideStoredPaymentOptions": true,
                         "showConsentAffirmation" : enabledPaymentDetailsConsentCheckbox,
                 ]
-            case (nil, let paymentMethod, nil):
+            case (nil, let paymentMethod?, nil):
                 return ["paymentMethod": paymentMethod,
                         "restrictToPaymentMethods": nil]
             case (let instrument?, nil, nil):
