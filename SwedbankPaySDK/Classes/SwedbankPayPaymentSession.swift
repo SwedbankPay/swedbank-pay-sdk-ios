@@ -438,10 +438,9 @@ public extension SwedbankPaySDK {
                                                                                     "problemStatus": String(modelProblem.status ?? 0),
                                                                                     "problemDetail": modelProblem.detail ?? ""]))
                     }
+
+                    makeRequest(router: .acknowledgeFailedAttempt, operation: problemOperation)
                 }
-
-                makeRequest(router: .acknowledgeFailedAttempt, operation: problemOperation)
-
             }
 
             let operations = paymentOutputModel.prioritisedOperations
