@@ -352,7 +352,7 @@ public extension SwedbankPaySDK {
             }
         }
 
-        private func launchClientApp(task: IntegrationTask) {
+        private func launchClientApp(task: IntegrationTask, failPaymentAttemptOperation: OperationOutputModel) {
             guard let href = task.href, var components = URLComponents(string: href) else {
                 self.delegate?.sdkProblemOccurred(problem: .internalInconsistencyError)
 
@@ -375,15 +375,12 @@ public extension SwedbankPaySDK {
             if let url = components.url {
                 DispatchQueue.main.async {
                     UIApplication.shared.open(url) { complete in
+                        self.instrument = nil
+                        
                         if complete {
                             self.hasLaunchClientAppURLs.append(url)
-                            self.instrument = nil
                         } else {
-                            self.delegate?.sdkProblemOccurred(problem: .clientAppLaunchFailed)
-
-                            BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
-                                                                               succeeded: self.delegate != nil,
-                                                                               values: ["problem": SwedbankPaySDK.PaymentSessionProblem.clientAppLaunchFailed.rawValue]))
+                            self.makeRequest(router: .failPaymentAttempt(problemType: .clientAppLaunchFailed, errorCode: nil), operation: failPaymentAttemptOperation)
                         }
 
                         BeaconService.shared.log(type: .launchClientApp(values: ["callbackUrl": self.orderInfo?.paymentUrl?.absoluteString ?? "",
@@ -410,9 +407,9 @@ public extension SwedbankPaySDK {
                 case .success(let paymentOutputModel):
                     self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
                 case .failure(ApplePayError.userCancelled):
-                    self.makeRequest(router: .failPaymentAttempt(problemType: "UserCancelled", errorCode: ""), operation: failPaymentAttemptOperation)
+                    self.makeRequest(router: .failPaymentAttempt(problemType: .userCancelled, errorCode: nil), operation: failPaymentAttemptOperation)
                 case .failure(let error):
-                    self.makeRequest(router: .failPaymentAttempt(problemType: "TechnicalError", errorCode: error.localizedDescription), operation: failPaymentAttemptOperation)
+                    self.makeRequest(router: .failPaymentAttempt(problemType: .technicalError, errorCode: error.localizedDescription), operation: failPaymentAttemptOperation)
                 }
             }
         }
@@ -528,10 +525,11 @@ public extension SwedbankPaySDK {
                 self.instrument = nil
             } else if let launchClientApp = operations.first(where: { $0.firstTask(withRel: .launchClientApp) != nil }),
                       let tasks = launchClientApp.firstTask(withRel: .launchClientApp),
+                      let failPayment = paymentOutputModel.paymentSession.methods?.firstMethod(withName: AvailableInstrument.swish(prefills: nil).paymentMethod)?.operations?.firstOperation(withRel: .failPaymentAttempt),
                       !hasLaunchClientAppURLs.contains(where: { $0.absoluteString.contains(tasks.href ?? "") }) {
                 // We have an active launchClientApp task, and the contained URL isn't in the list of already launched Client App URLs, launch the external app on the device
                 
-                self.launchClientApp(task: launchClientApp.firstTask(withRel: .launchClientApp)!)
+                self.launchClientApp(task: tasks, failPaymentAttemptOperation: failPayment)
             } else if let scaMethodRequest = operations.first(where: { $0.firstTask(withRel: .scaMethodRequest) != nil }),
                       let task = scaMethodRequest.firstTask(withRel: .scaMethodRequest),
                       let href = task.href,
