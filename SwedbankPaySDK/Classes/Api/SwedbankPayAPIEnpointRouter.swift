@@ -23,6 +23,12 @@ struct Endpoint {
     let method: String?
 }
 
+enum FailPaymentAttemptProblemType: String {
+    case userCancelled = "UserCancelled"
+    case technicalError = "TechnicalError"
+    case clientAppLaunchFailed = "ClientAppLaunchFailed"
+}
+
 enum EnpointRouter {
     case expandMethod(instrument: SwedbankPaySDK.PaymentAttemptInstrument)
     case startPaymentAttempt(instrument: SwedbankPaySDK.PaymentAttemptInstrument, culture: String?)
@@ -34,7 +40,7 @@ enum EnpointRouter {
     case abortPayment
     case attemptPayload(paymentPayload: String)
     case customizePayment(instrument: SwedbankPaySDK.PaymentAttemptInstrument?, paymentMethod: String?, restrictToPaymentMethods: [String]?)
-    case failPaymentAttempt(problemType: String, errorCode: String?)
+    case failPaymentAttempt(problemType: FailPaymentAttemptProblemType, errorCode: String?)
 }
 
 protocol EndpointRouterProtocol {
@@ -145,7 +151,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
                         "restrictToPaymentMethods": nil]
             }
         case .failPaymentAttempt(let problemType, let errorCode):
-            return ["problemType": problemType,
+            return ["problemType": problemType.rawValue,
                     "errorCode": errorCode]
         default:
             return nil

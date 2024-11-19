@@ -22,7 +22,6 @@ public extension SwedbankPaySDK {
         case paymentSessionAPIRequestFailed(error: Error, retry: (()->Void)?)
         case paymentControllerPaymentFailed(error: Error, retry: (()->Void)?)
         case paymentSession3DSecureViewControllerLoadFailed(error: Error, retry: (()->Void)?)
-        case clientAppLaunchFailed
         case internalInconsistencyError
         case automaticConfigurationFailed
 
@@ -32,7 +31,6 @@ public extension SwedbankPaySDK {
             case .paymentSessionAPIRequestFailed:                   "paymentSessionAPIRequestFailed"
             case .paymentControllerPaymentFailed:                   "paymentControllerPaymentFailed"
             case .paymentSession3DSecureViewControllerLoadFailed:   "paymentSession3DSecureViewControllerLoadFailed"
-            case .clientAppLaunchFailed:                            "clientAppLaunchFailed"
             case .internalInconsistencyError:                       "internalInconsistencyError"
             case .automaticConfigurationFailed:                     "automaticConfigurationFailed"
             }
