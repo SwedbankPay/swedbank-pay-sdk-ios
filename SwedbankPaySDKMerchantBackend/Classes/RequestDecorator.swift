@@ -31,7 +31,7 @@ public extension SwedbankPaySDK {
     }
 }
 
-public protocol SwedbankPaySDKRequestDecorator {
+public protocol SwedbankPaySDKRequestDecorator: Sendable {
     func decorateAny(request: inout URLRequest)
     
     func decorateGetTopLevelResources(request: inout URLRequest)

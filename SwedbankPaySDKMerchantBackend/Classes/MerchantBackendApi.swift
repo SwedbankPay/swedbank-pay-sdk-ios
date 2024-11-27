@@ -66,7 +66,7 @@ struct MerchantBackendApi {
         let interceptor = requestDecorator.map {
             RequestDecoratorInterceptor.init(
                 requestDecorator: $0,
-                decoratorCall: decoratorCall
+                decoratorCallHolder: .init(decoratorCall: decoratorCall)
             )
         }
         return session.request(
@@ -95,10 +95,14 @@ struct MerchantBackendApi {
         return false
     }
     
+    struct DecoratorCallHolder {
+        let decoratorCall: DecoratorCall
+    }
+
     internal struct RequestDecoratorInterceptor: RequestInterceptor {
         let requestDecorator: SwedbankPaySDKRequestDecorator
-        let decoratorCall: DecoratorCall
-        
+        let decoratorCallHolder: DecoratorCallHolder
+
         func adapt(
             _ urlRequest: URLRequest,
             for session: Session,
@@ -107,7 +111,7 @@ struct MerchantBackendApi {
             var request = urlRequest
             DispatchQueue.main.async {
                 self.requestDecorator.decorateAny(request: &request)
-                self.decoratorCall(self.requestDecorator, &request)
+                self.decoratorCallHolder.decoratorCall(self.requestDecorator, &request)
                 completion(.success(request))
             }
         }

@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import UIKit
-import WebKit
+@preconcurrency import WebKit
 
 class SwedbankPayWebViewControllerBase: UIViewController {
     weak var delegate: SwedbankPayWebViewControllerDelegate?

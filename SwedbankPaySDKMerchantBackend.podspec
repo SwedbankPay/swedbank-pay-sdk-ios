@@ -13,7 +13,7 @@ a backend server that implements the Merchant Backend API.
   s.author           = 'Swedbank Pay'
   s.source           = { :git => 'https://github.com/SwedbankPay/swedbank-pay-sdk-ios.git', :tag => s.version.to_s }
 
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '11.0'
   s.swift_versions = '5.0', '5.1'
   
   s.dependency 'SwedbankPaySDK', s.version.to_s

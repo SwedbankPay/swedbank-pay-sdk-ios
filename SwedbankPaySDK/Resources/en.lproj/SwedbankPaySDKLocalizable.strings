@@ -8,3 +8,6 @@
 "maybeStuckAlertBody" = "It looks like the payment has not progressed for a while. Do you want to wait, or retry the payment in compatibility mode?";
 "maybeStuckAlertWait" = "Wait";
 "maybeStuckAlertRetry" = "Retry";
+
+"swedbankpaysdk_native_invalid_url" = "Invalid URL was provided.";
+"swedbankpaysdk_native_unknown" = "Something went wrong.";
