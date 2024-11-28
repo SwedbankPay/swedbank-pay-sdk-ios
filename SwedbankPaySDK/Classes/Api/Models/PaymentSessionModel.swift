@@ -45,7 +45,7 @@ extension PaymentSessionModel {
     }
 
     var restrictedToInstruments: [String]? {
-        guard let methods = methods, let settings = settings else {
+        guard let settings = settings else {
             return nil
         }
         
