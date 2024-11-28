@@ -43,10 +43,10 @@ pods for the two components, named  `SwedbankPaySDK` and
 Add the relevant dependencies in your `Podfile`:
 
 ```ruby
-pod 'SwedbankPaySDK', '~> 3.0'
+pod 'SwedbankPaySDK', '~> 5.0'
 ```
 ```ruby
-pod 'SwedbankPaySDKMerchantBackend', '~> 3.0'
+pod 'SwedbankPaySDKMerchantBackend', '~> 5.0'
 ```
 
 ## Usage
