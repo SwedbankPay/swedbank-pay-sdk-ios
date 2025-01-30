@@ -21,25 +21,21 @@ enum ApplePayError: Error {
 }
 
 class SwedbankPayAuthorization: NSObject {
-    static let shared = SwedbankPayAuthorization()
+    private let operation: OperationOutputModel
+    private let merchantIdentifier: String
+    private let task: IntegrationTask
+    private let handler: ((Result<PaymentOutputModel, Error>) -> PKPaymentAuthorizationStatus)
 
-    private var operation: OperationOutputModel?
-    private var task: IntegrationTask?
-    private var handler: ((Result<PaymentOutputModel, Error>) -> Void)?
-
-    private var success: PaymentOutputModel?
-    private var errors: [Error]?
-    private var status: PKPaymentAuthorizationStatus?
     private var hasAuthorizedPayment = false
 
-    func showApplePay(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String, handler: @escaping (Result<PaymentOutputModel, Error>) -> Void) {
-        self.errors = nil
-        self.status = nil
-
+    init(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String, handler: @escaping (Result<PaymentOutputModel, Error>) -> PKPaymentAuthorizationStatus) {
         self.operation = operation
+        self.merchantIdentifier = merchantIdentifier
         self.task = task
         self.handler = handler
-
+    }
+    
+    func present() {
         let paymentRequest = PKPaymentRequest()
 
         if let totalAmountLabel = task.expects?.first(where: { $0.name == "TotalAmountLabel" })?.value,
@@ -81,7 +77,7 @@ class SwedbankPayAuthorization: NSObject {
         paymentController.delegate = self
         paymentController.present(completion: { (presented: Bool) in
             if !presented {
-                handler(.failure(SwedbankPayAPIError.unknown))
+                let _ = self.handler(.failure(SwedbankPayAPIError.unknown))
             }
         })
     }
@@ -89,38 +85,40 @@ class SwedbankPayAuthorization: NSObject {
 
 extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
     func paymentAuthorizationControllerDidFinish(_ controller: PKPaymentAuthorizationController) {
-        if let handler = self.handler {
-            if status != nil, let success = success {
-                handler(.success(success))
-            } else {
-                handler(.failure(ApplePayError.userCancelled))
-            }
+        if !hasAuthorizedPayment {
+            // paymentAuthorizationController didAuthorizePayment haven't been called, user has cancelled and handler callback haven't been called
+            let _ = handler(.failure(ApplePayError.userCancelled))
         }
-
-        self.handler = nil
 
         controller.dismiss()
     }
 
     func paymentAuthorizationController(_ controller: PKPaymentAuthorizationController, didAuthorizePayment payment: PKPayment, handler completion: @escaping (PKPaymentAuthorizationResult) -> Void) {
+        self.hasAuthorizedPayment = true
+        
         let paymentPayload = payment.token.paymentData.base64EncodedString()
 
         let router = EnpointRouter.attemptPayload(paymentPayload: paymentPayload)
 
-        SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation?.href, method: operation?.method),
+        SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation.href, method: operation.method),
                                     sessionStartTimestamp: Date()).makeRequest { result in
+            let status: PKPaymentAuthorizationStatus
+            let errors: [Error]
+            
             switch result {
             case .success(let paymentOutputModel):
-                self.success = paymentOutputModel
-                self.status = PKPaymentAuthorizationStatus.success
-                self.errors = [Error]()
+                if let paymentOutputModel = paymentOutputModel {
+                    status = self.handler(.success(paymentOutputModel))
+                } else {
+                    status = self.handler(.failure(SwedbankPayAPIError.unknown))
+                }
+                errors = [Error]()
             case .failure(let error):
-                self.success = nil
-                self.status = PKPaymentAuthorizationStatus.failure
-                self.errors = [error]
+                status = self.handler(.failure(error))
+                errors = [error]
             }
 
-            completion(PKPaymentAuthorizationResult(status: self.status!, errors: self.errors))
+            completion(PKPaymentAuthorizationResult(status: status, errors: errors))
         }
     }
 }
