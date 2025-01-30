@@ -16,6 +16,7 @@
 import Foundation
 import UIKit
 import WebKit
+import PassKit
 
 /// Swedbank Pay SDK protocol, conform to this to get the result of the payment process
 public protocol SwedbankPaySDKPaymentSessionDelegate: AnyObject {
@@ -447,7 +448,7 @@ public extension SwedbankPaySDK {
                 
                 makeRequest(router: .preparePayment, operation: preparePayment)
             } else if let attemptPayload = operations.firstOperation(withRel: .attemptPayload),
-                      let failPayment = paymentOutputModel.paymentSession.methods?.firstMethod(withName: AvailableInstrument.applePay.paymentMethod)?.operations?.firstOperation(withRel: .failPaymentAttempt),
+                      let failPayment = paymentOutputModel.paymentSession.methods?.firstMethod(withName: AvailableInstrument.applePay(canMakePayments: true, canMakePaymentsUsingNetworksAndCapabilities: true).paymentMethod)?.operations?.firstOperation(withRel: .failPaymentAttempt),
                       let walletSdk = attemptPayload.firstTask(withRel: .walletSdk) {
                 // We have an active walletSdk task, this means we should initiate an Apple Pay Payment Request locally on the device
                 
@@ -672,8 +673,15 @@ public extension SwedbankPaySDK {
                             return AvailableInstrument.swish(prefills: prefills)
                         case .creditCard(let prefills, _, _):
                             return AvailableInstrument.creditCard(prefills: prefills)
-                        case .applePay:
-                            return AvailableInstrument.applePay
+                        case .applePay(_, let cardBrands, let merchantCapabilities):
+                            let networks = cardBrands?.compactMap { brand in
+                                SwedbankPaymentNetwork(rawValueIgnoringCase: brand)?.pkPaymentNetwork
+                            }
+                            let capabilities = merchantCapabilities?.compactMap { capability in
+                                SwedbankMerchantCapability(rawValue: capability)
+                            }
+                            return AvailableInstrument.applePay(canMakePayments: PKPaymentAuthorizationController.canMakePayments(),
+                                                                canMakePaymentsUsingNetworksAndCapabilities: PKPaymentAuthorizationController.canMakePayments(usingNetworks: networks ?? [], capabilities: capabilities?.pkMerchantCapabilities() ?? []))
                         case .webBased(let paymentMethod):
                             return AvailableInstrument.webBased(paymentMethod: paymentMethod)
                         }

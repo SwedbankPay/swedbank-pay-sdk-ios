@@ -18,11 +18,11 @@ import Foundation
 enum MethodBaseModel: Codable, Equatable, Hashable {
     case swish(prefills: [SwedbankPaySDK.SwishMethodPrefillModel]?, operations: [OperationOutputModel]?)
     case creditCard(prefills: [SwedbankPaySDK.CreditCardMethodPrefillModel]?, operations: [OperationOutputModel]?, cardBrands: [String]?)
-    case applePay(operations: [OperationOutputModel]?, cardBrands: [String]?)
+    case applePay(operations: [OperationOutputModel]?, cardBrands: [String]?, merchantCapabilities: [String]?)
     case webBased(paymentMethod: String)
 
     private enum CodingKeys: String, CodingKey {
-        case paymentMethod, prefills, operations, cardBrands
+        case paymentMethod, prefills, operations, cardBrands, merchantCapabilities
     }
 
     init(from decoder: Decoder) throws {
@@ -44,7 +44,8 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
         case "ApplePay":
             self = .applePay(
                 operations: try? container.decode([OperationOutputModel]?.self, forKey: CodingKeys.operations),
-                cardBrands: try? container.decode([String]?.self, forKey: CodingKeys.cardBrands)
+                cardBrands: try? container.decode([String]?.self, forKey: CodingKeys.cardBrands),
+                merchantCapabilities: try? container.decode([String]?.self, forKey: CodingKeys.merchantCapabilities)
             )
         default:
             self = .webBased(paymentMethod: paymentMethod)
@@ -61,9 +62,10 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
             try container.encode(prefills)
             try container.encode(operations)
             try container.encode(cardBrands)
-        case .applePay(let operations, let cardBrands):
+        case .applePay(let operations, let cardBrands, let merchantCapabilities):
             try container.encode(operations)
             try container.encode(cardBrands)
+            try container.encode(merchantCapabilities)
         case .webBased(let paymentMethod):
             try container.encode(paymentMethod)
         }
@@ -88,7 +90,7 @@ enum MethodBaseModel: Codable, Equatable, Hashable {
             return opertations
         case .creditCard(_, let opertations, _):
             return opertations
-        case .applePay(let operations, _):
+        case .applePay(let operations, _, _):
             return operations
         case .webBased:
             return nil
@@ -112,7 +114,7 @@ extension SwedbankPaySDK {
 
         case creditCard(prefills: [CreditCardMethodPrefillModel]?)
 
-        case applePay
+        case applePay(canMakePayments: Bool, canMakePaymentsUsingNetworksAndCapabilities: Bool)
 
         case webBased(paymentMethod: String)
 
