@@ -71,9 +71,6 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
             case .creditCard(let prefill):
                 return ["culture": culture,
                         "paymentToken": prefill.paymentToken,
-                        "cardNumber": prefill.maskedPan,
-                        "cardExpiryMonth": prefill.expiryMonth,
-                        "cardExpiryYear": prefill.expiryYear,
                         "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
                                    "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
                                    "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
