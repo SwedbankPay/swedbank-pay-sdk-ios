@@ -76,6 +76,7 @@ extension SwedbankPayWebContent {
                     script.onload = function () {
                         \(ConsumerEvent.onScriptLoaded, "null");
                         var parameters = {
+                            integration: "App",
                             container: "checkin",
                             onConsumerIdentified: function(consumerIdentifiedEvent) {
                                 \(ConsumerEvent.onConsumerIdentified, "consumerIdentifiedEvent.consumerProfileRef");
@@ -133,6 +134,7 @@ extension SwedbankPayWebContent {
                     script.onload = function () {
                         \(PaymentEvent.onScriptLoaded, "null");
                         var parameters = {
+                            integration: "App",
                             container: "checkout",
                             onError: function(error) {
                                 \(PaymentEvent.onError, "error");
@@ -187,6 +189,7 @@ extension SwedbankPayWebContent {
     
                     \(PaymentEvent.onScriptLoaded, "null");
                     var parameters = {
+                        integration: "App",
                         container: {
                             checkout: "checkout"
                         },
