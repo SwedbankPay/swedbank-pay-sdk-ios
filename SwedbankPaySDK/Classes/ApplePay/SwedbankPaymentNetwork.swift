@@ -84,4 +84,33 @@ enum SwedbankPaymentNetwork: String, Hashable, Equatable {
             return nil
         }
     }
+    
+    init?(rawValueIgnoringCase network: String) {
+        self.init(rawValue: network.lowercased())
+    }
+}
+
+enum SwedbankMerchantCapability: String, Hashable, Equatable {
+    case supports3DS
+    case supportsDebit
+    case supportsCredit
+}
+
+extension Collection where Element == SwedbankMerchantCapability {
+    func pkMerchantCapabilities() -> PKMerchantCapability {
+        var capabilities: PKMerchantCapability = []
+        
+        for capability in self {
+            switch capability {
+            case .supports3DS:
+                capabilities.insert(.threeDSecure)
+            case .supportsDebit:
+                capabilities.insert(.debit)
+            case .supportsCredit:
+                capabilities.insert(.credit)
+            }
+        }
+        
+        return capabilities
+    }
 }

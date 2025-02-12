@@ -50,8 +50,10 @@ class SwedbankPayAuthorization: NSObject {
 
         paymentRequest.merchantIdentifier = merchantIdentifier
 
-        if (task.expects?.first(where: { $0.name == "MerchantCapabilities" })?.stringArray?.contains(where: { $0 == "supports3DS" })) != nil {
-            paymentRequest.merchantCapabilities = .threeDSecure
+        if let swedbankCapabilities = task.expects?.first(where: { $0.name == "MerchantCapabilities" })?.stringArray?.compactMap({ capability in
+            return SwedbankMerchantCapability(rawValue: capability)
+        }) {
+            paymentRequest.merchantCapabilities = swedbankCapabilities.pkMerchantCapabilities()
         }
 
         if let identifier = task.expects?.first(where: { $0.name == "Locale" })?.value,
@@ -63,8 +65,8 @@ class SwedbankPayAuthorization: NSObject {
             paymentRequest.currencyCode = currencyCode
         }
 
-        if let supportedNetworks: [PKPaymentNetwork] = task.expects?.first(where: { $0.name == "SupportedNetworks" })?.stringArray?.compactMap({ string in
-            return SwedbankPaymentNetwork(rawValue: string)?.pkPaymentNetwork
+        if let supportedNetworks: [PKPaymentNetwork] = task.expects?.first(where: { $0.name == "SupportedNetworks" })?.stringArray?.compactMap({ network in
+            return SwedbankPaymentNetwork(rawValueIgnoringCase: network)?.pkPaymentNetwork
         }) {
             paymentRequest.supportedNetworks = supportedNetworks
         }
