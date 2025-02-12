@@ -58,6 +58,11 @@ public extension SwedbankPaySDK {
         case instrumentMode(instrument: SwedbankPaySDK.AvailableInstrument)
     }
     
+    enum SwedbankPayPaymentSessionState {
+        case complete
+        case undefined
+    }
+    
     /// Object that handles payment sessions
     class SwedbankPayPaymentSession: CallbackUrlDelegate {
         /// Order information that provides `PaymentSession` with callback URLs.
@@ -79,6 +84,7 @@ public extension SwedbankPaySDK {
         private var scaMethodRequestDataPerformed: [(name: String, value: String)] = []
         private var scaRedirectDataPerformed: [(name: String, value: String)] = []
         private var notificationUrl: String? = nil
+        private var applePayAuthorization: SwedbankPayAuthorization?
 
         private var sessionStartTimestamp = Date()
 
@@ -117,6 +123,7 @@ public extension SwedbankPaySDK {
             scaMethodRequestDataPerformed = []
             scaRedirectDataPerformed = []
             notificationUrl = nil
+            applePayAuthorization = nil
             hasShownAvailableInstruments = false
 
             if automaticConfiguration {
@@ -403,19 +410,29 @@ public extension SwedbankPaySDK {
                 return
             }
 
-            SwedbankPayAuthorization.shared.showApplePay(operation: attemptPayloadOperation, task: task, merchantIdentifier: merchantIdentifier) { result in
+            self.applePayAuthorization = SwedbankPayAuthorization(operation: attemptPayloadOperation, task: task, merchantIdentifier: merchantIdentifier) { result in
                 switch result {
                 case .success(let paymentOutputModel):
-                    self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
+                    let state = self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
+                    switch state {
+                    case .complete:
+                        return .success
+                    default:
+                        return .failure
+                    }
                 case .failure(ApplePayError.userCancelled):
                     self.makeRequest(router: .failPaymentAttempt(problemType: .userCancelled, errorCode: nil), operation: failPaymentAttemptOperation)
+                    return .failure
                 case .failure(let error):
                     self.makeRequest(router: .failPaymentAttempt(problemType: .technicalError, errorCode: error.localizedDescription), operation: failPaymentAttemptOperation)
+                    return .failure
                 }
             }
+
+            applePayAuthorization?.present()
         }
 
-        private func sessionOperationHandling(paymentOutputModel: PaymentOutputModel, culture: String? = nil) {
+        @discardableResult private func sessionOperationHandling(paymentOutputModel: PaymentOutputModel, culture: String? = nil) -> SwedbankPayPaymentSessionState {
             ongoingModel = paymentOutputModel
 
             var hasShowedError = false
@@ -595,26 +612,35 @@ public extension SwedbankPaySDK {
             } else if let redirectPayer = operations.firstOperation(withRel: .redirectPayer) {
                 // We have a redirectPayer operation, this means the payment session has ended and we can look at the URL to determine the result
                 
-                DispatchQueue.main.async {
-                    if redirectPayer.href == self.orderInfo?.cancelUrl?.absoluteString {
-                        // URL matches the cancelUrl, the session has been cancelled
-                        
+                let state: SwedbankPayPaymentSessionState
+                
+                if redirectPayer.href == self.orderInfo?.cancelUrl?.absoluteString {
+                    // URL matches the cancelUrl, the session has been cancelled
+                    state = .undefined
+                    
+                    DispatchQueue.main.async {
                         self.delegate?.paymentSessionCanceled()
 
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionCanceled",
                                                                            succeeded: self.delegate != nil,
                                                                            values: nil))
-                    } else if redirectPayer.href == self.orderInfo?.completeUrl.absoluteString {
-                        // URL matches the completeUrl, the session has been completed
-                        
+                    }
+                } else if redirectPayer.href == self.orderInfo?.completeUrl.absoluteString {
+                    // URL matches the completeUrl, the session has been completed
+                    state = .complete
+                    
+                    DispatchQueue.main.async {
                         self.delegate?.paymentSessionComplete()
 
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "paymentSessionComplete",
                                                                            succeeded: self.delegate != nil,
                                                                            values: nil))
-                    } else {
-                        // Redirect to an unknown URL, no way to recover from here
-                        
+                    }
+                } else {
+                    // Redirect to an unknown URL, no way to recover from here
+                    state = .undefined
+                    
+                    DispatchQueue.main.async {
                         self.delegate?.sdkProblemOccurred(problem: .paymentSessionEndStateReached)
                         
                         BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
@@ -628,7 +654,10 @@ public extension SwedbankPaySDK {
                 scaMethodRequestDataPerformed = []
                 scaRedirectDataPerformed = []
                 notificationUrl = nil
+                applePayAuthorization = nil
                 hasShownAvailableInstruments = false
+                
+                return state
             } else if let instrument = self.instrument,
                       let operation = paymentOutputModel.paymentSession.methods?
                 .firstMethod(withName: instrument.paymentMethod)?.operations?
@@ -706,6 +735,8 @@ public extension SwedbankPaySDK {
                                                                        values: ["problem": SwedbankPaySDK.PaymentSessionProblem.paymentSessionEndStateReached.rawValue]))
                 }
             }
+            
+            return .undefined
         }
 
         internal func handleCallbackUrl(_ url: URL) -> Bool {
