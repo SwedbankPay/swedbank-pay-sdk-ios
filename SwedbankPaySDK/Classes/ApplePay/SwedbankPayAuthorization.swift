@@ -24,15 +24,17 @@ class SwedbankPayAuthorization: NSObject {
     private let operation: OperationOutputModel
     private let merchantIdentifier: String
     private let task: IntegrationTask
-    private let handler: ((Result<PaymentOutputModel, Error>) -> PKPaymentAuthorizationStatus)
+    private let completionHandler: () -> ()
+    private let stateHandler: ((Result<PaymentOutputModel, Error>) -> PKPaymentAuthorizationStatus)
 
     private var hasAuthorizedPayment = false
 
-    init(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String, handler: @escaping (Result<PaymentOutputModel, Error>) -> PKPaymentAuthorizationStatus) {
+    init(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String, completionHandler: @escaping () -> (), stateHandler: @escaping (Result<PaymentOutputModel, Error>) -> PKPaymentAuthorizationStatus) {
         self.operation = operation
         self.merchantIdentifier = merchantIdentifier
         self.task = task
-        self.handler = handler
+        self.completionHandler = completionHandler
+        self.stateHandler = stateHandler
     }
     
     func present() {
@@ -79,7 +81,8 @@ class SwedbankPayAuthorization: NSObject {
         paymentController.delegate = self
         paymentController.present(completion: { (presented: Bool) in
             if !presented {
-                let _ = self.handler(.failure(SwedbankPayAPIError.unknown))
+                let _ = self.stateHandler(.failure(SwedbankPayAPIError.unknown))
+                self.completionHandler()
             }
         })
     }
@@ -89,10 +92,11 @@ extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
     func paymentAuthorizationControllerDidFinish(_ controller: PKPaymentAuthorizationController) {
         if !hasAuthorizedPayment {
             // paymentAuthorizationController didAuthorizePayment haven't been called, user has cancelled and handler callback haven't been called
-            let _ = handler(.failure(ApplePayError.userCancelled))
+            let _ = stateHandler(.failure(ApplePayError.userCancelled))
         }
 
         controller.dismiss()
+        completionHandler()
     }
 
     func paymentAuthorizationController(_ controller: PKPaymentAuthorizationController, didAuthorizePayment payment: PKPayment, handler completion: @escaping (PKPaymentAuthorizationResult) -> Void) {
@@ -110,13 +114,13 @@ extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
             switch result {
             case .success(let paymentOutputModel):
                 if let paymentOutputModel = paymentOutputModel {
-                    status = self.handler(.success(paymentOutputModel))
+                    status = self.stateHandler(.success(paymentOutputModel))
                 } else {
-                    status = self.handler(.failure(SwedbankPayAPIError.unknown))
+                    status = self.stateHandler(.failure(SwedbankPayAPIError.unknown))
                 }
                 errors = [Error]()
             case .failure(let error):
-                status = self.handler(.failure(error))
+                status = self.stateHandler(.failure(error))
                 errors = [error]
             }
 

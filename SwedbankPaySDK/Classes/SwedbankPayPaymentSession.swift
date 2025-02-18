@@ -123,7 +123,6 @@ public extension SwedbankPaySDK {
             scaMethodRequestDataPerformed = []
             scaRedirectDataPerformed = []
             notificationUrl = nil
-            applePayAuthorization = nil
             hasShownAvailableInstruments = false
 
             if automaticConfiguration {
@@ -410,7 +409,11 @@ public extension SwedbankPaySDK {
                 return
             }
 
-            self.applePayAuthorization = SwedbankPayAuthorization(operation: attemptPayloadOperation, task: task, merchantIdentifier: merchantIdentifier) { result in
+            self.applePayAuthorization = SwedbankPayAuthorization(operation: attemptPayloadOperation,
+                                                                  task: task,
+                                                                  merchantIdentifier: merchantIdentifier,
+                                                                  completionHandler: { self.applePayAuthorization = nil },
+                                                                  stateHandler: { result in
                 switch result {
                 case .success(let paymentOutputModel):
                     let state = self.sessionOperationHandling(paymentOutputModel: paymentOutputModel, culture: paymentOutputModel.paymentSession.culture)
@@ -427,7 +430,7 @@ public extension SwedbankPaySDK {
                     self.makeRequest(router: .failPaymentAttempt(problemType: .technicalError, errorCode: error.localizedDescription), operation: failPaymentAttemptOperation)
                     return .failure
                 }
-            }
+            })
 
             applePayAuthorization?.present()
         }
@@ -654,7 +657,6 @@ public extension SwedbankPaySDK {
                 scaMethodRequestDataPerformed = []
                 scaRedirectDataPerformed = []
                 notificationUrl = nil
-                applePayAuthorization = nil
                 hasShownAvailableInstruments = false
                 
                 return state
