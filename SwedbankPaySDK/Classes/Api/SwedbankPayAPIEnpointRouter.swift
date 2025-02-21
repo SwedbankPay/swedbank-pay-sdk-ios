@@ -15,7 +15,6 @@
 
 import Foundation
 import UIKit
-import PassKit
 
 struct Endpoint {
     let router: EnpointRouter?
@@ -62,68 +61,40 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
             case .swish(let msisdn):
                 return ["culture": culture,
                         "msisdn": msisdn,
-                        "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
-                                   "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
-                                   "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
-                                   "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
-                                   "screenColorDepth": String(24)]
+                        "client": client(withScreenInformation: true, withClientType: true)
                 ]
             case .creditCard(let prefill):
                 return ["culture": culture,
                         "paymentToken": prefill.paymentToken,
-                        "cardNumber": prefill.maskedPan,
-                        "cardExpiryMonth": prefill.expiryMonth,
-                        "cardExpiryYear": prefill.expiryYear,
-                        "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
-                                   "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
-                                   "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
-                                   "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
-                                   "screenColorDepth": String(24)]
+                        "client": client(withScreenInformation: true, withClientType: true)
                 ]
             case .applePay:
                 return ["culture": culture,
-                        "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
-                                   "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
-                                   "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
-                                   "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
-                                   "screenColorDepth": String(24)]
+                        "client": client(withScreenInformation: true, withClientType: true)
                 ]
             case .newCreditCard:
                 return nil
             }
         case .preparePayment:
-            return ["integration": "HostedView",
-                    "deviceAcceptedWallets": PKPaymentAuthorizationController.canMakePayments() ? "ApplePay;ClickToPay" : "ClickToPay",
-                    "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
-                               "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
-                               "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
-                               "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
-                               "screenColorDepth": String(24)],
-                    "browser": ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                                "languageHeader": Locale.current.identifier.replacingOccurrences(of: "_", with: "-"),
-                                "timeZoneOffset": TimeZone.current.minutesFromGMT(),
-                                "javascriptEnabled": true],
+            return ["integration": "App",
+                    "deviceAcceptedWallets": "ApplePay;ClickToPay",
+                    "client": client(withScreenInformation: true),
+                    "browser": browser(),
                     "service": ["name": "SwedbankPaySDK-iOS",
-                                "version": SwedbankPaySDK.VersionReporter.currentVersion]
+                                "version": SwedbankPaySDK.VersionReporter.currentVersion],
+                    "presentationSdk": ["name": "iOS",
+                                        "version": SwedbankPaySDK.VersionReporter.currentVersion]
             ]
         case .createAuthentication(let methodCompletionIndicator, let notificationUrl):
             return ["methodCompletionIndicator": methodCompletionIndicator,
                     "notificationUrl": notificationUrl,
                     "requestWindowSize": "FULLSCREEN",
-                    "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
-                               "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
-                               "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
-                               "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
-                               "screenColorDepth": String(24)],
-                    "browser": ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                                "languageHeader": Locale.current.identifier.replacingOccurrences(of: "_", with: "-"),
-                                "timeZoneOffset": TimeZone.current.minutesFromGMT(),
-                                "javascriptEnabled": true]
+                    "client": client(withScreenInformation: true),
+                    "browser": browser()
             ]
         case .completeAuthentication(let cRes):
             return ["cRes": cRes,
-                    "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
-                               "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""],
+                    "client": client(),
             ]
         case .attemptPayload(let paymentPayload):
             return ["paymentMethod": "ApplePay",
@@ -156,6 +127,30 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
         default:
             return nil
         }
+    }
+    
+    private func client(withScreenInformation: Bool = false, withClientType: Bool = false) -> [String: Any?] {
+        var client = ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
+                      "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""]
+        
+        if withScreenInformation {
+            client["screenHeight"] = String(Int32(UIScreen.main.nativeBounds.height))
+            client["screenWidth"] = String(Int32(UIScreen.main.nativeBounds.width))
+            client["screenColorDepth"] = String(24)
+        }
+        
+        if withClientType {
+            client["clientType"] = "Native"
+        }
+        
+        return client
+    }
+    
+    private func browser() -> [String: Any?] {
+        ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+         "languageHeader": Locale.current.identifier.replacingOccurrences(of: "_", with: "-"),
+         "timeZoneOffset": TimeZone.current.minutesFromGMT(),
+         "javascriptEnabled": true]
     }
 
     var requestTimeoutInterval: TimeInterval {

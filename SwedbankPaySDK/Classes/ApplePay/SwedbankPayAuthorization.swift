@@ -21,25 +21,23 @@ enum ApplePayError: Error {
 }
 
 class SwedbankPayAuthorization: NSObject {
-    static let shared = SwedbankPayAuthorization()
+    private let operation: OperationOutputModel
+    private let merchantIdentifier: String
+    private let task: IntegrationTask
+    private let completionHandler: () -> ()
+    private let stateHandler: ((Result<PaymentOutputModel, Error>) -> PKPaymentAuthorizationStatus)
 
-    private var operation: OperationOutputModel?
-    private var task: IntegrationTask?
-    private var handler: ((Result<PaymentOutputModel, Error>) -> Void)?
-
-    private var success: PaymentOutputModel?
-    private var errors: [Error]?
-    private var status: PKPaymentAuthorizationStatus?
     private var hasAuthorizedPayment = false
 
-    func showApplePay(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String, handler: @escaping (Result<PaymentOutputModel, Error>) -> Void) {
-        self.errors = nil
-        self.status = nil
-
+    init(operation: OperationOutputModel, task: IntegrationTask, merchantIdentifier: String, completionHandler: @escaping () -> (), stateHandler: @escaping (Result<PaymentOutputModel, Error>) -> PKPaymentAuthorizationStatus) {
         self.operation = operation
+        self.merchantIdentifier = merchantIdentifier
         self.task = task
-        self.handler = handler
-
+        self.completionHandler = completionHandler
+        self.stateHandler = stateHandler
+    }
+    
+    func present() {
         let paymentRequest = PKPaymentRequest()
 
         if let totalAmountLabel = task.expects?.first(where: { $0.name == "TotalAmountLabel" })?.value,
@@ -50,8 +48,10 @@ class SwedbankPayAuthorization: NSObject {
 
         paymentRequest.merchantIdentifier = merchantIdentifier
 
-        if (task.expects?.first(where: { $0.name == "MerchantCapabilities" })?.stringArray?.contains(where: { $0 == "supports3DS" })) != nil {
-            paymentRequest.merchantCapabilities = .threeDSecure
+        if let swedbankCapabilities = task.expects?.first(where: { $0.name == "MerchantCapabilities" })?.stringArray?.compactMap({ capability in
+            return SwedbankMerchantCapability(rawValue: capability)
+        }) {
+            paymentRequest.merchantCapabilities = swedbankCapabilities.pkMerchantCapabilities()
         }
 
         if let identifier = task.expects?.first(where: { $0.name == "Locale" })?.value,
@@ -63,8 +63,8 @@ class SwedbankPayAuthorization: NSObject {
             paymentRequest.currencyCode = currencyCode
         }
 
-        if let supportedNetworks: [PKPaymentNetwork] = task.expects?.first(where: { $0.name == "SupportedNetworks" })?.stringArray?.compactMap({ string in
-            return SwedbankPaymentNetwork(rawValue: string)?.pkPaymentNetwork
+        if let supportedNetworks: [PKPaymentNetwork] = task.expects?.first(where: { $0.name == "SupportedNetworks" })?.stringArray?.compactMap({ network in
+            return SwedbankPaymentNetwork(rawValueIgnoringCase: network)?.pkPaymentNetwork
         }) {
             paymentRequest.supportedNetworks = supportedNetworks
         }
@@ -81,7 +81,8 @@ class SwedbankPayAuthorization: NSObject {
         paymentController.delegate = self
         paymentController.present(completion: { (presented: Bool) in
             if !presented {
-                handler(.failure(SwedbankPayAPIError.unknown))
+                let _ = self.stateHandler(.failure(SwedbankPayAPIError.unknown))
+                self.completionHandler()
             }
         })
     }
@@ -89,38 +90,41 @@ class SwedbankPayAuthorization: NSObject {
 
 extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
     func paymentAuthorizationControllerDidFinish(_ controller: PKPaymentAuthorizationController) {
-        if let handler = self.handler {
-            if status != nil, let success = success {
-                handler(.success(success))
-            } else {
-                handler(.failure(ApplePayError.userCancelled))
-            }
+        if !hasAuthorizedPayment {
+            // paymentAuthorizationController didAuthorizePayment haven't been called, user has cancelled and handler callback haven't been called
+            let _ = stateHandler(.failure(ApplePayError.userCancelled))
         }
 
-        self.handler = nil
-
         controller.dismiss()
+        completionHandler()
     }
 
     func paymentAuthorizationController(_ controller: PKPaymentAuthorizationController, didAuthorizePayment payment: PKPayment, handler completion: @escaping (PKPaymentAuthorizationResult) -> Void) {
+        self.hasAuthorizedPayment = true
+        
         let paymentPayload = payment.token.paymentData.base64EncodedString()
 
         let router = EnpointRouter.attemptPayload(paymentPayload: paymentPayload)
 
-        SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation?.href, method: operation?.method),
+        SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation.href, method: operation.method),
                                     sessionStartTimestamp: Date()).makeRequest { result in
+            let status: PKPaymentAuthorizationStatus
+            let errors: [Error]
+            
             switch result {
             case .success(let paymentOutputModel):
-                self.success = paymentOutputModel
-                self.status = PKPaymentAuthorizationStatus.success
-                self.errors = [Error]()
+                if let paymentOutputModel = paymentOutputModel {
+                    status = self.stateHandler(.success(paymentOutputModel))
+                } else {
+                    status = self.stateHandler(.failure(SwedbankPayAPIError.unknown))
+                }
+                errors = [Error]()
             case .failure(let error):
-                self.success = nil
-                self.status = PKPaymentAuthorizationStatus.failure
-                self.errors = [error]
+                status = self.stateHandler(.failure(error))
+                errors = [error]
             }
 
-            completion(PKPaymentAuthorizationResult(status: self.status!, errors: self.errors))
+            completion(PKPaymentAuthorizationResult(status: status, errors: errors))
         }
     }
 }
