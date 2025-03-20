@@ -271,18 +271,15 @@ public extension SwedbankPaySDK {
                 cancelUrl: orderInfo.cancelUrl,
                 paymentUrl: orderInfo.paymentUrl)
 
-            let viewController = SwedbankPaySDKController(
-                configuration: configuration,
-                withCheckin: false,
-                consumer: nil,
-                paymentOrder: nil,
-                userData: nil)
-
-            paymentViewSessionIsOngoing = true
-
+            SwedbankPaySDKController.defaultConfiguration = configuration
+            
+            let viewController = SwedbankPaySDKController()
             viewController.paymentMenuStyle = paymentMenuStyle
             viewController.internalDelegate = self
+            
+            paymentViewSessionIsOngoing = true
 
+            viewController.startPayment(paymentOrder: nil, userData: nil)
             delegate?.showSwedbankPaySDKController(viewController: viewController)
         }
 
