@@ -70,6 +70,11 @@ public extension SwedbankPaySDK {
 
         /// A delegate to receive callbacks as the native payment changes.
         public weak var delegate: SwedbankPaySDKPaymentSessionDelegate?
+        
+        /// Styling for the payment menu
+        ///
+        /// Styling the payment menu requires a separate agreement with Swedbank Pay.
+        public var paymentMenuStyle: [String: Any]?
 
         private var ongoingModel: PaymentOutputModel? = nil
         private var sessionIsOngoing: Bool = false
@@ -273,6 +278,7 @@ public extension SwedbankPaySDK {
 
             paymentViewSessionIsOngoing = true
 
+            viewController.paymentMenuStyle = paymentMenuStyle
             viewController.internalDelegate = self
 
             delegate?.showSwedbankPaySDKController(viewController: viewController)
