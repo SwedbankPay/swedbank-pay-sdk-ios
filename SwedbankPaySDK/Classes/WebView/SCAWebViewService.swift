@@ -20,6 +20,7 @@ class SCAWebViewService: NSObject, WKNavigationDelegate {
     private var handler: ((Result<Void, Error>) -> Void)?
 
     private var webView: WKWebView?
+    private var cleanupTimer: Timer?
 
     func load(task: IntegrationTask, handler: @escaping (Result<Void, Error>) -> Void) {
         guard let taskHref = task.href, 
@@ -29,6 +30,8 @@ class SCAWebViewService: NSObject, WKNavigationDelegate {
             return
         }
 
+        cleanupTimer?.invalidate()
+        cleanupTimer = nil
         webView?.stopLoading()
         webView = nil
 
@@ -52,29 +55,30 @@ class SCAWebViewService: NSObject, WKNavigationDelegate {
         webView?.navigationDelegate = self
         webView?.load(request)
     }
+    
+    private func reportResultAndScheduleCleanup(result: Result<Void, Error>) {
+        if handler != nil {
+            // Only report back result after first request, and leave webview to finish up until removing from memory after 10 seconds
+            handler?(result)
+            handler = nil
+            
+            cleanupTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { timer in
+                self.webView?.stopLoading()
+                self.webView = nil
+            }
+        }
+    }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        handler?(.success(()))
-        handler = nil
-
-        self.webView?.stopLoading()
-        self.webView = nil
+        reportResultAndScheduleCleanup(result: .success(()))
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        handler?(.failure(error))
-        handler = nil
-
-        self.webView?.stopLoading()
-        self.webView = nil
+        reportResultAndScheduleCleanup(result: .failure(error))
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        handler?(.failure(error))
-        handler = nil
-
-        self.webView?.stopLoading()
-        self.webView = nil
+        reportResultAndScheduleCleanup(result: .failure(error))
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
