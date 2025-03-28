@@ -189,10 +189,10 @@ struct SwedbankPayAPIEndpointRouter: EndpointRouterProtocol {
 }
 
 extension SwedbankPayAPIEndpointRouter {
-    func makeRequest(handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
-        let requestStartTimestamp: Date = Date()
+    func makeRequest(automaticRetry: Bool = true, handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
+        let requestStartTimestamp = Date()
 
-        requestWithDataResponse(requestStartTimestamp: requestStartTimestamp) { result in
+        requestWithDataResponse(requestStartTimestamp: requestStartTimestamp, automaticRetry: automaticRetry) { result in
             switch result {
             case .success(let data):
                 do {
@@ -220,7 +220,7 @@ extension SwedbankPayAPIEndpointRouter {
         return decodedData
     }
 
-    private func requestWithDataResponse(requestStartTimestamp: Date, handler: @escaping (Result<Data, Error>) -> Void) {
+    private func requestWithDataResponse(requestStartTimestamp: Date, automaticRetry: Bool = true, handler: @escaping (Result<Data, Error>) -> Void) {
         guard let href = endpoint.href,
               var components = URLComponents(string: href) else {
             handler(.failure(SwedbankPayAPIError.invalidUrl))
@@ -266,7 +266,11 @@ extension SwedbankPayAPIEndpointRouter {
                                                         values: values))
 
             guard let response = response as? HTTPURLResponse, !(500...599 ~= response.statusCode) else {
-                handleServerError(error ?? SwedbankPayAPIError.unknown, requestStartTimestamp: requestStartTimestamp, handler: handler)
+                if automaticRetry {
+                    handleServerErrorOrRetry(error ?? SwedbankPayAPIError.unknown, requestStartTimestamp: requestStartTimestamp, handler: handler)
+                } else {
+                    handler(.failure(error ?? SwedbankPayAPIError.unknown))
+                }
                 return
             }
             
@@ -289,7 +293,7 @@ extension SwedbankPayAPIEndpointRouter {
         }.resume()
     }
     
-    private func handleServerError(_ error: Error, requestStartTimestamp: Date, handler: @escaping (Result<Data, Error>) -> Void) {
+    private func handleServerErrorOrRetry(_ error: Error, requestStartTimestamp: Date, handler: @escaping (Result<Data, Error>) -> Void) {
         guard Date().timeIntervalSince(requestStartTimestamp) < requestTimeoutInterval &&
                 Date().timeIntervalSince(sessionStartTimestamp) < sessionTimeoutInterval else {
             handler(.failure(error))
@@ -297,7 +301,7 @@ extension SwedbankPayAPIEndpointRouter {
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            let requestStartTimestamp: Date = Date()
+            let requestStartTimestamp = Date()
             requestWithDataResponse(requestStartTimestamp: requestStartTimestamp, handler: handler)
         }
     }
