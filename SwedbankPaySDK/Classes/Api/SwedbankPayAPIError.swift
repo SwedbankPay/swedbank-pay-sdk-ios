@@ -17,6 +17,7 @@ import Foundation
 
 enum SwedbankPayAPIError: Error {
     case invalidUrl
+    case abortPaymentNotAllowed
     case unknown
 }
 
@@ -25,8 +26,28 @@ extension SwedbankPayAPIError: LocalizedError {
         switch self {
         case .invalidUrl:
             return SwedbankPaySDKResources.localizedString(key: "swedbankpaysdk_native_invalid_url")
+        case .abortPaymentNotAllowed:
+            return SwedbankPaySDKResources.localizedString(key: "swedbankpaysdk_native_abort_payment_not_allowed")
         case .unknown:
             return SwedbankPaySDKResources.localizedString(key: "swedbankpaysdk_native_unknown")
+        }
+    }
+}
+
+extension SwedbankPayAPIError {
+    struct ErrorObject: Decodable {
+        let type: String
+        let status: Int
+        let title: String?
+        let detail: String?
+        
+        var apiError: SwedbankPayAPIError {
+            switch type {
+            case "https://api.payex.com/psp/errordetail/paymentsessions/operationnotallowed":
+                return .abortPaymentNotAllowed
+            default:
+                return .unknown
+            }
         }
     }
 }

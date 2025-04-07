@@ -304,9 +304,9 @@ public extension SwedbankPaySDK {
                                                              values: nil))
         }
 
-        private func makeRequest(router: EnpointRouter?, operation: OperationOutputModel) {
-            SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation.href, method: operation.method),
-                                        sessionStartTimestamp: sessionStartTimestamp).makeRequest { result in
+        private func makeRequest(router: EndpointRouter?, operation: OperationOutputModel) {
+            SwedbankPayAPIEndpointRouter(endpoint: Endpoint(router: router, href: operation.href, method: operation.method),
+                                         sessionStartTimestamp: sessionStartTimestamp).makeRequest { result in
                 switch result {
                 case .success(let success):
                     if let paymentOutputModel = success {
@@ -338,12 +338,8 @@ public extension SwedbankPaySDK {
                     }
                 case .failure(let failure):
                     DispatchQueue.main.async {
-                        let problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: failure,
-                                                                                                         retry: {
-                            self.sessionStartTimestamp = Date()
-                            self.makeRequest(router: router, operation: operation)
-                        })
-
+                        
+                        let problem = self.translateErrorToProblem(error: failure, router: router, operation: operation)
                         self.delegate?.sdkProblemOccurred(problem: problem)
 
                         let error = failure as NSError
@@ -357,6 +353,20 @@ public extension SwedbankPaySDK {
                     }
                 }
             }
+        }
+        
+        private func translateErrorToProblem(error: Error, router: EndpointRouter?, operation: OperationOutputModel) -> SwedbankPaySDK.PaymentSessionProblem {
+            let problem: SwedbankPaySDK.PaymentSessionProblem
+            switch error {
+            case SwedbankPayAPIError.abortPaymentNotAllowed where operation.rel == .abortPayment:
+                problem = SwedbankPaySDK.PaymentSessionProblem.abortPaymentNotAllowed
+            default:
+                problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: error, retry: {
+                    self.sessionStartTimestamp = Date()
+                    self.makeRequest(router: router, operation: operation)
+                })
+            }
+            return problem
         }
 
         private func launchClientApp(task: IntegrationTask, failPaymentAttemptOperation: OperationOutputModel) {

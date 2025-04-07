@@ -10,4 +10,5 @@
 "maybeStuckAlertRetry" = "Retry";
 
 "swedbankpaysdk_native_invalid_url" = "Invalid URL was provided.";
+"swedbankpaysdk_native_abort_payment_not_allowed" = "Abort payment currently not possible.";
 "swedbankpaysdk_native_unknown" = "Something went wrong.";
