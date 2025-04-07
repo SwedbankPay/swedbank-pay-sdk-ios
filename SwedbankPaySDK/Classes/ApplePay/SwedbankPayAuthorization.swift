@@ -104,9 +104,9 @@ extension SwedbankPayAuthorization: PKPaymentAuthorizationControllerDelegate {
         
         let paymentPayload = payment.token.paymentData.base64EncodedString()
 
-        let router = EnpointRouter.attemptPayload(paymentPayload: paymentPayload)
+        let router = EndpointRouter.attemptPayload(paymentPayload: paymentPayload)
 
-        SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation.href, method: operation.method),
+        SwedbankPayAPIEndpointRouter(endpoint: Endpoint(router: router, href: operation.href, method: operation.method),
                                     sessionStartTimestamp: Date()).makeRequest { result in
             let status: PKPaymentAuthorizationStatus
             let errors: [Error]
