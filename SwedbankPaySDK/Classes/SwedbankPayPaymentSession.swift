@@ -319,7 +319,7 @@ public extension SwedbankPaySDK {
                 switch result {
                 case .success(let success):
                     if let paymentOutputModel = success {
-                        if self.automaticConfiguration, router == nil {
+                        if self.automaticConfiguration, operation.rel == .getPayment {
                             guard let urls = paymentOutputModel.paymentSession.urls, urls.completeUrl != nil, urls.hostUrls != nil else {
                                 self.delegate?.sdkProblemOccurred(problem: .automaticConfigurationFailed)
 
