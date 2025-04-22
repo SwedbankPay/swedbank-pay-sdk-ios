@@ -147,10 +147,17 @@ struct SwedbankPayAPIEndpointRouter: EndpointRouterProtocol {
     }
     
     private func browser() -> [String: Any?] {
-        ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-         "languageHeader": Locale.current.identifier.replacingOccurrences(of: "_", with: "-"),
-         "timeZoneOffset": TimeZone.current.minutesFromGMT(),
-         "javascriptEnabled": true]
+        var browser: [String: Any?] = ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                       "timeZoneOffset": TimeZone.current.minutesFromGMT(),
+                                       "javascriptEnabled": true]
+        
+        if #available(iOS 16, *) {
+            browser["language"] = Locale.current.identifier(.bcp47)
+        } else {
+            browser["language"] = Locale.preferredLanguages[0]
+        }
+        
+        return browser
     }
 
     var requestTimeoutInterval: TimeInterval {
