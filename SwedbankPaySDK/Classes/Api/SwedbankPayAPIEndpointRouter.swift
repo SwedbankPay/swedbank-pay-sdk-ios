@@ -130,8 +130,7 @@ struct SwedbankPayAPIEndpointRouter: EndpointRouterProtocol {
     }
     
     private func client(withScreenInformation: Bool = false, withClientType: Bool = false) -> [String: Any?] {
-        var client = ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
-                      "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""]
+        var client = ["userAgent": SwedbankPaySDK.VersionReporter.userAgent]
         
         if withScreenInformation {
             client["screenHeight"] = String(Int32(UIScreen.main.nativeBounds.height))
