@@ -70,7 +70,13 @@ public extension SwedbankPaySDK {
 
         /// A delegate to receive callbacks as the native payment changes.
         public weak var delegate: SwedbankPaySDKPaymentSessionDelegate?
+        
+        /// Styling for the payment menu
+        ///
+        /// Styling the payment menu requires a separate agreement with Swedbank Pay.
+        public var paymentMenuStyle: [String: Any]?
 
+        private var initialSessionURL: URL? = nil
         private var ongoingModel: PaymentOutputModel? = nil
         private var sessionIsOngoing: Bool = false
         private var paymentViewSessionIsOngoing: Bool = false
@@ -113,6 +119,7 @@ public extension SwedbankPaySDK {
         /// - parameter with sessionURL: Session URL needed to start the native payment session
         public func fetchPaymentSession(sessionURL: URL) {
             sessionIsOngoing = true
+            initialSessionURL = sessionURL
             paymentViewSessionIsOngoing = false
             instrument = nil
             sdkControllerMode = nil
@@ -129,7 +136,7 @@ public extension SwedbankPaySDK {
                 orderInfo = nil
             }
 
-            let model = OperationOutputModel(rel: nil,
+            let model = OperationOutputModel(rel: .getPayment,
                                              href: sessionURL.absoluteString,
                                              method: "GET",
                                              next: nil,
@@ -137,7 +144,7 @@ public extension SwedbankPaySDK {
                                              expects: nil)
 
             sessionStartTimestamp = Date()
-            makeRequest(router: nil, operation: model)
+            makeRequest(router: .getPayment, operation: model)
 
             BeaconService.shared.clear()
             BeaconService.shared.log(type: .sdkMethodInvoked(name: "startPaymentSession",
@@ -273,6 +280,7 @@ public extension SwedbankPaySDK {
 
             paymentViewSessionIsOngoing = true
 
+            viewController.paymentMenuStyle = paymentMenuStyle
             viewController.internalDelegate = self
 
             delegate?.showSwedbankPaySDKController(viewController: viewController)
@@ -304,13 +312,14 @@ public extension SwedbankPaySDK {
                                                              values: nil))
         }
 
-        private func makeRequest(router: EnpointRouter?, operation: OperationOutputModel) {
-            SwedbankPayAPIEnpointRouter(endpoint: Endpoint(router: router, href: operation.href, method: operation.method),
-                                        sessionStartTimestamp: sessionStartTimestamp).makeRequest { result in
+        private func makeRequest(router: EndpointRouter?, originalRouter: EndpointRouter? = nil, operation: OperationOutputModel, originalOperation: OperationOutputModel? = nil) {
+            // Only attempt to automatically retry this request if no originalOperation is provided (meaning it's not a recovery attempt)
+            SwedbankPayAPIEndpointRouter(endpoint: Endpoint(router: router, href: operation.href, method: operation.method),
+                                         sessionStartTimestamp: sessionStartTimestamp).makeRequest(automaticRetry: (originalOperation == nil && originalRouter == nil)) { result in
                 switch result {
                 case .success(let success):
                     if let paymentOutputModel = success {
-                        if self.automaticConfiguration, router == nil {
+                        if self.automaticConfiguration, operation.rel == .getPayment {
                             guard let urls = paymentOutputModel.paymentSession.urls, urls.completeUrl != nil, urls.hostUrls != nil else {
                                 self.delegate?.sdkProblemOccurred(problem: .automaticConfigurationFailed)
 
@@ -338,25 +347,52 @@ public extension SwedbankPaySDK {
                     }
                 case .failure(let failure):
                     DispatchQueue.main.async {
-                        let problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: failure,
-                                                                                                         retry: {
-                            self.sessionStartTimestamp = Date()
-                            self.makeRequest(router: router, operation: operation)
-                        })
+                        
+                        if let problem = self.translateErrorToProblemOrMakeRecoveryAttempt(error: failure, router: router, originalRouter: originalRouter, operation: operation, originalOperation: originalOperation) {
+                            self.delegate?.sdkProblemOccurred(problem: problem)
 
-                        self.delegate?.sdkProblemOccurred(problem: problem)
+                            let error = failure as NSError
 
-                        let error = failure as NSError
-
-                        BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
-                                                                           succeeded: self.delegate != nil,
-                                                                           values: ["problem": problem.rawValue,
-                                                                                    "errorDescription": error.localizedDescription,
-                                                                                    "errorCode": String(error.code),
-                                                                                    "errorDomain": error.domain]))
+                            BeaconService.shared.log(type: .sdkCallbackInvoked(name: "sdkProblemOccurred",
+                                                                               succeeded: self.delegate != nil,
+                                                                               values: ["problem": problem.rawValue,
+                                                                                        "errorDescription": error.localizedDescription,
+                                                                                        "errorCode": String(error.code),
+                                                                                        "errorDomain": error.domain]))
+                        }
                     }
                 }
             }
+        }
+        
+        private func translateErrorToProblemOrMakeRecoveryAttempt(error: Error, router: EndpointRouter?, originalRouter: EndpointRouter? = nil, operation: OperationOutputModel, originalOperation: OperationOutputModel? = nil) -> SwedbankPaySDK.PaymentSessionProblem? {
+            let problem: SwedbankPaySDK.PaymentSessionProblem?
+            
+            switch (error, initialSessionURL) {
+            case (SwedbankPayAPIError.operationNotAllowed, _) where operation.rel == .abortPayment:
+                problem = SwedbankPaySDK.PaymentSessionProblem.abortPaymentNotAllowed
+            case let (SwedbankPayAPIError.operationNotAllowed, sessionURL?) where operation.rel != .getPayment,
+                let (SwedbankPayAPIError.genericOperationError, sessionURL?) where operation.rel != .getPayment:
+                // If we're getting a 409 server error where Session API can't find or won't allow the operation, and it's not a result of a getPayment call, attempt a single getPayment call to recover
+                let getPaymentOperation = OperationOutputModel(rel: .getPayment,
+                                                               href: sessionURL.absoluteString,
+                                                               method: "GET",
+                                                               next: nil,
+                                                               tasks: nil,
+                                                               expects: nil)
+
+                self.sessionStartTimestamp = Date()
+                self.makeRequest(router: .getPayment, originalRouter: router, operation: getPaymentOperation, originalOperation: operation) // Provide the original operation here, to indicate to the call to not automatically retry
+                
+                // Do not return a problem, recovery attempt was started instead
+                problem = nil
+            default:
+                problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: error, retry: {
+                    self.sessionStartTimestamp = Date()
+                    self.makeRequest(router: originalRouter ?? router, operation: originalOperation ?? operation) // If this was a recovery attempt (originalRouter and originalOperation is set), the retry block should initiate the original outer and operation instead of the recovery getPayment call
+                })
+            }
+            return problem
         }
 
         private func launchClientApp(task: IntegrationTask, failPaymentAttemptOperation: OperationOutputModel) {
@@ -652,6 +688,7 @@ public extension SwedbankPaySDK {
                     }
                 }
                 sessionIsOngoing = false
+                initialSessionURL = nil
                 hasLaunchClientAppURLs = []
                 hasShownProblemDetails = []
                 scaMethodRequestDataPerformed = []

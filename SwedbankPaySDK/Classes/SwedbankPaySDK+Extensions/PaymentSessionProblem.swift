@@ -24,6 +24,7 @@ public extension SwedbankPaySDK {
         case paymentSession3DSecureViewControllerLoadFailed(error: Error, retry: (()->Void)?)
         case internalInconsistencyError
         case automaticConfigurationFailed
+        case abortPaymentNotAllowed
 
         var rawValue: String {
             switch self {
@@ -33,6 +34,7 @@ public extension SwedbankPaySDK {
             case .paymentSession3DSecureViewControllerLoadFailed:   "paymentSession3DSecureViewControllerLoadFailed"
             case .internalInconsistencyError:                       "internalInconsistencyError"
             case .automaticConfigurationFailed:                     "automaticConfigurationFailed"
+            case .abortPaymentNotAllowed:                           "abortPaymentNotAllowed"
             }
         }
     }

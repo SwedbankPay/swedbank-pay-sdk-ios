@@ -30,4 +30,5 @@
 "swedbankpaysdk_problem_unknown" = "Oväntat fel.";
 
 "swedbankpaysdk_native_invalid_url" = "Ogiltig URL har angetts.";
+"swedbankpaysdk_native_abort_payment_not_allowed" = "Betalningen går ej att avbryta.";
 "swedbankpaysdk_native_unknown" = "Oväntat fel.";

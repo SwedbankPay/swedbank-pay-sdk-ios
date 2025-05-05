@@ -26,6 +26,7 @@ struct BeaconEndpointRouter: BeaconEndpointRouterProtocol {
 
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.calendar = Calendar(identifier: .iso8601)
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
         return formatter
@@ -35,7 +36,6 @@ struct BeaconEndpointRouter: BeaconEndpointRouterProtocol {
     var body: [String: Any?]? {
         var body: [String: Any?] = ["type": "ClientEvent",
                                     "client": ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
-                                               "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? "",
                                                "screenHeight": String(Int32(UIScreen.main.nativeBounds.height)),
                                                "screenWidth": String(Int32(UIScreen.main.nativeBounds.width)),
                                                "screenColorDepth": String(24)],

@@ -17,7 +17,7 @@ import Foundation
 import UIKit
 
 struct Endpoint {
-    let router: EnpointRouter?
+    let router: EndpointRouter?
     let href: String?
     let method: String?
 }
@@ -28,7 +28,7 @@ enum FailPaymentAttemptProblemType: String {
     case clientAppLaunchFailed = "ClientAppLaunchFailed"
 }
 
-enum EnpointRouter {
+enum EndpointRouter {
     case expandMethod(instrument: SwedbankPaySDK.PaymentAttemptInstrument)
     case startPaymentAttempt(instrument: SwedbankPaySDK.PaymentAttemptInstrument, culture: String?)
     case createAuthentication(methodCompletionIndicator: String, notificationUrl: String)
@@ -48,7 +48,7 @@ protocol EndpointRouterProtocol {
     var sessionTimeoutInterval: TimeInterval { get }
 }
 
-struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
+struct SwedbankPayAPIEndpointRouter: EndpointRouterProtocol {
     let endpoint: Endpoint
     let sessionStartTimestamp: Date
 
@@ -130,8 +130,7 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     }
     
     private func client(withScreenInformation: Bool = false, withClientType: Bool = false) -> [String: Any?] {
-        var client = ["userAgent": SwedbankPaySDK.VersionReporter.userAgent,
-                      "ipAddress": NetworkStatusProvider.getAddress(for: .wifi) ?? NetworkStatusProvider.getAddress(for: .cellular) ?? ""]
+        var client = ["userAgent": SwedbankPaySDK.VersionReporter.userAgent]
         
         if withScreenInformation {
             client["screenHeight"] = String(Int32(UIScreen.main.nativeBounds.height))
@@ -147,10 +146,17 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     }
     
     private func browser() -> [String: Any?] {
-        ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-         "languageHeader": Locale.current.identifier.replacingOccurrences(of: "_", with: "-"),
-         "timeZoneOffset": TimeZone.current.minutesFromGMT(),
-         "javascriptEnabled": true]
+        var browser: [String: Any?] = ["acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                       "timeZoneOffset": TimeZone.current.minutesFromGMT(),
+                                       "javascriptEnabled": true]
+        
+        if #available(iOS 16, *) {
+            browser["language"] = Locale.current.identifier(.bcp47)
+        } else {
+            browser["language"] = Locale.preferredLanguages[0]
+        }
+        
+        return browser
     }
 
     var requestTimeoutInterval: TimeInterval {
@@ -188,11 +194,11 @@ struct SwedbankPayAPIEnpointRouter: EndpointRouterProtocol {
     }
 }
 
-extension SwedbankPayAPIEnpointRouter {
-    func makeRequest(handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
-        let requestStartTimestamp: Date = Date()
+extension SwedbankPayAPIEndpointRouter {
+    func makeRequest(automaticRetry: Bool = true, handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
+        let requestStartTimestamp = Date()
 
-        requestWithDataResponse(requestStartTimestamp: requestStartTimestamp) { result in
+        requestWithDataResponse(requestStartTimestamp: requestStartTimestamp, automaticRetry: automaticRetry) { result in
             switch result {
             case .success(let data):
                 do {
@@ -220,7 +226,7 @@ extension SwedbankPayAPIEnpointRouter {
         return decodedData
     }
 
-    private func requestWithDataResponse(requestStartTimestamp: Date, handler: @escaping (Result<Data, Error>) -> Void) {
+    private func requestWithDataResponse(requestStartTimestamp: Date, automaticRetry: Bool = true, handler: @escaping (Result<Data, Error>) -> Void) {
         guard let href = endpoint.href,
               var components = URLComponents(string: href) else {
             handler(.failure(SwedbankPayAPIError.invalidUrl))
@@ -266,28 +272,43 @@ extension SwedbankPayAPIEnpointRouter {
                                                         values: values))
 
             guard let response = response as? HTTPURLResponse, !(500...599 ~= response.statusCode) else {
-                guard Date().timeIntervalSince(requestStartTimestamp) < requestTimeoutInterval &&
-                        Date().timeIntervalSince(sessionStartTimestamp) < sessionTimeoutInterval else {
+                if automaticRetry {
+                    handleServerErrorOrRetry(error ?? SwedbankPayAPIError.unknown, requestStartTimestamp: requestStartTimestamp, handler: handler)
+                } else {
                     handler(.failure(error ?? SwedbankPayAPIError.unknown))
-                    return
                 }
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    let requestStartTimestamp: Date = Date()
-
-                    requestWithDataResponse(requestStartTimestamp: requestStartTimestamp, handler: handler)
-                }
-
                 return
             }
-
-            guard let data, 200...204 ~= response.statusCode else {
+            
+            guard let data else {
                 handler(.failure(error ?? SwedbankPayAPIError.unknown))
-
                 return
             }
-
-            handler(.success(data))
+            
+            switch response.statusCode {
+            case 200...204:
+                handler(.success(data))
+            default:
+                do {
+                    let errorObject = try JSONDecoder().decode(SwedbankPayAPIError.ErrorObject.self, from: data)
+                    handler(.failure(errorObject.apiError))
+                } catch {
+                    handler(.failure(SwedbankPayAPIError.unknown))
+                }
+            }
         }.resume()
+    }
+    
+    private func handleServerErrorOrRetry(_ error: Error, requestStartTimestamp: Date, handler: @escaping (Result<Data, Error>) -> Void) {
+        guard Date().timeIntervalSince(requestStartTimestamp) < requestTimeoutInterval &&
+                Date().timeIntervalSince(sessionStartTimestamp) < sessionTimeoutInterval else {
+            handler(.failure(error))
+            return
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            let requestStartTimestamp = Date()
+            requestWithDataResponse(requestStartTimestamp: requestStartTimestamp, handler: handler)
+        }
     }
 }
