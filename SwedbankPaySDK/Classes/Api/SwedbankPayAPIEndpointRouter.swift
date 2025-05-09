@@ -196,9 +196,7 @@ struct SwedbankPayAPIEndpointRouter: EndpointRouterProtocol {
 
 extension SwedbankPayAPIEndpointRouter {
     func makeRequest(automaticRetry: Bool = true, handler: @escaping (Result<PaymentOutputModel?, Error>) -> Void) {
-        let requestStartTimestamp = Date()
-
-        requestWithDataResponse(requestStartTimestamp: requestStartTimestamp, automaticRetry: automaticRetry) { result in
+        requestWithDataResponse(automaticRetry: automaticRetry) { result in
             switch result {
             case .success(let data):
                 do {
@@ -226,7 +224,7 @@ extension SwedbankPayAPIEndpointRouter {
         return decodedData
     }
 
-    private func requestWithDataResponse(requestStartTimestamp: Date, automaticRetry: Bool = true, handler: @escaping (Result<Data, Error>) -> Void) {
+    private func requestWithDataResponse(automaticRetry: Bool = true, handler: @escaping (Result<Data, Error>) -> Void) {
         guard let href = endpoint.href,
               var components = URLComponents(string: href) else {
             handler(.failure(SwedbankPayAPIError.invalidUrl))
@@ -251,6 +249,8 @@ extension SwedbankPayAPIEndpointRouter {
             request.httpBody = jsonData
         }
 
+        let requestStartTimestamp = Date()
+
         URLSession.shared.dataTask(with: request) { data, response, error in
 
             var responseStatusCode: Int?
@@ -273,7 +273,7 @@ extension SwedbankPayAPIEndpointRouter {
 
             guard let response = response as? HTTPURLResponse, !(500...599 ~= response.statusCode) else {
                 if automaticRetry {
-                    handleServerErrorOrRetry(error ?? SwedbankPayAPIError.unknown, requestStartTimestamp: requestStartTimestamp, handler: handler)
+                    handleServerErrorOrRetry(error ?? SwedbankPayAPIError.unknown, handler: handler)
                 } else {
                     handler(.failure(error ?? SwedbankPayAPIError.unknown))
                 }
@@ -299,16 +299,14 @@ extension SwedbankPayAPIEndpointRouter {
         }.resume()
     }
     
-    private func handleServerErrorOrRetry(_ error: Error, requestStartTimestamp: Date, handler: @escaping (Result<Data, Error>) -> Void) {
-        guard Date().timeIntervalSince(requestStartTimestamp) < requestTimeoutInterval &&
-                Date().timeIntervalSince(sessionStartTimestamp) < sessionTimeoutInterval else {
+    private func handleServerErrorOrRetry(_ error: Error, handler: @escaping (Result<Data, Error>) -> Void) {
+        guard Date().timeIntervalSince(sessionStartTimestamp) < sessionTimeoutInterval else {
             handler(.failure(error))
             return
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            let requestStartTimestamp = Date()
-            requestWithDataResponse(requestStartTimestamp: requestStartTimestamp, handler: handler)
+            requestWithDataResponse(handler: handler)
         }
     }
 }
