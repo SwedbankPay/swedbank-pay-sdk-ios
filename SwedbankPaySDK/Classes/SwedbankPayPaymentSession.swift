@@ -92,8 +92,6 @@ public extension SwedbankPaySDK {
         private var notificationUrl: String? = nil
         private var applePayAuthorization: SwedbankPayAuthorization?
 
-        private var sessionStartTimestamp = Date()
-
         private var webViewService = SCAWebViewService()
         private lazy var webViewController = SwedbankPaySCAWebViewController()
 
@@ -143,7 +141,6 @@ public extension SwedbankPaySDK {
                                              tasks: nil,
                                              expects: nil)
 
-            sessionStartTimestamp = Date()
             makeRequest(router: .getPayment, operation: model)
 
             BeaconService.shared.clear()
@@ -271,18 +268,15 @@ public extension SwedbankPaySDK {
                 cancelUrl: orderInfo.cancelUrl,
                 paymentUrl: orderInfo.paymentUrl)
 
-            let viewController = SwedbankPaySDKController(
-                configuration: configuration,
-                withCheckin: false,
-                consumer: nil,
-                paymentOrder: nil,
-                userData: nil)
-
-            paymentViewSessionIsOngoing = true
-
+            SwedbankPaySDKController.defaultConfiguration = configuration
+            
+            let viewController = SwedbankPaySDKController()
             viewController.paymentMenuStyle = paymentMenuStyle
             viewController.internalDelegate = self
+            
+            paymentViewSessionIsOngoing = true
 
+            viewController.startPayment(paymentOrder: nil, userData: nil)
             delegate?.showSwedbankPaySDKController(viewController: viewController)
         }
 
@@ -302,7 +296,6 @@ public extension SwedbankPaySDK {
 
             var succeeded = false
             if let operation = ongoingModel.operations?.firstOperation(withRel: .abortPayment) {
-                sessionStartTimestamp = Date()
                 makeRequest(router: .abortPayment, operation: operation)
                 succeeded = true
             }
@@ -315,7 +308,7 @@ public extension SwedbankPaySDK {
         private func makeRequest(router: EndpointRouter?, originalRouter: EndpointRouter? = nil, operation: OperationOutputModel, originalOperation: OperationOutputModel? = nil) {
             // Only attempt to automatically retry this request if no originalOperation is provided (meaning it's not a recovery attempt)
             SwedbankPayAPIEndpointRouter(endpoint: Endpoint(router: router, href: operation.href, method: operation.method),
-                                         sessionStartTimestamp: sessionStartTimestamp).makeRequest(automaticRetry: (originalOperation == nil && originalRouter == nil)) { result in
+                                         sessionStartTimestamp: Date()).makeRequest(automaticRetry: (originalOperation == nil && originalRouter == nil)) { result in
                 switch result {
                 case .success(let success):
                     if let paymentOutputModel = success {
@@ -381,14 +374,12 @@ public extension SwedbankPaySDK {
                                                                tasks: nil,
                                                                expects: nil)
 
-                self.sessionStartTimestamp = Date()
                 self.makeRequest(router: .getPayment, originalRouter: router, operation: getPaymentOperation, originalOperation: operation) // Provide the original operation here, to indicate to the call to not automatically retry
                 
                 // Do not return a problem, recovery attempt was started instead
                 problem = nil
             default:
                 problem = SwedbankPaySDK.PaymentSessionProblem.paymentSessionAPIRequestFailed(error: error, retry: {
-                    self.sessionStartTimestamp = Date()
                     self.makeRequest(router: originalRouter ?? router, operation: originalOperation ?? operation) // If this was a recovery attempt (originalRouter and originalOperation is set), the retry block should initiate the original outer and operation instead of the recovery getPayment call
                 })
             }
@@ -703,8 +694,6 @@ public extension SwedbankPaySDK {
                 .first(where: { $0.rel == .expandMethod || $0.rel == .startPaymentAttempt || $0.rel == .getPayment }) {
                 // We have a method matching the set instrument, and it has one of the three supported method operations (expandMethod, startPaymentAttempt or getPayment)
 
-                sessionStartTimestamp = Date()
-
                 switch operation.rel {
                 case .expandMethod:
                     // The current instrument has an expandMethod operation, run that to move to the next step of the process (startPaymentAttempt)
@@ -728,7 +717,6 @@ public extension SwedbankPaySDK {
                 // We're told to simply fetch the session again, wait until polling and fetch the session, running the session operation handling once again
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    self.sessionStartTimestamp = Date()
                     self.makeRequest(router: .getPayment, operation: getPayment)
                 }
             } else if hasShownAvailableInstruments == false {
@@ -786,7 +774,6 @@ public extension SwedbankPaySDK {
 
             if let ongoingModel = ongoingModel {
                 if let operation = ongoingModel.paymentSession.allMethodOperations.firstOperation(withRel: .getPayment) {
-                    sessionStartTimestamp = Date()
                     makeRequest(router: .getPayment, operation: operation)
                 }
             }
