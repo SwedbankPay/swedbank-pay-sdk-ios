@@ -22,10 +22,8 @@ let package = Package(
     platforms: [.iOS(.v10)],
     products: [
         .library(name: "SwedbankPaySDK", targets: ["SwedbankPaySDK"]),
-        .library(name: "SwedbankPaySDKMerchantBackend", targets: ["SwedbankPaySDKMerchantBackend"])
     ],
     dependencies: [
-        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.5.0")),
         .package(url: "https://github.com/apple/swift-docc-plugin", .upToNextMajor(from: "1.0.0")),
     ],
     targets: [
@@ -35,16 +33,6 @@ let package = Package(
             exclude: ["Info.plist"],
             resources: [.copy("Resources/good_redirects")],
             swiftSettings: [.define("SWIFT_PACKAGE_MANAGER")]
-        ),
-        
-        .target(
-            name: "SwedbankPaySDKMerchantBackend",
-            dependencies: [
-                .target(name: "SwedbankPaySDK"),
-                .product(name: "Alamofire", package: "Alamofire")
-            ],
-            path: "SwedbankPaySDKMerchantBackend",
-            exclude: ["Info.plist"]
         )
     ],
     swiftLanguageVersions: [.v5]

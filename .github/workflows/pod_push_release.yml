@@ -18,13 +18,7 @@ jobs:
         run: gem install cocoapods
       - name: Lint Core
         run: pod lib lint SwedbankPaySDK.podspec
-      - name: Lint MB
-        run: pod lib lint --include-podspecs=SwedbankPaySDK.podspec SwedbankPaySDKMerchantBackend.podspec
       - name: Push Core
         run: pod trunk push --synchronous SwedbankPaySDK.podspec
-        env:
-          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
-      - name: Push MB
-        run: pod trunk push --synchronous SwedbankPaySDKMerchantBackend.podspec
         env:
           COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
